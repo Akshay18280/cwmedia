@@ -2,31 +2,25 @@ import React from 'react';
 
 export default function About() {
   const skills = [
-    { category: "Languages", items: ["Go", "TypeScript", "Python", "Java"] },
-    { category: "Frontend", items: ["React", "Next.js", "Tailwind CSS", "Redux"] },
+    { category: "Languages", items: ["Go", "Python"] },
+    { category: "Frontend", items: ["React", "Tailwind CSS"] },
     { category: "Backend", items: ["Node.js", "Express", "Django", "Spring Boot"] },
-    { category: "Cloud & DevOps", items: ["AWS", "Docker", "Kubernetes", "CI/CD"] },
-    { category: "Databases", items: ["PostgreSQL", "MongoDB", "Redis", "Elasticsearch"] }
+    { category: "Cloud & DevOps", items: ["AWS", "Docker", "Azure DevOps", "Kubernetes", "CI/CD"] },
+    { category: "Databases", items: ["PostgreSQL", "Redis", "Elasticsearch"] }
   ];
 
   const experience = [
     {
-      company: "Tech Innovators Inc.",
-      position: "Senior Software Engineer",
-      period: "2021 - Present",
-      description: "Leading the development of cloud-native applications and microservices architecture."
+      company: "CSG International",
+      position: "Software Developer",
+      period: "2022 - Present",
+      description: "Proficient in production support, E2E testing, and DevOps activities. Used Grafana, CloudWatch AWS service to\n  monitor and debug. Introduced Alarms.\n• Automated manual operations which increased team capacity. Such as Automated IAM access key rotations,\n Automated Sanity(E2E), Daily CloudWatch log scans & Automated Deployments, Development account resource\n cleanup.\n• Enhanced Logic for search events, rate, revoke & reprocess using metadata as per the client requirements.\nEnhanced Error logging scenarios.\n• Contributed and mentored new engineers & Interns in the team, providing guidance and assigning tasks. Reviewed\nPR’s and provided valuable feedbacks.\n• Monitored, and traced the resources which are the reason in increasing cost, Developed Multi BU Infrastructure\nwhich helped in cutting down the cost by more than 50%."
     },
     {
       company: "Digital Solutions Ltd.",
-      position: "Full Stack Developer",
+      position: "Software Developer Intern",
       period: "2019 - 2021",
-      description: "Developed and maintained enterprise-level web applications using React and Node.js."
-    },
-    {
-      company: "Cloud Systems Corp.",
-      position: "DevOps Engineer",
-      period: "2017 - 2019",
-      description: "Implemented CI/CD pipelines and managed cloud infrastructure on AWS."
+      description: "• Executed feature implementations and resolved bugs, contributing to product enhancements.\n• Designed and developed scalable microservices to handle high-volume events effectively."
     }
   ];
 
@@ -35,7 +29,7 @@ export default function About() {
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-gray-900 dark:text-white">About Akshay</h1>
         <p className="mt-4 text-xl text-gray-600 dark:text-gray-400">
-          Senior Software Engineer & Cloud Architect
+          Software Developer
         </p>
       </div>
 
@@ -50,8 +44,8 @@ export default function About() {
         <div className="lg:col-span-2">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Professional Summary</h2>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            A passionate software engineer with over 7 years of experience in full-stack development,
-            cloud architecture, and DevOps. Specialized in building scalable microservices and
+            A passionate software developer with over 3 years of experience in GoLang,
+            AWS, Terraform and DevOps. Specialized in building scalable microservices and
             cloud-native applications. Currently focused on Go, React, and AWS technologies.
           </p>
           
@@ -59,20 +53,20 @@ export default function About() {
             <div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">Education</h3>
               <div className="text-gray-600 dark:text-gray-400">
-                <p className="font-medium">Master of Computer Science</p>
-                <p>Technical University</p>
-                <p className="text-sm">2015 - 2017</p>
+                <p className="font-medium">B.Tech in Computer Science</p>
+                <p>SVVV University</p>
+                <p className="text-sm">2018 - 2022</p>
               </div>
             </div>
             <div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">Contact</h3>
               <div className="text-gray-600 dark:text-gray-400">
-                <p>contact@carelwavemedia.com</p>
+                <p>akshayvermajan28@gmail.com</p>
                 <div className="flex space-x-4 mt-2">
-                  <a href="https://github.com/akshaymedia" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-500">
+                  <a href="https://github.com/Akshay18280" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-500">
                     GitHub
                   </a>
-                  <a href="https://linkedin.com/in/akshaymedia" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-500">
+                  <a href="https://www.linkedin.com/in/akshay-verma-024aa0152/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-500">
                     LinkedIn
                   </a>
                 </div>
