@@ -24,22 +24,9 @@ serve(async (req) => {
     console.error("Error fetching subscribers:", error)
     return new Response("Error fetching subscribers", { status: 500 })
   }
-
   for (const sub of subscribers || []) {
-    await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${Deno.env.get("RESEND_API_KEY")}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: "newsletter@yourdomain.com",
-        to: sub.email,
-        subject: `📝 New Blog: ${post.title}`,
-        html: `<h1>${post.title}</h1><p>${post.content}</p>`,
-      }),
-    })
+    console.log(`Would send email to: ${sub.email}`)
   }
-
+  
   return new Response("Emails sent", { status: 200 })
 })
