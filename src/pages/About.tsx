@@ -10,18 +10,24 @@ export default function About() {
   ];
 
   const experience = [
-    {
-      company: "CSG International",
-      position: "Software Developer",
-      period: "2022 - Present",
-      description: "Proficient in production support, E2E testing, and DevOps activities. Used Grafana, CloudWatch AWS service to\n  monitor and debug. Introduced Alarms.\n• Automated manual operations which increased team capacity. Such as Automated IAM access key rotations,\n Automated Sanity(E2E), Daily CloudWatch log scans & Automated Deployments, Development account resource\n cleanup.\n• Enhanced Logic for search events, rate, revoke & reprocess using metadata as per the client requirements.\nEnhanced Error logging scenarios.\n• Contributed and mentored new engineers & Interns in the team, providing guidance and assigning tasks. Reviewed\nPR’s and provided valuable feedbacks.\n• Monitored, and traced the resources which are the reason in increasing cost, Developed Multi BU Infrastructure\nwhich helped in cutting down the cost by more than 50%."
-    },
-    {
-      company: "Digital Solutions Ltd.",
-      position: "Software Developer Intern",
-      period: "2019 - 2021",
-      description: "• Executed feature implementations and resolved bugs, contributing to product enhancements.\n• Designed and developed scalable microservices to handle high-volume events effectively."
-    }
+{
+  company: "CSG International",
+  position: "Software Developer",
+  period: "2022 - Present",
+  description: `• Led production support, end-to-end testing, and DevOps tasks across distributed microservices, leveraging AWS (CloudWatch, IAM) and observability tools like Grafana.
+• Implemented critical automation to reduce manual overhead, including IAM access key rotation, daily log analysis, automated sanity checks (E2E), CI/CD deployments, and dev resource cleanup.
+• Enhanced core logic for event search, rating, revocation, and reprocessing workflows to meet evolving client needs (CBTS, Claro Brazil, CBA, M1, etc.).
+• Improved error handling and logging for better traceability and faster issue resolution.
+• Mentored new engineers and interns by providing architectural guidance, assigning development tasks, and conducting in-depth PR reviews.
+• Built a multi-BU (business unit) infrastructure architecture that reduced AWS costs by over 50% through efficient resource allocation and usage tracing.`
+},
+{
+  company: "CSG International",
+  position: "Software Developer Intern",
+  period: "2021 - 2022",
+  description: `• Contributed to the development of scalable microservices to support high-volume event handling.
+• Delivered key features and bug fixes that enhanced platform stability and customer satisfaction.`
+}
   ];
 
   return (
@@ -36,17 +42,18 @@ export default function About() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
         <div className="lg:col-span-1">
           <img
-            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400"
-            alt="Profile"
-            className="rounded-lg shadow-lg w-full"
+            src="/me.jpeg"
+            alt="Akshay Verma"
+            className="rounded-full w-32 h-32 mx-auto shadow-lg border-4 border-white"
           />
         </div>
         <div className="lg:col-span-2">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Professional Summary</h2>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            A passionate software developer with over 3 years of experience in GoLang,
-            AWS, Terraform and DevOps. Specialized in building scalable microservices and
-            cloud-native applications. Currently focused on Go, React, and AWS technologies.
+            Passionate and results-driven Software Developer with 3+ years of experience specializing in Golang, AWS, Terraform, and DevOps.
+            Proven expertise in building scalable microservices and cloud-native solutions for high-performance environments.
+            Adept at automating infrastructure, optimizing cloud costs, and delivering end-to-end feature implementations.
+            Currently focused on Golang backend systems and the AWS ecosystem to drive innovation and engineering efficiency.
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
