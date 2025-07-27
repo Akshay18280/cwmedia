@@ -110,4 +110,29 @@ BEGIN
         )
       );
   END IF;
+
+  -- Add PUBLIC policies for newsletter subscriptions
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public to subscribe') THEN
+    CREATE POLICY "Allow public to subscribe"
+      ON newsletters
+      FOR INSERT
+      TO anon, authenticated
+      WITH CHECK (true);
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public to read newsletters') THEN
+    CREATE POLICY "Allow public to read newsletters"
+      ON newsletters
+      FOR SELECT
+      TO anon, authenticated
+      USING (true);
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public to update newsletters') THEN
+    CREATE POLICY "Allow public to update newsletters"
+      ON newsletters
+      FOR UPDATE
+      TO anon, authenticated
+      USING (true);
+  END IF;
 END $$;

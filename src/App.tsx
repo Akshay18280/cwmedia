@@ -8,6 +8,7 @@ import PostDetail from './pages/PostDetail';
 import AdminLogin from './components/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import Unsubscribe from './pages/Unsubscribe';
+import NotFound from './components/NotFound';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/unsubscribe" element={<Unsubscribe />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Layout>
     </Router>

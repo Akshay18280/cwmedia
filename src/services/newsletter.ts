@@ -71,7 +71,17 @@ export const newsletterService = {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // If it's a policy error, provide helpful message
+        if (error.message.includes('policy') || error.message.includes('RLS')) {
+          return { 
+            success: false, 
+            message: 'Newsletter subscription is temporarily unavailable. Please try again later or contact support.',
+            error: 'Database policy restriction'
+          };
+        }
+        throw error;
+      }
 
       // Send welcome email
       await this.sendWelcomeEmail(email);

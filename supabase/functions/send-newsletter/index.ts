@@ -1,7 +1,7 @@
 // supabase/functions/send-newsletter/index.ts
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+// import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -79,7 +79,7 @@ const generateWelcomeEmail = (email: string) => {
   }
 }
 
-const generateNewPostEmail = (subscribers: string[], post: any) => {
+const generateNewPostEmail = (subscribers: string[], post: { id: string; title: string; excerpt: string; published_at: string }) => {
   const emails = subscribers.map(email => ({
     to: email,
     subject: `New Article: ${post.title}`,
@@ -147,12 +147,12 @@ serve(async (req) => {
   try {
     const { type, email, subscribers, post } = await req.json() as EmailRequest
 
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    // Initialize Supabase client (currently unused but ready for production)
+    // const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    // const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    // const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    let emailsToSend: any[] = []
+    let emailsToSend: { to: string; subject: string; html: string }[] = []
 
     if (type === 'welcome' && email) {
       emailsToSend = [generateWelcomeEmail(email)]
