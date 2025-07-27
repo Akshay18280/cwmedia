@@ -7,6 +7,7 @@ import About from './pages/About';
 import PostDetail from './pages/PostDetail';
 import AdminLogin from './components/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import Unsubscribe from './pages/Unsubscribe';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/unsubscribe" element={<Unsubscribe />} />
         </Routes>
       </Layout>
     </Router>

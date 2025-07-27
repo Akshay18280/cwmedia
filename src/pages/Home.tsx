@@ -3,38 +3,41 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, BookOpen, Users, TrendingUp, Star, Coffee, Code, Zap } from 'lucide-react';
 import Newsletter from '../components/Newsletter';
 import { postsService } from '../services/posts';
+import { statsService } from '../services/stats';
 import type { Post } from '../types';
+import type { BlogStats } from '../services/stats';
 
 export default function Home() {
   const [featuredPosts, setFeaturedPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stats] = useState({
-    posts: 25,
-    readers: '10K+',
-    countries: 50,
-    uptime: '99.9%'
-  });
+  const [stats, setStats] = useState<BlogStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchFeaturedPosts = async () => {
+    const fetchData = async () => {
       try {
-        const posts = await postsService.getFeaturedPosts(3);
-        setFeaturedPosts(posts);
-      } catch (error) {
-        console.error('Error fetching featured posts:', error);
-        // If no featured posts, fetch latest posts as fallback
-        try {
-          const allPosts = await postsService.getAllPosts();
-          setFeaturedPosts(allPosts.slice(0, 3));
-        } catch (fallbackError) {
-          console.error('Error fetching posts:', fallbackError);
+        // Fetch both featured posts and stats in parallel
+        const [postsResult, statsResult] = await Promise.allSettled([
+          postsService.getFeaturedPosts(3).catch(() => postsService.getAllPosts().then(posts => posts.slice(0, 3))),
+          statsService.getRealTimeStats()
+        ]);
+
+        if (postsResult.status === 'fulfilled') {
+          setFeaturedPosts(postsResult.value);
         }
+
+        if (statsResult.status === 'fulfilled') {
+          setStats(statsResult.value);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
+        setStatsLoading(false);
       }
     };
 
-    fetchFeaturedPosts();
+    fetchData();
   }, []);
 
   const highlights = [
@@ -106,25 +109,41 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="text-3xl md:text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                {stats.posts}+
+                {statsLoading ? (
+                  <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-10 w-16 mx-auto rounded"></div>
+                ) : (
+                  `${stats?.totalPosts || 0}+`
+                )}
               </div>
               <div className="text-gray-600 dark:text-gray-400 font-medium">Articles Published</div>
             </div>
             <div className="text-center">
               <div className="text-3xl md:text-4xl font-bold text-green-600 dark:text-green-400 mb-2">
-                {stats.readers}
+                {statsLoading ? (
+                  <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-10 w-16 mx-auto rounded"></div>
+                ) : (
+                  statsService.formatNumber(stats?.monthlyViews || 0)
+                )}
               </div>
               <div className="text-gray-600 dark:text-gray-400 font-medium">Monthly Readers</div>
             </div>
             <div className="text-center">
               <div className="text-3xl md:text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">
-                {stats.countries}+
+                {statsLoading ? (
+                  <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-10 w-16 mx-auto rounded"></div>
+                ) : (
+                  `${stats?.countriesReached || 1}+`
+                )}
               </div>
               <div className="text-gray-600 dark:text-gray-400 font-medium">Countries Reached</div>
             </div>
             <div className="text-center">
               <div className="text-3xl md:text-4xl font-bold text-orange-600 dark:text-orange-400 mb-2">
-                {stats.uptime}
+                {statsLoading ? (
+                  <div className="animate-pulse bg-gray-200 dark:bg-gray-700 h-10 w-16 mx-auto rounded"></div>
+                ) : (
+                  statsService.formatUptime(stats?.systemUptime || 99.9)
+                )}
               </div>
               <div className="text-gray-600 dark:text-gray-400 font-medium">System Uptime</div>
             </div>
