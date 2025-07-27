@@ -1,228 +1,177 @@
 import React, { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Mail, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { Mail, Check, X, Bell, Shield, Sparkles } from 'lucide-react';
-import { newsletterService } from '../services/newsletter';
-
-interface NewsletterForm {
-  email: string;
-  preferences: {
-    weekly: boolean;
-    marketing: boolean;
-  };
-}
+import { firebaseNewsletterService } from '../services/firebase/newsletter.service';
 
 export default function Newsletter() {
-  const { register, handleSubmit, reset, formState: { errors }, watch } = useForm<NewsletterForm>({
-    defaultValues: {
-      preferences: {
-        weekly: true,
-        marketing: false
-      }
-    }
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [preferences, setPreferences] = useState({
+    weekly: true,
+    marketing: false,
   });
-  
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [subscribed, setSubscribed] = useState(false);
-  
-  const watchedEmail = watch('email');
-  const isValidEmail = newsletterService.validateEmail(watchedEmail || '');
 
-  const onSubmit = async (data: NewsletterForm) => {
-    if (!isValidEmail) {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email.trim()) {
+      toast.error('Please enter your email address');
+      return;
+    }
+
+    if (!firebaseNewsletterService.validateEmail(email)) {
       toast.error('Please enter a valid email address');
       return;
     }
 
-    setIsSubmitting(true);
-    
+    setLoading(true);
+
     try {
-      const result = await newsletterService.subscribe(data.email, data.preferences);
+      const result = await firebaseNewsletterService.subscribe(email, preferences);
       
       if (result.success) {
+        setSuccess(true);
+        setEmail('');
         toast.success(result.message);
-        setSubscribed(true);
-        reset();
-        
-        // Reset subscribed state after 5 seconds
-        setTimeout(() => setSubscribed(false), 5000);
       } else {
         toast.error(result.message);
-        
-        // If it's a database issue, offer alternative
-        if (result.error === 'Database policy restriction') {
-          setTimeout(() => {
-            toast.info('Alternative: Email akshayverma181280@gmail.com to subscribe manually', {
-              duration: 8000
-            });
-          }, 2000);
-        }
       }
     } catch (error) {
       console.error('Newsletter subscription error:', error);
-      toast.error('Failed to subscribe. Please try again.');
+      toast.error('Something went wrong. Please try again.');
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
-  if (subscribed) {
+  if (success) {
     return (
-      <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900 dark:to-blue-900 py-16">
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="w-16 h-16 bg-green-100 dark:bg-green-800 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Check className="w-8 h-8 text-green-600 dark:text-green-400" />
-          </div>
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            🎉 Welcome to the Carelwave Community!
+          <CheckCircle className="w-16 h-16 mx-auto mb-6 text-green-300" />
+          <h2 className="text-3xl font-bold mb-4">
+            Thank you for subscribing!
           </h2>
-          <p className="text-xl text-gray-600 dark:text-gray-300 mb-6">
-            Your subscription is confirmed. Get ready for amazing technical insights!
+          <p className="text-xl opacity-90 mb-8">
+            You'll receive our latest articles and updates right in your inbox.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
-              onClick={() => setSubscribed(false)}
-              className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Bell className="w-5 h-5 mr-2" />
-              Subscribe Another Email
-            </button>
-          </div>
+          <button
+            onClick={() => setSuccess(false)}
+            className="inline-flex items-center px-6 py-3 border-2 border-white text-white font-medium rounded-lg hover:bg-white hover:text-purple-600 transition-colors"
+          >
+            Subscribe Another Email
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-blue-50 dark:from-gray-800 dark:via-blue-900 dark:to-gray-800 py-20">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center px-4 py-2 bg-blue-100 dark:bg-blue-900 rounded-full text-blue-600 dark:text-blue-400 text-sm font-medium mb-6">
-            <Sparkles className="w-4 h-4 mr-2" />
-            Join 10,000+ Engineers
-          </div>
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Never Miss a Technical Breakthrough
+    <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-10">
+          <Mail className="w-16 h-16 mx-auto mb-6 text-blue-200" />
+          <h2 className="text-3xl font-bold mb-4">
+            Stay Updated with Our Newsletter
           </h2>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Get exclusive insights on scalable systems, cloud architecture, and cutting-edge development practices delivered straight to your inbox.
+          <p className="text-xl opacity-90 max-w-2xl mx-auto">
+            Get the latest insights on technology, engineering best practices, and industry trends delivered straight to your inbox.
           </p>
         </div>
 
-        <div className="max-w-2xl mx-auto">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Email Input */}
-            <div className="relative">
-              <div className="flex">
-                <div className="relative flex-1">
-                  <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="email"
-                    placeholder="Enter your email address"
-                    {...register('email', {
-                      required: 'Email is required',
-                      validate: (value) => newsletterService.validateEmail(value) || 'Please enter a valid email address'
-                    })}
-                    className={`w-full pl-12 pr-4 py-4 text-lg border-2 rounded-l-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
-                      errors.email 
-                        ? 'border-red-500 focus:border-red-500' 
-                        : isValidEmail && watchedEmail 
-                          ? 'border-green-500 focus:border-green-500' 
-                          : 'border-gray-300 dark:border-gray-600 focus:border-blue-500'
-                    }`}
-                  />
-                  {watchedEmail && (
-                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                      {isValidEmail ? (
-                        <Check className="w-5 h-5 text-green-500" />
-                      ) : (
-                        <X className="w-5 h-5 text-red-500" />
-                      )}
-                    </div>
-                  )}
+        <form onSubmit={handleSubmit} className="max-w-lg mx-auto">
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="flex-1">
+              <label htmlFor="newsletter-email" className="sr-only">
+                Email address
+              </label>
+              <input
+                id="newsletter-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email address"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500"
+                disabled={loading}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {loading ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent mr-2"></div>
+                  Subscribing...
                 </div>
-                <button
-                  type="submit"
-                  disabled={isSubmitting || !isValidEmail}
-                  className={`px-8 py-4 font-semibold rounded-r-xl transition-all duration-200 ${
-                    isSubmitting || !isValidEmail
-                      ? 'bg-gray-400 cursor-not-allowed text-gray-200'
-                      : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white transform hover:scale-105 shadow-lg hover:shadow-xl'
-                  }`}
-                >
-                  {isSubmitting ? (
-                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
-                  ) : (
-                    'Subscribe'
-                  )}
-                </button>
-              </div>
-              {errors.email && (
-                <p className="mt-2 text-sm text-red-600 flex items-center">
-                  <X className="w-4 h-4 mr-1" />
-                  {errors.email.message}
-                </p>
+              ) : (
+                'Subscribe'
               )}
-            </div>
+            </button>
+          </div>
 
-            {/* Preferences */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                <Shield className="w-5 h-5 mr-2 text-blue-600" />
-                Subscription Preferences
-              </h3>
-              <div className="space-y-4">
-                <label className="flex items-start space-x-3 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    {...register('preferences.weekly')}
-                    className="w-5 h-5 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 mt-1"
-                  />
-                  <div>
-                    <div className="font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                      Weekly Technical Insights
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      Deep dives into Golang, AWS, microservices, and system design
-                    </div>
-                  </div>
-                </label>
-                <label className="flex items-start space-x-3 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    {...register('preferences.marketing')}
-                    className="w-5 h-5 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500 focus:ring-2 mt-1"
-                  />
-                  <div>
-                    <div className="font-medium text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                      Product Updates & Announcements
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      New features, courses, and special content releases
-                    </div>
-                  </div>
-                </label>
-              </div>
-            </div>
+          {/* Preferences */}
+          <div className="space-y-3 text-sm">
+            <p className="font-medium">Email Preferences:</p>
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={preferences.weekly}
+                onChange={(e) => setPreferences(prev => ({ ...prev, weekly: e.target.checked }))}
+                className="rounded border-white text-blue-600 focus:ring-blue-600 focus:ring-offset-0 mr-3"
+              />
+              <span className="opacity-90">Weekly newsletter with latest articles</span>
+            </label>
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                checked={preferences.marketing}
+                onChange={(e) => setPreferences(prev => ({ ...prev, marketing: e.target.checked }))}
+                className="rounded border-white text-blue-600 focus:ring-blue-600 focus:ring-offset-0 mr-3"
+              />
+              <span className="opacity-90">Occasional updates about new features and announcements</span>
+            </label>
+          </div>
 
-            {/* Trust Indicators */}
-            <div className="text-center">
-              <div className="flex items-center justify-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
-                <div className="flex items-center">
-                  <Shield className="w-4 h-4 mr-1" />
-                  No spam, ever
-                </div>
-                <div className="flex items-center">
-                  <Mail className="w-4 h-4 mr-1" />
-                  Unsubscribe anytime
-                </div>
-                <div className="flex items-center">
-                  <Check className="w-4 h-4 mr-1" />
-                  10K+ subscribers
-                </div>
-              </div>
+          <div className="mt-6 text-xs opacity-75 text-center">
+            <p>
+              We respect your privacy. Unsubscribe at any time. 
+              <br />
+              By subscribing, you agree to our privacy policy.
+            </p>
+          </div>
+        </form>
+
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+          <div>
+            <div className="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <Mail className="w-6 h-6" />
             </div>
-          </form>
+            <h3 className="font-semibold mb-2">Weekly Insights</h3>
+            <p className="text-sm opacity-90">
+              Curated content every week with the most important tech developments
+            </p>
+          </div>
+          <div>
+            <div className="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-6 h-6" />
+            </div>
+            <h3 className="font-semibold mb-2">No Spam</h3>
+            <p className="text-sm opacity-90">
+              Only valuable content. We hate spam as much as you do.
+            </p>
+          </div>
+          <div>
+            <div className="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <h3 className="font-semibold mb-2">Easy Unsubscribe</h3>
+            <p className="text-sm opacity-90">
+              Change your preferences or unsubscribe with one click
+            </p>
+          </div>
         </div>
       </div>
     </div>

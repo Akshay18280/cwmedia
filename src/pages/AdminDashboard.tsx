@@ -1,45 +1,86 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Eye, Heart } from 'lucide-react';
-import { toast } from 'sonner';
+import React, { useState, useEffect } from 'react';
+import { Plus, Eye, Edit, Trash2, Users, FileText, Mail, TrendingUp, MessageSquare, Star } from 'lucide-react';
 import { postsService } from '../services/posts';
-import { supabase } from '../lib/supabase';
+import { authService } from '../services/auth';
+import { reviewsService } from '../services/reviews';
+import { toast } from 'sonner';
+import AdminReviewManagement from '../components/AdminReviewManagement';
 import type { Post } from '../types';
 
 export default function AdminDashboard() {
   const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
-  const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'posts' | 'reviews'>('posts');
+  const [stats, setStats] = useState({
+    totalPosts: 0,
+    totalViews: 0,
+    totalLikes: 0,
+    pendingReviews: 0
+  });
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      loadPosts();
+      loadStats();
+    }
+  }, [currentUser]);
+
+  const checkAuth = async () => {
+    try {
+      const user = await authService.getCurrentUser();
       if (!user) {
-        navigate('/admin/login');
+        window.location.href = '/admin/login';
         return;
       }
-      setUser(user);
-    };
-
-    checkAuth();
-  }, [navigate]);
-
-  useEffect(() => {
-    if (user) {
-      fetchPosts();
-    }
-  }, [user]);
-
-  const fetchPosts = async () => {
-    try {
-      const data = await postsService.getAllPosts();
-      setPosts(data);
+      
+      const isAdmin = await authService.isAdmin(user.id);
+      if (!isAdmin) {
+        toast.error('Access denied: Admin privileges required');
+        window.location.href = '/';
+        return;
+      }
+      
+      setCurrentUser(user);
     } catch (error) {
-      console.error('Error fetching posts:', error);
-      toast.error('Failed to fetch posts');
+      console.error('Auth check failed:', error);
+      window.location.href = '/admin/login';
+    }
+  };
+
+  const loadPosts = async () => {
+    try {
+      setIsLoading(true);
+      const allPosts = await postsService.getAllPosts();
+      setPosts(allPosts);
+    } catch (error) {
+      console.error('Error loading posts:', error);
+      toast.error('Failed to load posts');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
+    }
+  };
+
+  const loadStats = async () => {
+    try {
+      const allPosts = await postsService.getAllPosts();
+      const reviewStats = await reviewsService.getReviewStats();
+      
+      const totalViews = allPosts.reduce((sum, post) => sum + post.views, 0);
+      const totalLikes = allPosts.reduce((sum, post) => sum + post.likes, 0);
+      
+      setStats({
+        totalPosts: allPosts.length,
+        totalViews,
+        totalLikes,
+        pendingReviews: reviewStats.pending
+      });
+    } catch (error) {
+      console.error('Error loading stats:', error);
     }
   };
 
@@ -50,8 +91,9 @@ export default function AdminDashboard() {
 
     try {
       await postsService.deletePost(postId);
-      setPosts(posts.filter(post => post.id !== postId));
       toast.success('Post deleted successfully');
+      loadPosts();
+      loadStats();
     } catch (error) {
       console.error('Error deleting post:', error);
       toast.error('Failed to delete post');
@@ -59,185 +101,266 @@ export default function AdminDashboard() {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/admin/login');
+    try {
+      await authService.logout();
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Logout failed:', error);
+      toast.error('Failed to logout');
+    }
   };
 
-  if (loading) {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  };
+
+  if (!currentUser) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
-          <p className="text-gray-600 dark:text-gray-400">Manage your blog posts</p>
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Admin Dashboard
+              </h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Welcome back, {currentUser.name}
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => window.location.href = '/'}
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              >
+                View Site
+              </button>
+              <button
+                onClick={handleLogout}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center space-x-4">
-          <Link
-            to="/admin/posts/new"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            New Post
-          </Link>
-          <button
-            onClick={handleLogout}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
+      </header>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">Total Posts</h3>
-          <p className="text-3xl font-bold text-blue-600">{posts.length}</p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">Featured Posts</h3>
-          <p className="text-3xl font-bold text-green-600">
-            {posts.filter(post => post.featured).length}
-          </p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">Total Views</h3>
-          <p className="text-3xl font-bold text-purple-600">
-            {posts.reduce((sum, post) => sum + (post.views || 0), 0)}
-          </p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">Total Likes</h3>
-          <p className="text-3xl font-bold text-red-600">
-            {posts.reduce((sum, post) => sum + (post.likes || 0), 0)}
-          </p>
-        </div>
-      </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <FileText className="h-8 w-8 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Posts</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalPosts}</p>
+              </div>
+            </div>
+          </div>
 
-      {/* Posts Table */}
-      <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
-        <div className="px-4 py-5 sm:px-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
-            All Posts
-          </h3>
-          <p className="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-            Manage and edit your blog posts
-          </p>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-700">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Title
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Category
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Stats
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Published
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {posts.map((post) => (
-                <tr key={post.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">
-                      {post.title}
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {post.excerpt.slice(0, 60)}...
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                      {post.category}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      post.featured 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
-                        : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-                    }`}>
-                      {post.featured ? 'Featured' : 'Regular'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center">
-                        <Eye className="w-4 h-4 mr-1" />
-                        {post.views || 0}
-                      </div>
-                      <div className="flex items-center">
-                        <Heart className="w-4 h-4 mr-1" />
-                        {post.likes || 0}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {new Date(post.published_at).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center space-x-2">
-                      <Link
-                        to={`/blog/${post.id}`}
-                        className="text-blue-600 hover:text-blue-900 dark:text-blue-400"
-                      >
-                        View
-                      </Link>
-                      <Link
-                        to={`/admin/posts/${post.id}/edit`}
-                        className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Link>
-                      <button
-                        onClick={() => handleDeletePost(post.id)}
-                        className="text-red-600 hover:text-red-900 dark:text-red-400"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <Eye className="h-8 w-8 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Views</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalViews.toLocaleString()}</p>
+              </div>
+            </div>
+          </div>
 
-      {posts.length === 0 && (
-        <div className="text-center py-12">
-          <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">No posts yet</h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-4">Create your first blog post to get started.</p>
-          <Link
-            to="/admin/posts/new"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create First Post
-          </Link>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <TrendingUp className="h-8 w-8 text-purple-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Likes</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalLikes}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <MessageSquare className="h-8 w-8 text-yellow-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pending Reviews</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.pendingReviews}</p>
+              </div>
+            </div>
+          </div>
         </div>
-      )}
+
+        {/* Tab Navigation */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-6">
+          <div className="border-b border-gray-200 dark:border-gray-700">
+            <nav className="flex space-x-8 px-6">
+              <button
+                onClick={() => setActiveTab('posts')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'posts'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }`}
+              >
+                <FileText className="w-4 h-4 inline mr-2" />
+                Posts Management
+              </button>
+              <button
+                onClick={() => setActiveTab('reviews')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'reviews'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                } relative`}
+              >
+                <MessageSquare className="w-4 h-4 inline mr-2" />
+                Review Management
+                {stats.pendingReviews > 0 && (
+                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                    {stats.pendingReviews}
+                  </span>
+                )}
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'posts' ? (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-medium text-gray-900 dark:text-white">Blog Posts</h2>
+                <button
+                  onClick={() => window.location.href = '/admin/posts/new'}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Post
+                </button>
+              </div>
+            </div>
+
+            {isLoading ? (
+              <div className="p-8 text-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600 dark:text-gray-400">Loading posts...</p>
+              </div>
+            ) : posts.length === 0 ? (
+              <div className="p-8 text-center">
+                <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 dark:text-gray-400">No posts found. Create your first post!</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Title
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Category
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Published
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Views
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Likes
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {posts.map((post) => (
+                      <tr key={post.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center">
+                            <div>
+                              <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                {post.title}
+                              </div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                                {post.excerpt.substring(0, 60)}...
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            {post.category}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                          {formatDate(post.published_at)}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                          {post.views.toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                          {post.likes}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => window.location.href = `/blog/${post.id}`}
+                              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                              title="View Post"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => window.location.href = `/admin/posts/${post.id}/edit`}
+                              className="text-blue-400 hover:text-blue-600"
+                              title="Edit Post"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeletePost(post.id)}
+                              className="text-red-400 hover:text-red-600"
+                              title="Delete Post"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        ) : (
+          <AdminReviewManagement />
+        )}
+      </div>
     </div>
   );
 } 

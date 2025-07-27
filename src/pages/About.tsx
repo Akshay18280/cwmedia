@@ -1,7 +1,36 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Github, Linkedin, Mail, Award, Users, TrendingUp, Code, Server, Cloud, Trophy, MessageSquare } from "lucide-react";
+import ReviewCard from "../components/ReviewCard";
+import ReviewSubmission from "../components/ReviewSubmission";
+import { reviewsService } from "../services/reviews";
+import type { FirebaseReview } from "../types/firebase";
 
 export default function About() {
+  const [reviews, setReviews] = useState<FirebaseReview[]>([]);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(true);
+
+  useEffect(() => {
+    loadReviews();
+  }, []);
+
+  const loadReviews = async () => {
+    try {
+      setIsLoadingReviews(true);
+      const approvedReviews = await reviewsService.getApprovedReviews(6); // Limit to 6 reviews
+      setReviews(approvedReviews);
+    } catch (error) {
+      console.error('Error loading reviews:', error);
+    } finally {
+      setIsLoadingReviews(false);
+    }
+  };
+
+  const handleReviewSubmitted = () => {
+    // Refresh reviews after successful submission
+    loadReviews();
+  };
+
   const coreSkills = [
     { name: "Golang", icon: Code, level: "Expert" },
     { name: "AWS", icon: Cloud, level: "Advanced" },
@@ -99,124 +128,114 @@ export default function About() {
             <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center mb-6">
               <Code className="w-6 h-6 text-green-600 dark:text-green-400" />
             </div>
-            <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Taking Action</h3>
+            <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">The Growth</h3>
             <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-              Built production-ready microservices in Golang, automated critical DevOps processes, and architected Multi-BU infrastructure. Led initiatives in mentoring junior developers and implementing robust monitoring solutions with Grafana and CloudWatch.
+              Took ownership of critical microservices handling millions of events daily. Led infrastructure optimization initiatives that reduced costs by 50% while improving performance. Became the go-to person for complex system design challenges.
             </p>
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
             <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center mb-6">
-              <TrendingUp className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+              <Trophy className="w-6 h-6 text-purple-600 dark:text-purple-400" />
             </div>
-            <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Making Impact</h3>
+            <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">The Impact</h3>
             <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-              Achieved 50%+ cost reduction through infrastructure optimization, enhanced system performance to handle millions of events, and received the Q3 2023 Team Spotlight Excellence Award. Now leading technical initiatives and mentoring the next generation of engineers.
+              Today, I architect and maintain systems serving millions of users globally. My work contributes to 99.99% uptime, and I actively mentor teams while leading technical initiatives. Building the future, one system at a time.
             </p>
           </div>
         </div>
       </section>
 
       {/* Skills & Expertise */}
-      <section className="bg-gray-50 dark:bg-gray-900 py-20">
+      <section className="bg-white dark:bg-gray-800 py-20">
         <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-4xl font-bold text-center mb-16 text-gray-900 dark:text-white">Core Expertise</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {coreSkills.map((skill, index) => (
-              <div 
-                key={skill.name} 
-                className="bg-white dark:bg-gray-800 rounded-xl p-6 text-center shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <skill.icon className="w-8 h-8 mx-auto mb-4 text-blue-600 dark:text-blue-400" />
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{skill.name}</h3>
-                <span className="text-sm text-gray-500 dark:text-gray-400">{skill.level}</span>
-              </div>
-            ))}
+          <h2 className="text-4xl font-bold text-center mb-16 text-gray-900 dark:text-white">Technical Expertise</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-8">
+            {coreSkills.map((skill, index) => {
+              const IconComponent = skill.icon;
+              return (
+                <div key={index} className="text-center group">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <IconComponent className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">{skill.name}</h3>
+                  <span className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium">
+                    {skill.level}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* Achievements */}
+      {/* Key Achievements */}
       <section className="max-w-6xl mx-auto px-6 py-20">
         <h2 className="text-4xl font-bold text-center mb-16 text-gray-900 dark:text-white">Key Achievements</h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {achievements.map((achievement, index) => (
-            <div 
-              key={index} 
-              className="text-center bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300"
-            >
-              <div className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">{achievement.metric}</div>
-              <div className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{achievement.label}</div>
-              <div className="text-gray-600 dark:text-gray-300">{achievement.description}</div>
+            <div key={index} className="text-center bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <div className="text-3xl lg:text-4xl font-bold text-blue-600 dark:text-blue-400 mb-3">
+                {achievement.metric}
+              </div>
+              <div className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                {achievement.label}
+              </div>
+              <div className="text-gray-600 dark:text-gray-300 text-sm">
+                {achievement.description}
+              </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Recognition & Awards */}
-      <section className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 py-20">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold mb-12 text-gray-900 dark:text-white">Recognition & Awards</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-2xl p-8 border border-yellow-200 dark:border-yellow-800">
-              <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-                <Award className="w-6 h-6 mr-3 text-yellow-600" />
-                Recognition & Awards
-              </h3>
-              <div className="space-y-4">
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900 rounded-lg flex items-center justify-center">
-                    <Trophy className="w-6 h-6 text-yellow-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white">CSG Excellence Award</h4>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      Recognized for exceptional performance and leadership in API development (2024)
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                    <Users className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white">Team Leadership</h4>
-                    <p className="text-gray-600 dark:text-gray-300">
-                      Successfully led cross-functional teams in delivering critical infrastructure projects
-                    </p>
-                  </div>
-                </div>
-              </div>
+      {/* Professional Reviews */}
+      <section className="bg-gray-50 dark:bg-gray-900 py-20">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4 text-gray-900 dark:text-white">
+              Professional Reviews
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Verified professionals share their experience working with Akshay. All reviews are authenticated and moderated.
+            </p>
+          </div>
+          
+          {isLoadingReviews ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600 dark:text-gray-400">Loading reviews...</p>
             </div>
-
-            {/* Professional Reviews - Real testimonials from verified professionals */}
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl p-8 border border-blue-200 dark:border-blue-800">
-              <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6 flex items-center">
-                <MessageSquare className="w-6 h-6 mr-3 text-blue-600" />
-                Professional Testimonials
-              </h3>
-              
-              <div id="reviews-section">
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Users className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                    Professional Reviews Coming Soon
-                  </h4>
-                  <p className="text-gray-600 dark:text-gray-300 mb-6">
-                    Verified professionals from LinkedIn and other platforms can share their experience working with Akshay.
-                  </p>
-                  <button className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
-                    <MessageSquare className="w-5 h-5 mr-2" />
-                    Write a Review
-                  </button>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
-                    Reviews are moderated and verified before publication
-                  </p>
-                </div>
-              </div>
+          ) : reviews.length > 0 ? (
+            <div className="grid lg:grid-cols-2 gap-8 mb-12">
+              {reviews.map((review) => (
+                <ReviewCard key={review.id} review={review} />
+              ))}
             </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageSquare className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+                No Reviews Yet
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Be the first to share your professional experience working with Akshay.
+              </p>
+            </div>
+          )}
+          
+          <div className="text-center">
+            <button 
+              onClick={() => setShowReviewForm(true)}
+              className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <MessageSquare className="w-5 h-5 mr-2" />
+              Write a Review
+            </button>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
+              Reviews are moderated and verified before publication
+            </p>
           </div>
         </div>
       </section>
@@ -248,6 +267,14 @@ export default function About() {
           </div>
         </div>
       </section>
+
+      {/* Review Submission Modal */}
+      {showReviewForm && (
+        <ReviewSubmission 
+          onClose={() => setShowReviewForm(false)}
+          onSuccess={handleReviewSubmitted}
+        />
+      )}
     </main>
   );
 }

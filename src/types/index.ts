@@ -4,6 +4,7 @@ export interface Post {
   content: string;
   excerpt: string;
   author: Author | null;
+  author_id: string;
   published_at: string;
   updated_at: string;
   tags: string[] | null;
