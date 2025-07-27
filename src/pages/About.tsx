@@ -70,11 +70,11 @@ export default function About() {
             </div>
             <div className="flex-shrink-0">
               <img
-                src="src/pages/images/akshay.png"
+                src="/images/akshay.png"
                 alt="Akshay Verma - Software Development Engineer"
                 className="w-64 h-64 lg:w-80 lg:h-80 rounded-full shadow-2xl border-4 border-white/20 object-cover"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/images/default-avatar.png';
+                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face&auto=format&q=80';
                 }}
               />
             </div>
