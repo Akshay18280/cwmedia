@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { postsService } from '../services/posts';
 import type { Post } from '../types';
 
 export default function Blog() {
@@ -10,22 +10,8 @@ export default function Blog() {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const { data, error } = await supabase
-          .from('posts')
-          .select(`
-            *,
-            author:author_id(
-              name,
-              avatar_url
-            )
-          `)
-          .order('published_at', { ascending: false });
-
-        if (error) {
-          throw error;
-        }
-
-        setPosts(data || []);
+        const data = await postsService.getAllPosts();
+        setPosts(data);
       } catch (error) {
         console.error('Error fetching posts:', error);
       } finally {
@@ -58,10 +44,10 @@ export default function Blog() {
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
         {posts.map((post) => (
           <article key={post.id} className="bg-white dark:bg-gray-900 rounded-lg shadow-lg overflow-hidden">
-            {post.coverImage && (
+            {post.cover_image && (
               <div className="h-64 w-full relative">
                 <img
-                  src={post.coverImage}
+                  src={post.cover_image}
                   alt={post.title}
                   className="w-full h-full object-cover"
                 />
@@ -74,9 +60,9 @@ export default function Blog() {
             )}
             <div className="p-6">
               <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                <time dateTime={post.publishedAt}>{new Date(post.publishedAt).toLocaleDateString()}</time>
+                <time dateTime={post.published_at}>{new Date(post.published_at).toLocaleDateString()}</time>
                 <span>•</span>
-                <span>{post.readingTime} min read</span>
+                <span>{post.reading_time} min read</span>
               </div>
               <h2 className="mt-2 text-xl font-semibold text-gray-900 dark:text-white">
                 {post.title}
@@ -85,7 +71,7 @@ export default function Blog() {
                 {post.excerpt}
               </p>
               <div className="mt-4">
-                {post.tags.map((tag) => (
+                {post.tags?.map((tag) => (
                   <span
                     key={tag}
                     className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 mr-2"
