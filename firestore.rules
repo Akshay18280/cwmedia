@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users collection
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null; // Allow reading other users (for admin features)
+    }
+    
+    // Posts collection
+    match /posts/{postId} {
+      allow read: if true; // Public read access
+      allow write: if request.auth != null && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      
+      // Allow incrementing views and likes
+      allow update: if request.auth != null && 
+        resource.data.diff(request.resource.data).affectedKeys()
+          .hasOnly(['views', 'likes']);
+    }
+    
+    // Newsletter collection
+    match /newsletters/{newsletterId} {
+      allow read: if request.auth != null && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      allow create: if true; // Allow anyone to subscribe
+      allow update: if true; // Allow unsubscribing with token
+    }
+    
+    // Admin verification collection
+    match /admin_verification/{phoneNumber} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Reviews collection (for future use)
+    match /reviews/{reviewId} {
+      allow read: if resource.data.status == 'approved';
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+    
+    // Comments collection (for future use)
+    match /comments/{commentId} {
+      allow read: if resource.data.status == 'published';
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && 
+        (request.auth.uid == resource.data.authorId || 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+    
+    // Analytics collection (for admin only)
+    match /analytics/{analyticsId} {
+      allow read, write: if request.auth != null && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+      allow create: if true; // Allow creating analytics events
+    }
+  }
+} 

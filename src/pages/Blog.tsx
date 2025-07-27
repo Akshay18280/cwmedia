@@ -1,336 +1,319 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Filter, Calendar, Clock, Eye, Heart, Tag, BookOpen, TrendingUp } from 'lucide-react';
-import { postsService } from '../services/posts';
+import { Search, Calendar, Eye, Heart, Clock, Filter } from 'lucide-react';
+import { firebasePostsService } from '../services/firebase/posts.service';
 import type { Post } from '../types';
 
 export default function Blog() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const [sortBy, setSortBy] = useState('latest');
-
-  const categories = ['all', 'golang', 'aws', 'devops', 'architecture', 'tutorials'];
-  const sortOptions = [
-    { value: 'latest', label: 'Latest First' },
-    { value: 'oldest', label: 'Oldest First' },
-    { value: 'popular', label: 'Most Popular' },
-    { value: 'reading-time', label: 'Reading Time' }
-  ];
+  const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'popular'>('newest');
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const data = await postsService.getAllPosts();
-        setPosts(data);
-        setFilteredPosts(data);
-      } catch (error) {
-        console.error('Error fetching posts:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchPosts();
   }, []);
 
   useEffect(() => {
+    filterAndSortPosts();
+  }, [posts, searchQuery, selectedCategory, sortBy]);
+
+  const fetchPosts = async () => {
+    try {
+      const data = await firebasePostsService.getAllPosts();
+      setPosts(data);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filterAndSortPosts = () => {
     let filtered = [...posts];
 
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(post => 
-        post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(post =>
+        post.title.toLowerCase().includes(query) ||
+        post.excerpt.toLowerCase().includes(query) ||
+        post.content.toLowerCase().includes(query) ||
+        post.tags?.some(tag => tag.toLowerCase().includes(query))
       );
     }
 
     // Filter by category
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(post => 
-        post.category.toLowerCase() === selectedCategory.toLowerCase() ||
-        post.tags?.some(tag => tag.toLowerCase() === selectedCategory.toLowerCase())
-      );
+      filtered = filtered.filter(post => post.category === selectedCategory);
     }
 
     // Sort posts
-    switch (sortBy) {
-      case 'oldest':
-        filtered.sort((a, b) => new Date(a.published_at).getTime() - new Date(b.published_at).getTime());
-        break;
-      case 'popular':
-        filtered.sort((a, b) => (b.views + b.likes) - (a.views + a.likes));
-        break;
-      case 'reading-time':
-        filtered.sort((a, b) => a.reading_time - b.reading_time);
-        break;
-      default: // latest
-        filtered.sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
-    }
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
+        case 'oldest':
+          return new Date(a.published_at).getTime() - new Date(b.published_at).getTime();
+        case 'popular':
+          return (b.views + b.likes) - (a.views + a.likes);
+        default:
+          return 0;
+      }
+    });
 
     setFilteredPosts(filtered);
-  }, [posts, searchTerm, selectedCategory, sortBy]);
-
-  const getBlogStats = () => {
-    const totalViews = posts.reduce((sum, post) => sum + (post.views || 0), 0);
-    const totalLikes = posts.reduce((sum, post) => sum + (post.likes || 0), 0);
-    const avgReadingTime = posts.length > 0 ? Math.round(posts.reduce((sum, post) => sum + post.reading_time, 0) / posts.length) : 0;
-    
-    return { totalViews, totalLikes, avgReadingTime };
   };
 
-  const stats = getBlogStats();
+  const getCategories = () => {
+    const categories = [...new Set(posts.map(post => post.category))];
+    return categories.filter(Boolean);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const getReadingTime = (minutes: number) => {
+    return `${minutes} min read`;
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading amazing content...</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header Skeleton */}
+          <div className="text-center mb-12">
+            <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded w-64 mx-auto mb-4 animate-pulse"></div>
+            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-96 mx-auto animate-pulse"></div>
+          </div>
+
+          {/* Filters Skeleton */}
+          <div className="mb-8 space-y-4">
+            <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+            <div className="flex gap-4">
+              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-32 animate-pulse"></div>
+              <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-32 animate-pulse"></div>
+            </div>
+          </div>
+
+          {/* Posts Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden animate-pulse">
+                <div className="h-48 bg-gray-200 dark:bg-gray-700"></div>
+                <div className="p-6 space-y-4">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                  <div className="space-y-2">
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-        <div className="absolute inset-0 bg-black/10"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="text-center space-y-6">
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
-              Technical <span className="text-yellow-300">Insights</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-blue-100 max-w-3xl mx-auto">
-              Deep dives into scalable systems, cloud architecture, and modern software engineering practices
-            </p>
-            
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl mx-auto pt-8">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-300">{posts.length}</div>
-                <div className="text-sm text-blue-200">Articles</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-300">{stats.totalViews.toLocaleString()}</div>
-                <div className="text-sm text-blue-200">Views</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-300">{stats.totalLikes}</div>
-                <div className="text-sm text-blue-200">Likes</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-300">{stats.avgReadingTime}m</div>
-                <div className="text-sm text-blue-200">Avg Read</div>
-              </div>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+            Technical Blog
+          </h1>
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+            In-depth articles on system design, cloud architecture, software engineering best practices, and emerging technologies.
+          </p>
         </div>
-      </section>
 
-      {/* Search and Filter Section */}
-      <section className="py-8 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm sticky top-16 z-10 border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row gap-4 items-center">
-            {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search articles..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+        {/* Search and Filters */}
+        <div className="mb-8 space-y-4">
+          {/* Search Bar */}
+          <div className="relative max-w-2xl mx-auto">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search articles by title, content, or tags..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+            />
+          </div>
 
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             {/* Category Filter */}
-            <div className="flex items-center gap-2">
-              <Filter className="text-gray-400 w-5 h-5" />
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="pl-10 pr-8 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white text-sm"
               >
-                {categories.map(category => (
+                <option value="all">All Categories</option>
+                {getCategories().map(category => (
                   <option key={category} value={category}>
-                    {category === 'all' ? 'All Categories' : category.charAt(0).toUpperCase() + category.slice(1)}
+                    {category}
                   </option>
                 ))}
               </select>
             </div>
 
-            {/* Sort */}
-            <div className="flex items-center gap-2">
-              <TrendingUp className="text-gray-400 w-5 h-5" />
+            {/* Sort Filter */}
+            <div className="relative">
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onChange={(e) => setSortBy(e.target.value as 'newest' | 'oldest' | 'popular')}
+                className="pl-4 pr-8 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white text-sm"
               >
-                {sortOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="popular">Most Popular</option>
               </select>
             </div>
           </div>
         </div>
-      </section>
 
-      {/* Posts Grid */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {filteredPosts.length > 0 ? (
-            <>
-              <div className="mb-8">
-                <p className="text-gray-600 dark:text-gray-400">
-                  Showing {filteredPosts.length} of {posts.length} articles
-                  {searchTerm && (
-                    <span> for "<span className="font-medium text-blue-600 dark:text-blue-400">{searchTerm}</span>"</span>
-                  )}
-                </p>
-              </div>
-              
-              <div className="grid gap-8 md:gap-10">
-                {filteredPosts.map((post, index) => (
-                  <article 
-                    key={post.id} 
-                    className="group bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden"
-                    style={{ animationDelay: `${index * 50}ms` }}
-                  >
-                    <div className="md:flex">
-                      {/* Image */}
-                      <div className="md:w-80 h-64 md:h-auto relative overflow-hidden">
-                        <img
-                          src={post.cover_image || "https://images.unsplash.com/photo-1605379399642-870262d3d051?q=80&w=1200"}
-                          alt={post.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        />
-                        <div className="absolute top-4 left-4">
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white/90 text-gray-800 backdrop-blur-sm">
-                            {post.category}
-                          </span>
-                        </div>
-                        {post.featured && (
-                          <div className="absolute top-4 right-4">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-500 text-white backdrop-blur-sm">
-                              ⭐ Featured
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 p-8">
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-4">
-                          <div className="flex items-center">
-                            <Calendar className="w-4 h-4 mr-1" />
-                            {new Date(post.published_at).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
-                          </div>
-                          <div className="flex items-center">
-                            <Clock className="w-4 h-4 mr-1" />
-                            {post.reading_time} min read
-                          </div>
-                          <div className="flex items-center">
-                            <Eye className="w-4 h-4 mr-1" />
-                            {post.views || 0} views
-                          </div>
-                          <div className="flex items-center">
-                            <Heart className="w-4 h-4 mr-1" />
-                            {post.likes || 0} likes
-                          </div>
-                        </div>
-
-                        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                          <Link to={`/blog/${post.id}`} className="hover:underline">
-                            {post.title}
-                          </Link>
-                        </h2>
-
-                        <p className="text-lg text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
-                          {post.excerpt}
-                        </p>
-
-                        {/* Tags */}
-                        {post.tags && post.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-2 mb-6">
-                            {post.tags.slice(0, 4).map((tag) => (
-                              <span
-                                key={tag}
-                                className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-blue-100 hover:text-blue-700 dark:hover:bg-blue-900 dark:hover:text-blue-300 transition-colors cursor-pointer"
-                                onClick={() => setSearchTerm(tag)}
-                              >
-                                <Tag className="w-3 h-3 mr-1" />
-                                {tag}
-                              </span>
-                            ))}
-                            {post.tags.length > 4 && (
-                              <span className="text-sm text-gray-500 dark:text-gray-400">
-                                +{post.tags.length - 4} more
-                              </span>
-                            )}
-                          </div>
-                        )}
-
-                        <Link
-                          to={`/blog/${post.id}`}
-                          className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
-                        >
-                          <BookOpen className="w-5 h-5 mr-2" />
-                          Read Full Article
-                        </Link>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="text-center py-16">
-              <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Search className="w-12 h-12 text-gray-400" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                No Articles Found
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
-                {searchTerm 
-                  ? `No articles match your search for "${searchTerm}". Try different keywords or browse all categories.`
-                  : `No articles found in the ${selectedCategory} category. Try selecting a different category.`
-                }
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button
-                  onClick={() => {
-                    setSearchTerm('');
-                    setSelectedCategory('all');
-                  }}
-                  className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Show All Articles
-                </button>
-                <Link
-                  to="/about"
-                  className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                >
-                  Learn About Akshay
-                </Link>
-              </div>
-            </div>
-          )}
+        {/* Results Count */}
+        <div className="mb-6 text-center">
+          <p className="text-gray-600 dark:text-gray-400">
+            {filteredPosts.length === posts.length 
+              ? `Showing all ${posts.length} articles`
+              : `Showing ${filteredPosts.length} of ${posts.length} articles`
+            }
+          </p>
         </div>
-      </section>
+
+        {/* Posts Grid */}
+        {filteredPosts.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredPosts.map((post, index) => (
+              <article
+                key={post.id}
+                className="group bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden animate-fade-in"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                {post.cover_image && (
+                  <div className="aspect-w-16 aspect-h-9 overflow-hidden">
+                    <img
+                      src={post.cover_image}
+                      alt={post.title}
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-200"
+                    />
+                  </div>
+                )}
+                
+                <div className="p-6">
+                  {/* Meta Info */}
+                  <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-3">
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="w-4 h-4" />
+                      <time dateTime={post.published_at}>
+                        {formatDate(post.published_at)}
+                      </time>
+                    </div>
+                    <span className="bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-full text-xs font-medium">
+                      {post.category}
+                    </span>
+                  </div>
+                  
+                  {/* Title */}
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    <Link to={`/blog/${post.id}`} className="hover:underline">
+                      {post.title}
+                    </Link>
+                  </h2>
+                  
+                  {/* Excerpt */}
+                  <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
+                    {post.excerpt}
+                  </p>
+                  
+                  {/* Tags */}
+                  {post.tags && post.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {post.tags.slice(0, 3).map(tag => (
+                        <span
+                          key={tag}
+                          className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Footer */}
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                      <span className="flex items-center">
+                        <Eye className="w-4 h-4 mr-1" />
+                        {post.views || 0}
+                      </span>
+                      <span className="flex items-center">
+                        <Heart className="w-4 h-4 mr-1" />
+                        {post.likes || 0}
+                      </span>
+                      <span className="flex items-center">
+                        <Clock className="w-4 h-4 mr-1" />
+                        {getReadingTime(post.reading_time)}
+                      </span>
+                    </div>
+                    
+                    {post.featured && (
+                      <span className="text-xs bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300 px-2 py-1 rounded-full font-medium">
+                        Featured
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <div className="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Search className="w-12 h-12 text-gray-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              No articles found
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              Try adjusting your search terms or filters to find what you're looking for.
+            </p>
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedCategory('all');
+                setSortBy('newest');
+              }}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+            >
+              Clear Filters
+            </button>
+          </div>
+        )}
+
+        {/* Load More (placeholder for pagination) */}
+        {filteredPosts.length > 0 && filteredPosts.length === posts.length && posts.length >= 9 && (
+          <div className="text-center mt-12">
+            <button className="inline-flex items-center px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-medium rounded-lg transition-colors">
+              Load More Articles
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
