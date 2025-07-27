@@ -3,13 +3,13 @@ export interface Post {
   title: string;
   content: string;
   excerpt: string;
-  author: Author;
-  publishedAt: string;
-  updatedAt: string;
-  tags: string[];
+  author: Author | null;
+  published_at: string;
+  updated_at: string;
+  tags: string[] | null;
   category: string;
-  coverImage?: string;
-  readingTime: number;
+  cover_image?: string | null;
+  reading_time: number;
   views: number;
   likes: number;
   featured: boolean;
@@ -18,9 +18,10 @@ export interface Post {
 export interface Author {
   id: string;
   name: string;
-  bio: string;
-  avatar: string;
-  socialLinks: {
+  bio?: string;
+  avatar?: string;
+  avatar_url?: string | null;
+  socialLinks?: {
     twitter?: string;
     linkedin?: string;
     github?: string;
