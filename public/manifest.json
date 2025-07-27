@@ -1,0 +1,72 @@
+{
+  "name": "Carelwave Media - Akshay Verma's Technical Blog",
+  "short_name": "Carelwave Media",
+  "description": "Software Development Engineer specializing in Golang, AWS, and scalable microservices. Technical insights and professional portfolio.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["technology", "blog", "portfolio", "software"],
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Carelwave Media homepage showing technical blog content"
+    },
+    {
+      "src": "/screenshot-narrow.png",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile view of Carelwave Media technical blog"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Latest Articles",
+      "short_name": "Blog",
+      "description": "Read the latest technical articles",
+      "url": "/blog",
+      "icons": [
+        {
+          "src": "/favicon.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "About Akshay",
+      "short_name": "About",
+      "description": "Learn more about Akshay Verma",
+      "url": "/about",
+      "icons": [
+        {
+          "src": "/favicon.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+} 

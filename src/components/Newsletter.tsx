@@ -48,6 +48,15 @@ export default function Newsletter() {
         setTimeout(() => setSubscribed(false), 5000);
       } else {
         toast.error(result.message);
+        
+        // If it's a database issue, offer alternative
+        if (result.error === 'Database policy restriction') {
+          setTimeout(() => {
+            toast.info('Alternative: Email akshayverma181280@gmail.com to subscribe manually', {
+              duration: 8000
+            });
+          }, 2000);
+        }
       }
     } catch (error) {
       console.error('Newsletter subscription error:', error);
