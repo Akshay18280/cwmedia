@@ -122,7 +122,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onClose })
         {/* Header */}
         <div className="bg-gradient-flow text-white p-6 flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold">
+            <h2 className="text-subtitle font-bold">
               {post ? 'Edit Post' : 'Create New Post'}
             </h2>
             <p className="text-white/80">Build engaging content with multimedia support</p>
@@ -141,7 +141,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onClose })
             <div className="lg:col-span-2 space-y-6">
               {/* Title */}
               <div>
-                <label className="block text-sm font-medium mb-2 text-gradient-accent">
+                <label className="block text-body-sm font-medium mb-2 text-gradient-accent">
                   Post Title *
                 </label>
                 <input
@@ -149,14 +149,14 @@ export const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onClose })
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Enter compelling title..."
-                  className="input-modern w-full text-lg"
+                  className="input-modern w-full text-body"
                   required
                 />
               </div>
 
               {/* Content Editor */}
               <div>
-                <label className="block text-sm font-medium mb-2 text-gradient-accent">
+                <label className="block text-body-sm font-medium mb-2 text-gradient-accent">
                   Content *
                 </label>
                 <textarea
@@ -166,7 +166,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onClose })
                   className="input-modern w-full h-64 resize-none"
                   required
                 />
-                <div className="text-xs text-gray-500 mt-2">
+                <div className="text-caption text-gray-500 mt-2">
                   Supports Markdown formatting. Use **bold**, *italic*, # headings, and more.
                 </div>
               </div>
@@ -174,7 +174,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onClose })
               {/* Media Upload */}
               <ModernCard variant="neumorphic" padding="lg">
                 <div className="text-center">
-                  <h3 className="text-lg font-bold mb-4 text-holographic">Media Files</h3>
+                  <h3 className="text-body font-bold mb-4 text-holographic">Media Files</h3>
                   
                   <input
                     ref={fileInputRef}
@@ -195,7 +195,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onClose })
                     Upload Files
                   </ModernButton>
                   
-                  <p className="text-sm text-gray-500 mt-2">
+                  <p className="text-body-sm text-gray-500 mt-2">
                     Support: Images, Videos, PowerPoint, Documents (Max 100MB each)
                   </p>
                 </div>
@@ -217,7 +217,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onClose })
                         >
                           <X className="w-4 h-4" />
                         </button>
-                        <div className="text-xs text-center mt-2 truncate">{file.name}</div>
+                        <div className="text-caption text-center mt-2 truncate">{file.name}</div>
                       </div>
                     ))}
                   </div>
@@ -229,11 +229,11 @@ export const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onClose })
             <div className="space-y-6">
               {/* Status & Scheduling */}
               <ModernCard variant="glass" padding="md">
-                <h3 className="text-lg font-bold mb-4 text-gradient-flow">Publishing</h3>
+                <h3 className="text-body font-bold mb-4 text-gradient-flow">Publishing</h3>
                 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Status</label>
+                    <label className="block text-body-sm font-medium mb-2">Status</label>
                     <select
                       value={status}
                       onChange={(e) => setStatus(e.target.value)}
@@ -248,7 +248,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onClose })
 
                   {status === 'scheduled' && (
                     <div>
-                      <label className="block text-sm font-medium mb-2">Schedule Date</label>
+                      <label className="block text-body-sm font-medium mb-2">Schedule Date</label>
                       <input
                         type="datetime-local"
                         value={scheduledAt}
@@ -259,7 +259,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onClose })
                   )}
 
                   <div>
-                    <label className="block text-sm font-medium mb-2">Category</label>
+                    <label className="block text-body-sm font-medium mb-2">Category</label>
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
@@ -277,7 +277,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onClose })
 
               {/* Tags */}
               <ModernCard variant="default" padding="md">
-                <h3 className="text-lg font-bold mb-4 text-holographic">Tags</h3>
+                <h3 className="text-body font-bold mb-4 text-holographic">Tags</h3>
                 <input
                   type="text"
                   placeholder="Add tags (comma separated)"
@@ -289,7 +289,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onClose })
 
               {/* Settings */}
               <ModernCard variant="neumorphic" padding="md">
-                <h3 className="text-lg font-bold mb-4 text-gradient-accent">Features</h3>
+                <h3 className="text-body font-bold mb-4 text-gradient-accent">Features</h3>
                 
                 <div className="space-y-3">
                   <label className="flex items-center">
@@ -299,7 +299,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onClose })
                       onChange={(e) => setEnableComments(e.target.checked)}
                       className="mr-3"
                     />
-                    <span className="text-sm">Enable Comments</span>
+                    <span className="text-body-sm">Enable Comments</span>
                   </label>
                   
                   <label className="flex items-center">
@@ -309,7 +309,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onClose })
                       onChange={(e) => setEnableSharing(e.target.checked)}
                       className="mr-3"
                     />
-                    <span className="text-sm">Enable Sharing</span>
+                    <span className="text-body-sm">Enable Sharing</span>
                   </label>
                   
                   <label className="flex items-center">
@@ -319,18 +319,18 @@ export const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onClose })
                       onChange={(e) => setEmailNotification(e.target.checked)}
                       className="mr-3"
                     />
-                    <span className="text-sm">Email Subscribers</span>
+                    <span className="text-body-sm">Email Subscribers</span>
                   </label>
                 </div>
               </ModernCard>
 
               {/* SEO */}
               <ModernCard variant="brutalist" padding="md">
-                <h3 className="text-lg font-bold mb-4">SEO Settings</h3>
+                <h3 className="text-body font-bold mb-4">SEO Settings</h3>
                 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Meta Title</label>
+                    <label className="block text-body-sm font-medium mb-2">Meta Title</label>
                     <input
                       type="text"
                       value={seoTitle}
@@ -339,11 +339,11 @@ export const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onClose })
                       className="input-modern w-full"
                       maxLength={60}
                     />
-                    <div className="text-xs text-gray-500 mt-1">{seoTitle.length}/60</div>
+                    <div className="text-caption text-gray-500 mt-1">{seoTitle.length}/60</div>
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium mb-2">Meta Description</label>
+                    <label className="block text-body-sm font-medium mb-2">Meta Description</label>
                     <textarea
                       value={seoDescription}
                       onChange={(e) => setSeoDescription(e.target.value)}
@@ -351,7 +351,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onClose })
                       className="input-modern w-full h-20 resize-none"
                       maxLength={160}
                     />
-                    <div className="text-xs text-gray-500 mt-1">{seoDescription.length}/160</div>
+                    <div className="text-caption text-gray-500 mt-1">{seoDescription.length}/160</div>
                   </div>
                 </div>
               </ModernCard>
@@ -359,7 +359,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onClose })
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-between pt-6 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between pt-6 border-t border-low-contrast">
             <div className="flex items-center gap-4">
               <ModernButton
                 variant="minimal"
@@ -381,7 +381,7 @@ export const PostEditor: React.FC<PostEditorProps> = ({ post, onSave, onClose })
 
             <div className="flex items-center gap-4">
               {status === 'scheduled' && (
-                <div className="flex items-center text-sm text-blue-600">
+                <div className="flex items-center text-body-sm text-blue-600">
                   <Clock className="w-4 h-4 mr-2" />
                   Will publish on {new Date(scheduledAt).toLocaleDateString()}
                 </div>

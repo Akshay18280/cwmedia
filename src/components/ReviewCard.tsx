@@ -33,7 +33,7 @@ export default function ReviewCard({ review, className = '' }: ReviewCardProps) 
   };
 
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 ${className}`}>
+    <div className={`bg-medium-contrast rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 ${className}`}>
       {/* Header with user info */}
       <div className="flex items-start gap-4 mb-4">
                  <div className="flex-shrink-0">
@@ -55,18 +55,18 @@ export default function ReviewCard({ review, className = '' }: ReviewCardProps) 
         
         <div className="flex-1 min-w-0">
                      <div className="flex items-center gap-2 mb-1">
-             <h3 className="font-semibold text-gray-900 dark:text-white truncate">
+             <h3 className="font-semibold text-high-contrast truncate">
                {review.reviewerName}
              </h3>
              {review.verified && (
                <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
                  <Linkedin size={16} />
-                 <span className="text-xs font-medium">Verified</span>
+                 <span className="text-caption font-medium">Verified</span>
                </div>
              )}
            </div>
            
-           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
+           <div className="flex items-center gap-2 text-body-sm text-medium-contrast mb-1">
              <User size={14} />
              <span>{review.reviewerPosition}</span>
              {review.reviewerCompany && (
@@ -77,7 +77,7 @@ export default function ReviewCard({ review, className = '' }: ReviewCardProps) 
              )}
            </div>
           
-          <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex items-center gap-4 text-caption text-low-contrast">
             <div className="flex items-center gap-1">
               <MapPin size={12} />
               <span>{review.workRelationship}</span>
@@ -96,22 +96,22 @@ export default function ReviewCard({ review, className = '' }: ReviewCardProps) 
 
       {/* Review content */}
       <div className="space-y-3">
-        <h4 className="font-medium text-gray-900 dark:text-white">
+        <h4 className="font-medium text-high-contrast">
           {review.title}
         </h4>
         
-        <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+        <p className="text-high-contrast leading-relaxed">
           {review.content}
         </p>
         
         {/* Skills mentioned */}
         {review.skills && review.skills.length > 0 && (
           <div className="flex flex-wrap gap-2 pt-2">
-            <span className="text-xs text-gray-600 dark:text-gray-400 mr-2">Skills:</span>
+            <span className="text-caption text-medium-contrast mr-2">Skills:</span>
             {review.skills.map((skill, index) => (
               <span
                 key={index}
-                className="inline-block px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full"
+                className="inline-block px-2 py-1 text-caption bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full"
               >
                 {skill}
               </span>
@@ -122,8 +122,8 @@ export default function ReviewCard({ review, className = '' }: ReviewCardProps) 
         {/* Projects worked on */}
         {review.projectsWorkedOn && review.projectsWorkedOn.length > 0 && (
           <div className="pt-2">
-            <span className="text-xs text-gray-600 dark:text-gray-400">Projects: </span>
-            <span className="text-sm text-gray-700 dark:text-gray-300">
+            <span className="text-caption text-medium-contrast">Projects: </span>
+            <span className="text-body-sm text-high-contrast">
               {review.projectsWorkedOn.join(', ')}
             </span>
           </div>
@@ -132,12 +132,12 @@ export default function ReviewCard({ review, className = '' }: ReviewCardProps) 
       
              {/* LinkedIn link for verified users */}
        {review.verified && review.reviewerLinkedInUrl && (
-         <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+         <div className="mt-4 pt-4 border-t border-low-contrast">
            <a
              href={review.reviewerLinkedInUrl}
              target="_blank"
              rel="noopener noreferrer"
-             className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+             className="inline-flex items-center gap-2 text-body-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
            >
              <Linkedin size={16} />
              <span>View LinkedIn Profile</span>

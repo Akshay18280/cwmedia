@@ -2,57 +2,76 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { AuthProvider } from './contexts/AuthContext';
+import ErrorBoundary from './components/ErrorBoundary';
 import Layout from './components/Layout';
+
+// Pages
 import Home from './pages/Home';
 import About from './pages/About';
-import Blog from './pages/Blog';
+import AboutAkshay from './pages/AboutAkshay';
 import Contact from './pages/Contact';
+import Blog from './pages/Blog';
 import PostDetail from './pages/PostDetail';
-import AdminLogin from './components/AdminLogin';
-import AdminDashboard from './pages/AdminDashboard';
-import Verify from './pages/verify';
-import Unsubscribe from './pages/Unsubscribe';
-import TestingDashboard from './components/TestingDashboard';
-import AnalyticsSetupGuide from './components/AnalyticsSetupGuide';
-import ErrorBoundary from './components/ErrorBoundary';
-import NotFound from './components/NotFound';
-import PhoneAuthDebug from './components/PhoneAuthDebug';
-import AuthDebug from './components/AuthDebug';
+import VideoPost from './pages/VideoPost';
+import SearchPage from './pages/SearchPage';
 import ThemeShowcase from './pages/ThemeShowcase';
 import AccentTest from './pages/AccentTest';
+import Verify from './pages/verify';
+
+// Admin pages
+import AdminDashboard from './pages/admin/AdminDashboard';
 
 function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
         <Router>
-          <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200">
-            <Toaster
-              position="top-right"
-              richColors
+          <div className="App">
+            <Toaster 
+              position="top-right" 
+              richColors 
               closeButton
-              duration={4000}
+              theme="system"
             />
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/blog" element={<Blog />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/blog/:id" element={<PostDetail />} />
-                <Route path="/admin/login" element={<AdminLogin />} />
-                <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                <Route path="/verify" element={<Verify />} />
-                <Route path="/unsubscribe" element={<Unsubscribe />} />
-                <Route path="/testing" element={<TestingDashboard />} />
-                <Route path="/analytics-setup" element={<AnalyticsSetupGuide />} />
-                <Route path="/phone-auth-debug" element={<PhoneAuthDebug />} />
-                <Route path="/auth-debug" element={<AuthDebug />} />
-                <Route path="/theme-showcase" element={<ThemeShowcase />} />
-                <Route path="/accent-test" element={<AccentTest />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Layout>
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                {/* Public routes */}
+                <Route index element={<Home />} />
+                <Route path="about" element={<About />} />
+                <Route path="about-akshay" element={<AboutAkshay />} />
+                <Route path="contact" element={<Contact />} />
+                <Route path="blog" element={<Blog />} />
+                <Route path="post/:id" element={<PostDetail />} />
+                <Route path="video/:id" element={<VideoPost />} />
+                <Route path="search" element={<SearchPage />} />
+                <Route path="theme-showcase" element={<ThemeShowcase />} />
+                <Route path="accent-test" element={<AccentTest />} />
+                
+                {/* Auth routes */}
+                <Route path="verify" element={<Verify />} />
+                
+                {/* Admin routes */}
+                <Route path="admin" element={<AdminDashboard />} />
+                
+                {/* Catch all route */}
+                <Route path="*" element={
+                  <div className="min-h-screen bg-gradient-subtle flex items-center justify-center">
+                    <div className="text-center">
+                      <h1 className="text-display mb-4 text-high-contrast">404 - Page Not Found</h1>
+                      <p className="text-body-lg text-medium-contrast mb-8">
+                        The page you're looking for doesn't exist.
+                      </p>
+                      <a 
+                        href="/" 
+                        className="inline-flex items-center px-6 py-3 bg-gradient-flow text-white rounded-lg hover:opacity-90 transition-opacity"
+                      >
+                        Go Home
+                      </a>
+                    </div>
+                  </div>
+                } />
+              </Route>
+            </Routes>
           </div>
         </Router>
       </AuthProvider>

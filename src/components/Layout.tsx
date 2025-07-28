@@ -1,311 +1,370 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  Menu, 
-  X, 
-  Home, 
-  User, 
-  FileText, 
-  Mail,
-  ChevronUp,
-  LogIn,
-  Shield
-} from 'lucide-react';
-import UnifiedAuthModal from './UnifiedAuthModal';
+import React, { useState, useEffect, useRef } from 'react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, Search, User, LogOut, Settings, Sun, Moon, Mic, MicOff } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
-import type { AuthUser } from '../services/firebase/unified-auth.service';
+import { useAuth } from '../contexts/AuthContext';
+import { useVoiceCommands } from '../hooks/useVoiceCommands';
+import { SearchBar } from './search/SearchBar';
+import { LiveNotifications } from './realtime/LiveNotifications';
+import { ModernButton } from './ModernDesignSystem';
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-export default function Layout({ children }: LayoutProps) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [showBackToTop, setShowBackToTop] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
+export default function Layout() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { currentUser, logout } = useAuth();
+  const { isListening, toggleListening, isSupported } = useVoiceCommands();
+  
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  // Handle scroll for back to top button
+  // Close menu when clicking outside
   useEffect(() => {
-    const handleScroll = () => {
-      setShowBackToTop(window.scrollY > 400);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Close mobile menu on route change
+  // Close menu on route change
   useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [location]);
+    setIsMenuOpen(false);
+    setShowMobileSearch(false);
+  }, [location.pathname]);
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const navigation = [
+    { name: 'Home', href: '/' },
+    { name: 'About', href: '/about' },
+    { name: 'About Akshay', href: '/about-akshay' },
+    { name: 'Blog', href: '/blog' },
+    { name: 'Contact', href: '/contact' },
+  ];
+
+  const handleSearch = (query: string) => {
+    navigate(`/search?q=${encodeURIComponent(query)}`);
   };
 
-  const openAuthModal = () => {
-    setShowAuthModal(true);
-  };
-
-  const handleAuthSuccess = (user: AuthUser) => {
-    console.log('User authenticated:', user);
-    setShowAuthModal(false);
-    
-    // Redirect based on user role
-    if (user.role === 'admin' && user.adminAccess) {
-      window.location.href = '/admin/dashboard';
-    } else {
-      // For regular users, they can now submit reviews
-      // You might want to show a success message or redirect to profile
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
     }
   };
 
-  const navigationItems = [
-    { href: '/', label: 'Home', icon: Home },
-    { href: '/about', label: 'About', icon: User },
-    { href: '/blog', label: 'Blog', icon: FileText },
-    { href: '/contact', label: 'Contact', icon: Mail },
-  ];
-
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200">
-      {/* Skip to main content */}
-      <a 
-        href="#main-content" 
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-accent-primary text-white px-4 py-2 rounded-lg z-50"
-      >
-        Skip to main content
-      </a>
-
-      {/* Navigation */}
-      <nav className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 sticky top-0 z-40">
+    <div className="min-h-screen bg-high-contrast">
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-medium-contrast/95 backdrop-blur-sm border-b border-medium-contrast">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to="/" className="flex items-center">
-              <div className="w-8 h-8 bg-gradient-flow rounded-lg flex items-center justify-center mr-3 animate-gradient-flow">
-                <span className="text-white font-bold text-lg">C</span>
+            <Link 
+              to="/" 
+              className="flex items-center space-x-2 text-body-lg font-bold text-gradient-flow hover:opacity-80 transition-opacity"
+            >
+              <div className="w-8 h-8 bg-gradient-flow rounded-lg flex items-center justify-center">
+                <span className="text-white font-black text-body">C</span>
               </div>
-              <span className="text-xl font-bold text-gradient-flow">
-                Carelwave Media
-              </span>
+              <span className="hidden sm:block">Carelwave Media</span>
             </Link>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-1">
-              {navigationItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.href;
-                
-                return (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    className={`nav-link flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                      isActive
-                        ? 'bg-accent-primary/10 text-accent-primary'
-                        : 'text-gray-600 dark:text-gray-300 hover:accent-primary hover:bg-gray-100 dark:hover:bg-gray-800'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4 mr-2" />
-                    {item.label}
-                  </Link>
-                );
-              })}
+            {/* Desktop Navigation & Search */}
+            <div className="hidden md:flex items-center space-x-6 flex-1 max-w-2xl mx-8">
+              <SearchBar
+                onSearch={handleSearch}
+                onFiltersToggle={() => navigate('/search')}
+                placeholder="Search posts, articles..."
+                showVoiceSearch={true}
+                showFilters={false}
+                className="flex-1"
+              />
             </div>
 
-            {/* Right side controls */}
-            <div className="flex items-center space-x-3">
-              {/* Advanced Theme Toggle */}
-              <ThemeToggle variant="compact" />
-
-              {/* Unified Auth button */}
-              <div className="hidden md:flex items-center space-x-2">
-                <button
-                  onClick={openAuthModal}
-                  className="flex items-center px-4 py-2 text-sm font-medium bg-gradient-accent text-white hover:opacity-90 rounded-lg transition-all duration-200 transform hover:scale-105"
+            {/* Desktop Navigation Links */}
+            <nav className="hidden md:flex items-center space-x-6">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`text-body-sm font-medium transition-colors hover:text-gradient-flow ${
+                    location.pathname === item.href
+                      ? 'text-gradient-flow'
+                      : 'text-medium-contrast'
+                  }`}
                 >
-                  <LogIn className="w-4 h-4 mr-2" />
-                  Sign In
-                </button>
-              </div>
+                  {item.name}
+                </Link>
+              ))}
+            </nav>
 
-              {/* Mobile menu button */}
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
-                aria-label="Toggle mobile menu"
+            {/* Desktop Actions */}
+            <div className="hidden md:flex items-center space-x-4">
+              {/* Voice Commands */}
+              {isSupported && (
+                <button
+                  onClick={toggleListening}
+                  className={`p-2 rounded-lg transition-all ${
+                    isListening
+                      ? 'text-red-500 bg-red-50 dark:bg-red-900/20'
+                      : 'text-low-contrast hover:text-medium-contrast'
+                  }`}
+                  title={isListening ? 'Stop voice commands' : 'Start voice commands'}
+                >
+                  {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                </button>
+              )}
+
+              {/* Live Notifications */}
+              {currentUser && (
+                <LiveNotifications
+                  variant="dropdown"
+                  showSettings={true}
+                />
+              )}
+
+              {/* Advanced Search Link */}
+              <Link
+                to="/search"
+                className="p-2 text-low-contrast hover:text-medium-contrast transition-colors rounded-lg"
+                title="Advanced search"
               >
-                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                <Search className="w-5 h-5" />
+              </Link>
+
+              <ThemeToggle />
+
+              {/* User Menu */}
+              {currentUser ? (
+                <div className="relative group">
+                  <button className="flex items-center space-x-2 p-2 text-medium-contrast hover:text-high-contrast transition-colors rounded-lg">
+                    <User className="w-5 h-5" />
+                    <span className="text-body-sm font-medium">{currentUser.name}</span>
+                  </button>
+                  <div className="absolute right-0 mt-2 w-48 bg-medium-contrast border border-medium-contrast rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                    <div className="py-1">
+                      {currentUser.role === 'admin' && (
+                        <Link
+                          to="/admin"
+                          className="flex items-center px-4 py-2 text-body-sm text-medium-contrast hover:bg-low-contrast hover:text-high-contrast transition-colors"
+                        >
+                          <Settings className="w-4 h-4 mr-2" />
+                          Admin Dashboard
+                        </Link>
+                      )}
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center w-full px-4 py-2 text-body-sm text-medium-contrast hover:bg-low-contrast hover:text-high-contrast transition-colors"
+                      >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <Link
+                  to="/login"
+                  className="text-body-sm font-medium text-medium-contrast hover:text-high-contrast transition-colors"
+                >
+                  Sign In
+                </Link>
+              )}
+            </div>
+
+            {/* Mobile menu button */}
+            <div className="md:hidden flex items-center space-x-2">
+              {/* Mobile Notifications */}
+              {currentUser && (
+                <LiveNotifications
+                  variant="dropdown"
+                  showSettings={false}
+                />
+              )}
+              
+              <button
+                onClick={() => setShowMobileSearch(!showMobileSearch)}
+                className="p-2 text-medium-contrast hover:text-high-contrast transition-colors rounded-lg"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="p-2 text-medium-contrast hover:text-high-contrast transition-colors rounded-lg"
+              >
+                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
           </div>
 
-          {/* Mobile menu */}
-          <div className={`md:hidden transition-all duration-300 ease-in-out ${
-            isMobileMenuOpen 
-              ? 'max-h-96 opacity-100 pb-4' 
-              : 'max-h-0 opacity-0 overflow-hidden'
-          }`}>
-            <div className="space-y-2 mt-4">
-              {navigationItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.href;
+          {/* Mobile Search Bar */}
+          {showMobileSearch && (
+            <div className="md:hidden py-4 border-t border-medium-contrast">
+              <SearchBar
+                onSearch={handleSearch}
+                onFiltersToggle={() => navigate('/search')}
+                placeholder="Search posts, articles..."
+                showVoiceSearch={true}
+                showFilters={true}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Mobile menu */}
+        {isMenuOpen && (
+          <div className="md:hidden" ref={menuRef}>
+            <div className="px-2 pt-2 pb-3 space-y-1 bg-medium-contrast border-t border-medium-contrast">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`block px-3 py-2 text-body font-medium rounded-lg transition-colors ${
+                    location.pathname === item.href
+                      ? 'text-gradient-flow bg-low-contrast'
+                      : 'text-medium-contrast hover:text-high-contrast hover:bg-low-contrast'
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              ))}
+              
+              {/* Mobile Actions */}
+              <div className="pt-4 border-t border-low-contrast space-y-2">
+                <Link
+                  to="/search"
+                  className="flex items-center px-3 py-2 text-body font-medium text-medium-contrast hover:text-high-contrast hover:bg-low-contrast rounded-lg transition-colors"
+                >
+                  <Search className="w-5 h-5 mr-2" />
+                  Advanced Search
+                </Link>
                 
-                return (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    className={`nav-link flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 ${
-                      isActive
-                        ? 'bg-accent-primary/10 text-accent-primary'
-                        : 'text-gray-600 dark:text-gray-300 hover:accent-primary hover:bg-gray-100 dark:hover:bg-gray-800'
+                {isSupported && (
+                  <button
+                    onClick={toggleListening}
+                    className={`flex items-center w-full px-3 py-2 text-body font-medium rounded-lg transition-colors ${
+                      isListening
+                        ? 'text-red-500 bg-red-50 dark:bg-red-900/20'
+                        : 'text-medium-contrast hover:text-high-contrast hover:bg-low-contrast'
                     }`}
                   >
-                    <Icon className="w-5 h-5 mr-3" />
-                    {item.label}
-                  </Link>
-                );
-              })}
+                    {isListening ? <MicOff className="w-5 h-5 mr-2" /> : <Mic className="w-5 h-5 mr-2" />}
+                    {isListening ? 'Stop Voice Commands' : 'Voice Commands'}
+                  </button>
+                )}
 
-              {/* Mobile auth button */}
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                <button
-                  onClick={openAuthModal}
-                  className="w-full flex items-center px-4 py-3 text-left text-base font-medium bg-gradient-accent text-white hover:opacity-90 rounded-lg transition-all duration-200"
-                >
-                  <LogIn className="w-5 h-5 mr-3" />
-                  Sign In
-                </button>
+                <div className="px-3 py-2">
+                  <ThemeToggle />
+                </div>
+
+                {currentUser ? (
+                  <div className="space-y-2">
+                    <div className="px-3 py-2 text-body-sm text-medium-contrast border-t border-low-contrast">
+                      Signed in as {currentUser.name}
+                    </div>
+                    {currentUser.role === 'admin' && (
+                      <Link
+                        to="/admin"
+                        className="flex items-center px-3 py-2 text-body font-medium text-medium-contrast hover:text-high-contrast hover:bg-low-contrast rounded-lg transition-colors"
+                      >
+                        <Settings className="w-5 h-5 mr-2" />
+                        Admin Dashboard
+                      </Link>
+                    )}
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center w-full px-3 py-2 text-body font-medium text-medium-contrast hover:text-high-contrast hover:bg-low-contrast rounded-lg transition-colors"
+                    >
+                      <LogOut className="w-5 h-5 mr-2" />
+                      Sign Out
+                    </button>
+                  </div>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="block px-3 py-2 text-body font-medium text-medium-contrast hover:text-high-contrast hover:bg-low-contrast rounded-lg transition-colors"
+                  >
+                    Sign In
+                  </Link>
+                )}
               </div>
             </div>
           </div>
-        </div>
-      </nav>
+        )}
+      </header>
 
-      {/* Main content */}
-      <main id="main-content" className="flex-1">
-        {children}
+      {/* Main Content */}
+      <main className="flex-1">
+        <Outlet />
       </main>
 
-      {/* Back to top button */}
-      {showBackToTop && (
-        <button
-          onClick={scrollToTop}
-          className="fixed bottom-8 right-8 p-3 bg-accent-primary text-white rounded-full shadow-lg hover:bg-accent-primary-light transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-accent-primary/30 z-30"
-          aria-label="Back to top"
-        >
-          <ChevronUp className="w-6 h-6" />
-        </button>
-      )}
-
       {/* Footer */}
-      <footer className="bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <footer className="bg-medium-contrast border-t border-medium-contrast mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* Company info */}
-            <div className="md:col-span-2">
-              <Link to="/" className="flex items-center">
-                <div className="w-8 h-8 bg-gradient-flow rounded-lg flex items-center justify-center mr-3 animate-gradient-flow">
-                  <span className="text-white font-bold text-lg">C</span>
+            <div className="col-span-1 md:col-span-2">
+              <Link to="/" className="flex items-center space-x-2 mb-4">
+                <div className="w-8 h-8 bg-gradient-flow rounded-lg flex items-center justify-center">
+                  <span className="text-white font-black text-body">C</span>
                 </div>
-                <span className="text-xl font-bold text-gradient-flow">
-                  Carelwave Media
-                </span>
+                <span className="text-body-lg font-bold text-gradient-flow">Carelwave Media</span>
               </Link>
-              <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-md">
-                Empowering developers and tech enthusiasts with cutting-edge insights, 
-                best practices, and innovative solutions for the digital world.
+              <p className="text-body text-medium-contrast mb-4 max-w-md">
+                Building the future of technology through innovative solutions and cutting-edge insights.
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                © 2025 Carelwave Media. All rights reserved.
-              </p>
+              <div className="flex items-center space-x-4">
+                <Link to="/search" className="text-low-contrast hover:text-medium-contrast transition-colors">
+                  <Search className="w-5 h-5" />
+                </Link>
+              </div>
             </div>
-
-            {/* Quick links */}
+            
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Quick Links
-              </h3>
-              <ul className="space-y-2">
-                {navigationItems.map((item) => (
-                  <li key={item.href}>
-                    <Link
-                      to={item.href}
-                      className="text-gray-600 dark:text-gray-400 hover:accent-primary transition-colors duration-200"
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
+              <h3 className="text-body font-semibold text-high-contrast mb-4">Quick Links</h3>
+              <div className="space-y-2">
+                {navigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className="block text-body-sm text-medium-contrast hover:text-high-contrast transition-colors"
+                  >
+                    {item.name}
+                  </Link>
                 ))}
-              </ul>
+                <Link
+                  to="/search"
+                  className="block text-body-sm text-medium-contrast hover:text-high-contrast transition-colors"
+                >
+                  Search
+                </Link>
+              </div>
             </div>
-
-            {/* Connect */}
+            
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Connect
-              </h3>
-              <ul className="space-y-2">
-                <li>
-                  <button
-                    onClick={openAuthModal}
-                    className="text-gray-600 dark:text-gray-400 hover:accent-primary transition-colors duration-200"
-                  >
-                    Sign In
-                  </button>
-                </li>
-                <li>
-                  <a
-                    href="mailto:contact@carelwave.com"
-                    className="text-gray-600 dark:text-gray-400 hover:accent-primary transition-colors duration-200"
-                  >
-                    contact@carelwave.com
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://github.com/carelwave"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-600 dark:text-gray-400 hover:accent-primary transition-colors duration-200"
-                  >
-                    GitHub
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://linkedin.com/company/carelwave"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-600 dark:text-gray-400 hover:accent-primary transition-colors duration-200"
-                  >
-                    LinkedIn
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://twitter.com/carelwave"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-gray-600 dark:text-gray-400 hover:accent-primary transition-colors duration-200"
-                  >
-                    Twitter
-                  </a>
-                </li>
-              </ul>
+              <h3 className="text-body font-semibold text-high-contrast mb-4">Resources</h3>
+              <div className="space-y-2">
+                <Link to="/theme-showcase" className="block text-body-sm text-medium-contrast hover:text-high-contrast transition-colors">
+                  Theme Showcase
+                </Link>
+                <Link to="/accent-test" className="block text-body-sm text-medium-contrast hover:text-high-contrast transition-colors">
+                  Design System
+                </Link>
+              </div>
             </div>
+          </div>
+          
+          <div className="border-t border-low-contrast mt-8 pt-8 text-center">
+            <p className="text-body-sm text-low-contrast">
+              © 2025 Carelwave Media. Built with modern web technologies and real-time features.
+            </p>
           </div>
         </div>
       </footer>
-
-      {/* Unified Auth Modal */}
-      <UnifiedAuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onSuccess={handleAuthSuccess}
-      />
     </div>
   );
 }

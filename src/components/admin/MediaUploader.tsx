@@ -229,13 +229,13 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
       >
         <div className="text-center py-8">
           <Upload className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-gradient-accent mb-2">
+          <h3 className="text-body-lg font-bold text-gradient-accent mb-2">
             Drop files here or click to upload
           </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
+          <p className="text-medium-contrast mb-4">
             Support for images, videos, documents, presentations, and audio files
           </p>
-          <div className="text-sm text-gray-500 dark:text-gray-500">
+          <div className="text-body-sm text-subtle">
             Max {maxFiles} files • Up to {maxFileSize}MB each
           </div>
           
@@ -263,7 +263,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
       {/* File List */}
       {files.length > 0 && (
         <div className="space-y-4">
-          <h4 className="text-lg font-bold text-gradient-accent">
+          <h4 className="text-body font-bold text-gradient-accent">
             Uploaded Files ({files.length}/{maxFiles})
           </h4>
           
@@ -290,10 +290,10 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-high-contrast truncate">
+                      <p className="text-body-sm font-medium text-high-contrast truncate">
                         {file.name}
                       </p>
-                      <p className="text-xs text-medium-contrast">
+                      <p className="text-caption text-medium-contrast">
                         {formatFileSize(file.size)} • {file.type}
                       </p>
                       
@@ -305,7 +305,7 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
                               style={{ width: `${progress}%` }}
                             />
                           </div>
-                          <div className="text-xs text-gray-500 mt-1">
+                          <div className="text-caption text-gray-500 mt-1">
                             {progress}% uploaded
                           </div>
                         </div>
@@ -330,11 +330,11 @@ export const MediaUploader: React.FC<MediaUploaderProps> = ({
       {files.length > 0 && (
         <ModernCard variant="default" padding="md">
           <div className="flex items-center justify-between">
-            <div className="text-sm text-medium-contrast">
+            <div className="text-body-sm text-medium-contrast">
               Total: {files.length} files • {formatFileSize(files.reduce((total, file) => total + file.size, 0))}
             </div>
             <div className="flex items-center space-x-2">
-              <span className="text-xs text-green-600">
+              <span className="text-caption text-green-600">
                 ✓ All files ready
               </span>
             </div>

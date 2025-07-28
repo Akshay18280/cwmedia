@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Eye, Edit, Trash2, Users, FileText, Mail, TrendingUp, MessageSquare, Star } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, Users, FileText, Mail, TrendingUp, MessageSquare, Star, Shield } from 'lucide-react';
 import { postsService } from '../services/posts';
 import { authService } from '../services/auth';
 import { reviewsService } from '../services/reviews';
 import { toast } from 'sonner';
 import AdminReviewManagement from '../components/AdminReviewManagement';
+import IPAuthManager from '../components/admin/IPAuthManager';
 import type { Post } from '../types';
 
 export default function AdminDashboard() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'posts' | 'reviews'>('posts');
+  const [activeTab, setActiveTab] = useState<'posts' | 'reviews' | 'security'>('posts');
+  const [showIPAuthManager, setShowIPAuthManager] = useState(false);
   const [stats, setStats] = useState({
     totalPosts: 0,
     totalViews: 0,
@@ -120,30 +122,30 @@ export default function AdminDashboard() {
 
   if (!currentUser) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-high-contrast flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-high-contrast">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+      <header className="bg-medium-contrast shadow-sm border-b border-low-contrast">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-subtitle font-bold text-high-contrast">
                 Admin Dashboard
               </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-body-sm text-medium-contrast">
                 Welcome back, {currentUser.name}
               </p>
             </div>
             <div className="flex items-center gap-4">
               <button
                 onClick={() => window.location.href = '/'}
-                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                className="text-medium-contrast hover:text-gray-900 dark:hover:text-white"
               >
                 View Site
               </button>
@@ -161,65 +163,65 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+          <div className="bg-medium-contrast rounded-lg p-6 shadow-sm">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <FileText className="h-8 w-8 text-blue-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Posts</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalPosts}</p>
+                <p className="text-body-sm font-medium text-medium-contrast">Total Posts</p>
+                <p className="text-subtitle font-bold text-high-contrast">{stats.totalPosts}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+          <div className="bg-medium-contrast rounded-lg p-6 shadow-sm">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <Eye className="h-8 w-8 text-green-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Views</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalViews.toLocaleString()}</p>
+                <p className="text-body-sm font-medium text-medium-contrast">Total Views</p>
+                <p className="text-subtitle font-bold text-high-contrast">{stats.totalViews.toLocaleString()}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+          <div className="bg-medium-contrast rounded-lg p-6 shadow-sm">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <TrendingUp className="h-8 w-8 text-purple-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Likes</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalLikes}</p>
+                <p className="text-body-sm font-medium text-medium-contrast">Total Likes</p>
+                <p className="text-subtitle font-bold text-high-contrast">{stats.totalLikes}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
+          <div className="bg-medium-contrast rounded-lg p-6 shadow-sm">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <MessageSquare className="h-8 w-8 text-yellow-600" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pending Reviews</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.pendingReviews}</p>
+                <p className="text-body-sm font-medium text-medium-contrast">Pending Reviews</p>
+                <p className="text-subtitle font-bold text-high-contrast">{stats.pendingReviews}</p>
               </div>
             </div>
           </div>
         </div>
 
         {/* Tab Navigation */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-6">
-          <div className="border-b border-gray-200 dark:border-gray-700">
+        <div className="bg-medium-contrast rounded-lg shadow-sm mb-6">
+          <div className="border-b border-low-contrast">
             <nav className="flex space-x-8 px-6">
               <button
                 onClick={() => setActiveTab('posts')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                className={`py-4 px-1 border-b-2 font-medium text-body-sm ${
                   activeTab === 'posts'
                     ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    : 'border-transparent text-low-contrast hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
               >
                 <FileText className="w-4 h-4 inline mr-2" />
@@ -227,19 +229,30 @@ export default function AdminDashboard() {
               </button>
               <button
                 onClick={() => setActiveTab('reviews')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                className={`py-4 px-1 border-b-2 font-medium text-body-sm ${
                   activeTab === 'reviews'
                     ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    : 'border-transparent text-low-contrast hover:text-gray-700 dark:hover:text-gray-300'
                 } relative`}
               >
                 <MessageSquare className="w-4 h-4 inline mr-2" />
                 Review Management
                 {stats.pendingReviews > 0 && (
-                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                  <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-caption font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
                     {stats.pendingReviews}
                   </span>
                 )}
+              </button>
+              <button
+                onClick={() => setActiveTab('security')}
+                className={`py-4 px-1 border-b-2 font-medium text-body-sm ${
+                  activeTab === 'security'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-low-contrast hover:text-gray-700 dark:hover:text-gray-300'
+                } relative`}
+              >
+                <Shield className="w-4 h-4 inline mr-2" />
+                IP Authentication
               </button>
             </nav>
           </div>
@@ -247,10 +260,10 @@ export default function AdminDashboard() {
 
         {/* Tab Content */}
         {activeTab === 'posts' ? (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="bg-medium-contrast rounded-lg shadow-sm">
+            <div className="px-6 py-4 border-b border-low-contrast">
               <div className="flex justify-between items-center">
-                <h2 className="text-lg font-medium text-gray-900 dark:text-white">Blog Posts</h2>
+                <h2 className="text-body font-medium text-high-contrast">Blog Posts</h2>
                 <button
                   onClick={() => window.location.href = '/admin/posts/new'}
                   className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -264,68 +277,68 @@ export default function AdminDashboard() {
             {isLoading ? (
               <div className="p-8 text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600 dark:text-gray-400">Loading posts...</p>
+                <p className="text-medium-contrast">Loading posts...</p>
               </div>
             ) : posts.length === 0 ? (
               <div className="p-8 text-center">
                 <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 dark:text-gray-400">No posts found. Create your first post!</p>
+                <p className="text-medium-contrast">No posts found. Create your first post!</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-caption font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Title
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-caption font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Category
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-caption font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Published
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-caption font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Views
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-caption font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Likes
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left text-caption font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  <tbody className="bg-medium-contrast divide-y divide-gray-200 dark:divide-gray-700">
                     {posts.map((post) => (
                       <tr key={post.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                         <td className="px-6 py-4">
                           <div className="flex items-center">
                             <div>
-                              <div className="text-sm font-medium text-gray-900 dark:text-white">
+                              <div className="text-body-sm font-medium text-high-contrast">
                                 {post.title}
                               </div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                              <div className="text-body-sm text-low-contrast">
                                 {post.excerpt.substring(0, 60)}...
                               </div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                        <td className="px-6 py-4 text-body-sm text-high-contrast">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-caption font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                             {post.category}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                        <td className="px-6 py-4 text-body-sm text-high-contrast">
                           {formatDate(post.published_at)}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                        <td className="px-6 py-4 text-body-sm text-high-contrast">
                           {post.views.toLocaleString()}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                        <td className="px-6 py-4 text-body-sm text-high-contrast">
                           {post.likes}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500">
+                        <td className="px-6 py-4 text-body-sm text-gray-500">
                           <div className="flex space-x-2">
                             <button
                               onClick={() => window.location.href = `/blog/${post.id}`}
@@ -357,10 +370,54 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
-        ) : (
+        ) : activeTab === 'reviews' ? (
           <AdminReviewManagement />
-        )}
+        ) : activeTab === 'security' ? (
+          <div className="bg-medium-contrast rounded-lg shadow-sm">
+            <div className="px-6 py-4 border-b border-low-contrast">
+              <div className="flex justify-between items-center">
+                <h2 className="text-body font-medium text-high-contrast">IP Authentication Settings</h2>
+                <button
+                  onClick={() => setShowIPAuthManager(true)}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  Manage IP Access
+                </button>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="text-center py-12">
+                <Shield className="h-16 w-16 mx-auto text-blue-500 mb-4" />
+                <h3 className="text-body font-medium text-high-contrast mb-2">
+                  IP-Based Authentication
+                </h3>
+                <p className="text-medium-contrast mb-6 max-w-md mx-auto">
+                  Configure automatic admin login for trusted IP addresses. 
+                  This allows seamless access without entering credentials.
+                </p>
+                <button
+                  onClick={() => setShowIPAuthManager(true)}
+                  className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Shield className="w-5 h-5 mr-2" />
+                  Configure IP Authentication
+                </button>
+              </div>
+            </div>
+            <IPAuthManager 
+              isOpen={showIPAuthManager} 
+              onClose={() => setShowIPAuthManager(false)} 
+            />
+          </div>
+        ) : null}
       </div>
+
+      {/* Global IP Auth Manager Modal */}
+      <IPAuthManager 
+        isOpen={showIPAuthManager} 
+        onClose={() => setShowIPAuthManager(false)} 
+      />
     </div>
   );
 } 

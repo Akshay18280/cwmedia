@@ -133,7 +133,7 @@ const AnalyticsSetupGuide: React.FC = () => {
   ];
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl border border-gray-200 dark:border-gray-700">
+    <div className="bg-medium-contrast rounded-2xl p-8 shadow-xl border border-low-contrast">
       
       {/* Header */}
       <div className="mb-8">
@@ -143,10 +143,10 @@ const AnalyticsSetupGuide: React.FC = () => {
               <Globe className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <h2 className="text-subtitle font-bold text-high-contrast">
                 Analytics Setup Guide
               </h2>
-              <p className="text-gray-600 dark:text-gray-400">
+              <p className="text-medium-contrast">
                 Configure real Google Analytics data for your dashboard
               </p>
             </div>
@@ -184,7 +184,7 @@ const AnalyticsSetupGuide: React.FC = () => {
                   ? '✅ Real Google Analytics Connected!' 
                   : '⚠️ Using Simulation Data'}
               </h3>
-              <p className={`text-sm ${
+              <p className={`text-body-sm ${
                 serviceStatus?.isGoogleAnalyticsConfigured 
                   ? 'text-green-700 dark:text-green-300' 
                   : 'text-yellow-700 dark:text-yellow-300'
@@ -200,11 +200,11 @@ const AnalyticsSetupGuide: React.FC = () => {
 
       {/* Why Real Data Matters */}
       <div className="mb-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
-        <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-3 flex items-center">
+        <h3 className="text-body font-semibold text-blue-800 dark:text-blue-200 mb-3 flex items-center">
           <Zap className="w-5 h-5 mr-2" />
           Why Use Real Data?
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-body-sm">
           <div className="flex items-start space-x-2">
             <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
             <span className="text-blue-700 dark:text-blue-300">
@@ -234,25 +234,25 @@ const AnalyticsSetupGuide: React.FC = () => {
 
       {/* Setup Steps */}
       <div className="mb-8">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+        <h3 className="text-body font-semibold text-high-contrast mb-6">
           Setup Steps
         </h3>
         
         <div className="space-y-6">
           {setupSteps.map((step, index) => (
-            <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+            <div key={index} className="border border-low-contrast rounded-xl p-6">
               <div className="flex items-start space-x-4">
                 <div className={`p-3 rounded-xl ${
                   step.status === 'completed' 
                     ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                    : 'bg-low-contrast text-medium-contrast'
                 }`}>
                   {step.icon}
                 </div>
                 
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    <h4 className="text-body font-semibold text-high-contrast">
                       {index + 1}. {step.title}
                     </h4>
                     {step.status === 'completed' && (
@@ -260,15 +260,15 @@ const AnalyticsSetupGuide: React.FC = () => {
                     )}
                   </div>
                   
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  <p className="text-medium-contrast mb-4">
                     {step.description}
                   </p>
                   
                   <div className="mb-4">
-                    <h5 className="font-medium text-gray-900 dark:text-white mb-2">Instructions:</h5>
+                    <h5 className="font-medium text-high-contrast mb-2">Instructions:</h5>
                     <ul className="space-y-1">
                       {step.instructions.map((instruction, i) => (
-                        <li key={i} className="text-sm text-gray-600 dark:text-gray-400 flex items-start">
+                        <li key={i} className="text-body-sm text-medium-contrast flex items-start">
                           <span className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0" />
                           {instruction}
                         </li>
@@ -284,7 +284,7 @@ const AnalyticsSetupGuide: React.FC = () => {
                           href={link.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                          className="inline-flex items-center px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-body-sm hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
                         >
                           {link.text}
                           <ExternalLink className="w-3 h-3 ml-1" />
@@ -301,19 +301,19 @@ const AnalyticsSetupGuide: React.FC = () => {
 
       {/* Environment Variables */}
       <div className="mb-8">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+        <h3 className="text-body font-semibold text-high-contrast mb-4">
           Environment Variables
         </h3>
-        <p className="text-gray-600 dark:text-gray-400 mb-6">
-          Add these variables to your <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">.env</code> file:
+        <p className="text-medium-contrast mb-6">
+          Add these variables to your <code className="bg-low-contrast px-2 py-1 rounded">.env</code> file:
         </p>
         
         <div className="space-y-4">
           {envVariables.map((envVar, index) => (
-            <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+            <div key={index} className="border border-low-contrast rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-2">
-                  <code className="text-sm font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                  <code className="text-body-sm font-mono bg-low-contrast px-2 py-1 rounded">
                     {envVar.name}
                   </code>
                   {envVar.sensitive && (
@@ -334,12 +334,12 @@ const AnalyticsSetupGuide: React.FC = () => {
               </div>
               
               <div className="mb-2">
-                <code className="text-xs bg-gray-50 dark:bg-gray-800 p-2 rounded block overflow-x-auto">
+                <code className="text-caption bg-gray-50 dark:bg-gray-800 p-2 rounded block overflow-x-auto">
                   {envVar.name}={envVar.sensitive && !showServiceKey ? '••••••••••••••••••••' : envVar.value}
                 </code>
               </div>
               
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-body-sm text-medium-contrast">
                 {envVar.description}
               </p>
             </div>
@@ -348,9 +348,9 @@ const AnalyticsSetupGuide: React.FC = () => {
       </div>
 
       {/* Sample .env File */}
-      <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+      <div className="bg-high-contrast rounded-xl p-6 border border-low-contrast">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h3 className="text-body font-semibold text-high-contrast">
             Sample .env File
           </h3>
           <button
@@ -363,14 +363,14 @@ VITE_GOOGLE_ANALYTICS_SERVICE_KEY={"type":"service_account","project_id":"your-p
           </button>
         </div>
         
-        <pre className="text-sm text-gray-700 dark:text-gray-300 overflow-x-auto">
+        <pre className="text-body-sm text-high-contrast overflow-x-auto">
 {`# Google Analytics Configuration
 VITE_GOOGLE_ANALYTICS_PROPERTY_ID=11543981244
 VITE_GOOGLE_ANALYTICS_SERVICE_KEY={"type":"service_account",...}`}
         </pre>
         
         <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-          <p className="text-sm text-yellow-800 dark:text-yellow-200">
+          <p className="text-body-sm text-yellow-800 dark:text-yellow-200">
             <strong>Important:</strong> Make sure to add <code>.env</code> to your <code>.gitignore</code> file to keep your credentials secure!
           </p>
         </div>
@@ -378,31 +378,31 @@ VITE_GOOGLE_ANALYTICS_SERVICE_KEY={"type":"service_account",...}`}
 
       {/* Current Service Status */}
       {serviceStatus && (
-        <div className="mt-8 p-4 bg-gray-50 dark:bg-gray-900 rounded-xl">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+        <div className="mt-8 p-4 bg-high-contrast rounded-xl">
+          <h3 className="text-body font-semibold text-high-contrast mb-3">
             Current Status
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-body-sm">
             <div>
-              <span className="font-medium text-gray-700 dark:text-gray-300">Analytics Configured:</span>
+              <span className="font-medium text-high-contrast">Analytics Configured:</span>
               <span className={`ml-2 ${serviceStatus.isGoogleAnalyticsConfigured ? 'text-green-600' : 'text-red-600'}`}>
                 {serviceStatus.isGoogleAnalyticsConfigured ? '✅ Yes' : '❌ No'}
               </span>
             </div>
             <div>
-              <span className="font-medium text-gray-700 dark:text-gray-300">Data Source:</span>
+              <span className="font-medium text-high-contrast">Data Source:</span>
               <span className="ml-2 text-blue-600">
                 {serviceStatus.dataSource === 'real' ? '🔴 Real Data' : '🎭 Simulation'}
               </span>
             </div>
             <div>
-              <span className="font-medium text-gray-700 dark:text-gray-300">Cache Status:</span>
+              <span className="font-medium text-high-contrast">Cache Status:</span>
               <span className="ml-2 text-gray-600">
                 {serviceStatus.hasRealData ? '✅ Cached' : '❌ Empty'}
               </span>
             </div>
             <div>
-              <span className="font-medium text-gray-700 dark:text-gray-300">Last Update:</span>
+              <span className="font-medium text-high-contrast">Last Update:</span>
               <span className="ml-2 text-gray-600">
                 {serviceStatus.lastRealDataFetch ? new Date(serviceStatus.lastRealDataFetch).toLocaleTimeString() : 'Never'}
               </span>

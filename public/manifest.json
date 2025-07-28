@@ -1,46 +1,69 @@
 {
-  "name": "Carelwave Media - Tech Innovation Hub",
+  "name": "Carelwave Media",
   "short_name": "Carelwave",
-  "description": "Leading platform for system design, cloud architecture, and software engineering insights from industry expert Akshay Verma.",
+  "description": "Professional portfolio and blog platform with advanced features including voice commands, real-time analytics, and intelligent content management.",
+  "version": "1.0.0",
+  "manifest_version": 2,
   "start_url": "/",
-  "display": "standalone",
-  "background_color": "#1f2937",
-  "theme_color": "#3b82f6",
-  "orientation": "portrait-primary",
   "scope": "/",
-  "lang": "en-US",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#667eea",
+  "background_color": "#ffffff",
+  "lang": "en",
   "dir": "ltr",
-  "categories": ["technology", "education", "productivity", "engineering"],
+  "categories": [
+    "productivity",
+    "business",
+    "lifestyle",
+    "education"
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop-home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Carelwave Media Home Page"
+    },
+    {
+      "src": "/screenshots/mobile-home.png", 
+      "sizes": "750x1334",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Carelwave Media Mobile View"
+    }
+  ],
   "icons": [
     {
       "src": "/icons/icon-72x72.png",
       "sizes": "72x72",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-96x96.png",
       "sizes": "96x96",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-128x128.png",
       "sizes": "128x128",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-144x144.png",
       "sizes": "144x144",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-152x152.png",
       "sizes": "152x152",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-192x192.png",
@@ -52,81 +75,99 @@
       "src": "/icons/icon-384x384.png",
       "sizes": "384x384",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/badge-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "badge"
     }
   ],
   "shortcuts": [
     {
-      "name": "Latest Articles",
-      "short_name": "Blog",
-      "description": "Read the latest tech insights and tutorials",
-      "url": "/blog",
+      "name": "New Blog Post",
+      "short_name": "New Post",
+      "description": "Create a new blog post",
+      "url": "/admin/posts/new",
       "icons": [
         {
-          "src": "/icons/blog-shortcut.png",
+          "src": "/icons/shortcut-new-post.png",
           "sizes": "96x96"
         }
       ]
     },
     {
-      "name": "About Akshay",
-      "short_name": "About",
-      "description": "Learn about Akshay Verma's expertise and experience",
-      "url": "/about",
+      "name": "Analytics Dashboard",
+      "short_name": "Analytics",
+      "description": "View website analytics",
+      "url": "/admin/analytics",
       "icons": [
         {
-          "src": "/icons/about-shortcut.png",
+          "src": "/icons/shortcut-analytics.png",
           "sizes": "96x96"
         }
       ]
     },
     {
-      "name": "Contact",
-      "short_name": "Contact",
-      "description": "Get in touch for collaboration opportunities",
-      "url": "/contact",
+      "name": "Voice Commands",
+      "short_name": "Voice",
+      "description": "Use voice commands",
+      "url": "/?voice=true",
       "icons": [
         {
-          "src": "/icons/contact-shortcut.png",
+          "src": "/icons/shortcut-voice.png",
           "sizes": "96x96"
         }
       ]
     },
     {
-      "name": "Newsletter",
-      "short_name": "Newsletter",
-      "description": "Subscribe to exclusive tech insights",
-      "url": "/#newsletter",
+      "name": "Email Campaigns",
+      "short_name": "Email",
+      "description": "Manage email campaigns",
+      "url": "/admin/email-campaigns",
       "icons": [
         {
-          "src": "/icons/newsletter-shortcut.png",
+          "src": "/icons/shortcut-email.png",
           "sizes": "96x96"
         }
       ]
     }
   ],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://carelwavemedia.com/manifest.json"
+    }
+  ],
+  "prefer_related_applications": false,
   "edge_side_panel": {
     "preferred_width": 400
   },
-  "file_handlers": [
-    {
-      "action": "/blog",
-      "accept": {
-        "text/markdown": [".md"],
-        "text/plain": [".txt"]
-      }
-    }
-  ],
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "handle_links": "preferred",
   "protocol_handlers": [
     {
       "protocol": "mailto",
       "url": "/contact?email=%s"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "/admin/media/upload",
+      "accept": {
+        "image/*": [".jpg", ".jpeg", ".png", ".gif", ".webp"],
+        "video/*": [".mp4", ".webm", ".ogg"],
+        "application/pdf": [".pdf"]
+      }
     }
   ],
   "share_target": {
@@ -136,25 +177,13 @@
     "params": {
       "title": "title",
       "text": "text",
-      "url": "url"
+      "url": "url",
+      "files": [
+        {
+          "name": "files",
+          "accept": ["image/*", "video/*", "audio/*", ".pdf"]
+        }
+      ]
     }
-  },
-  "screenshots": [
-    {
-      "src": "/screenshots/desktop-home.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Carelwave Media Home Page"
-    },
-    {
-      "src": "/screenshots/mobile-blog.png",
-      "sizes": "375x812",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Mobile Blog Experience"
-    }
-  ],
-  "prefer_related_applications": false,
-  "related_applications": []
+  }
 } 

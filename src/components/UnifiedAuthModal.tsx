@@ -186,7 +186,7 @@ export default function UnifiedAuthModal({ isOpen, onClose, onSuccess }: Unified
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full shadow-2xl relative overflow-hidden">
+      <div className="bg-medium-contrast rounded-2xl max-w-md w-full shadow-2xl relative overflow-hidden">
         
         {/* Header */}
         <div className="text-center p-8 pb-6">
@@ -199,7 +199,7 @@ export default function UnifiedAuthModal({ isOpen, onClose, onSuccess }: Unified
                 ? userType === 'admin'
                   ? 'bg-gradient-to-br from-orange-400 to-red-500'
                   : 'bg-accent-primary/10 dark:bg-accent-primary/20'
-                : 'bg-gray-100 dark:bg-gray-700'
+                : 'bg-low-contrast'
           }`}>
             {step === 'success' ? (
               verifiedUser?.role === 'admin' ? (
@@ -214,11 +214,11 @@ export default function UnifiedAuthModal({ isOpen, onClose, onSuccess }: Unified
                 <Phone className="w-8 h-8 text-accent-primary dark:text-accent-primary-light" />
               )
             ) : (
-              <Phone className="w-8 h-8 text-gray-600 dark:text-gray-400" />
+              <Phone className="w-8 h-8 text-medium-contrast" />
             )}
           </div>
           
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <h2 className="text-subtitle font-bold text-high-contrast mb-2">
             {step === 'success' 
               ? verifiedUser?.role === 'admin' 
                 ? '👑 Admin Access Granted!'
@@ -231,7 +231,7 @@ export default function UnifiedAuthModal({ isOpen, onClose, onSuccess }: Unified
             }
           </h2>
           
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-medium-contrast">
             {step === 'success' 
               ? verifiedUser?.role === 'admin'
                 ? 'You now have full admin access to manage the platform.'
@@ -249,12 +249,12 @@ export default function UnifiedAuthModal({ isOpen, onClose, onSuccess }: Unified
         {step === 'phone' && (
           <div className="px-8 pb-8 space-y-6">
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="phone" className="block text-body-sm font-medium text-high-contrast mb-2">
                 Phone Number
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span className="text-gray-500 text-sm">+91</span>
+                  <span className="text-gray-500 text-body-sm">+91</span>
                 </div>
                 <input
                   type="tel"
@@ -262,12 +262,12 @@ export default function UnifiedAuthModal({ isOpen, onClose, onSuccess }: Unified
                   value={formatPhoneNumber(phoneNumber)}
                   onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
                   placeholder="98765 43210"
-                  className="w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
+                  className="w-full pl-12 pr-4 py-3 border border-medium-contrast rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
                   maxLength={11}
                   disabled={loading}
                 />
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-caption text-low-contrast mt-1">
                 Enter your 10-digit mobile number
               </p>
             </div>
@@ -287,24 +287,24 @@ export default function UnifiedAuthModal({ isOpen, onClose, onSuccess }: Unified
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                <div className="w-full border-t border-medium-contrast"></div>
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">Or continue with</span>
+              <div className="relative flex justify-center text-body-sm">
+                <span className="px-2 bg-medium-contrast text-gray-500">Or continue with</span>
               </div>
             </div>
 
             <button
               onClick={handleGoogleSignIn}
               disabled={loading}
-              className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center px-4 py-3 border border-medium-contrast rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-400 border-t-transparent mr-3"></div>
               ) : (
                 <Mail className="w-5 h-5 mr-3 text-red-500" />
               )}
-              <span className="text-gray-700 dark:text-gray-300">
+              <span className="text-high-contrast">
                 {loading ? 'Connecting...' : 'Continue with Google'}
               </span>
             </button>
@@ -326,18 +326,18 @@ export default function UnifiedAuthModal({ isOpen, onClose, onSuccess }: Unified
               <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4 mb-4">
                 <div className="flex items-center">
                   <Crown className="w-5 h-5 text-orange-600 dark:text-orange-400 mr-2" />
-                  <p className="text-orange-800 dark:text-orange-200 text-sm font-medium">
+                  <p className="text-orange-800 dark:text-orange-200 text-body-sm font-medium">
                     Admin Access Detected
                   </p>
                 </div>
-                <p className="text-orange-700 dark:text-orange-300 text-xs mt-1">
+                <p className="text-orange-700 dark:text-orange-300 text-caption mt-1">
                   You're signing in as an administrator. Please enter the OTP sent to your registered number.
                 </p>
               </div>
             )}
 
             <div>
-              <label htmlFor="otp" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="otp" className="block text-body-sm font-medium text-high-contrast mb-2">
                 Enter 6-digit OTP
               </label>
               <input
@@ -346,7 +346,7 @@ export default function UnifiedAuthModal({ isOpen, onClose, onSuccess }: Unified
                 value={otpCode}
                 onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="000000"
-                className="w-full px-4 py-3 text-center text-2xl font-mono border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
+                className="w-full px-4 py-3 text-center text-2xl font-mono border border-medium-contrast rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
                 maxLength={6}
                 disabled={loading}
                 autoComplete="one-time-code"
@@ -376,7 +376,7 @@ export default function UnifiedAuthModal({ isOpen, onClose, onSuccess }: Unified
               <button
                 onClick={handleResendOTP}
                 disabled={countdown > 0 || loading}
-                className="text-sm text-accent-primary dark:text-accent-primary-light hover:text-accent-primary dark:hover:accent-primary-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="text-body-sm text-accent-primary dark:text-accent-primary-light hover:text-accent-primary dark:hover:accent-primary-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {countdown > 0 ? `Resend OTP in ${countdown}s` : 'Resend OTP'}
               </button>
@@ -407,7 +407,7 @@ export default function UnifiedAuthModal({ isOpen, onClose, onSuccess }: Unified
                     {verifiedUser.role === 'admin' ? 'Administrator' : 'Verified User'}
                   </span>
                 </div>
-                <p className={`text-sm ${
+                <p className={`text-body-sm ${
                   verifiedUser.role === 'admin' 
                     ? 'text-yellow-700 dark:text-yellow-300'
                     : 'text-green-700 dark:text-green-300'
@@ -420,7 +420,7 @@ export default function UnifiedAuthModal({ isOpen, onClose, onSuccess }: Unified
                 <div className="w-8 h-8 bg-accent-primary rounded-full mx-auto"></div>
               </div>
               
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
+              <p className="text-medium-contrast text-body-sm">
                 Redirecting you to {verifiedUser.role === 'admin' ? 'admin dashboard' : 'your account'}...
               </p>
             </div>

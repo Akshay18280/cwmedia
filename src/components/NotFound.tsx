@@ -123,21 +123,21 @@ const NotFound: React.FC = () => {
           </div>
 
           {/* Error Message */}
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-headline md:text-5xl font-bold text-high-contrast mb-4">
             Page Not Found
           </h1>
           
-          <p className="text-xl text-gray-600 dark:text-gray-400 mb-6 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-body-lg text-medium-contrast mb-6 max-w-2xl mx-auto leading-relaxed">
             Oops! The page you're looking for seems to have vanished into the digital void. 
             But don't worry - we're here to help you find your way back!
           </p>
 
           {/* Current URL Info */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 mb-8 max-w-2xl mx-auto">
-            <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+          <div className="bg-medium-contrast rounded-xl p-4 border border-low-contrast mb-8 max-w-2xl mx-auto">
+            <div className="flex items-center text-body-sm text-medium-contrast">
               <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
               <span className="font-medium mr-2">Requested URL:</span>
-              <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs break-all">
+              <code className="bg-low-contrast px-2 py-1 rounded text-caption break-all">
                 {location.pathname}
               </code>
             </div>
@@ -152,7 +152,7 @@ const NotFound: React.FC = () => {
               </div>
               <button
                 onClick={handleStopRedirect}
-                className="text-sm text-accent-primary dark:text-accent-primary-light hover:text-accent-primary dark:hover:accent-primary-light transition-colors"
+                className="text-body-sm text-accent-primary dark:text-accent-primary-light hover:text-accent-primary dark:hover:accent-primary-light transition-colors"
               >
                 Cancel redirect
               </button>
@@ -171,12 +171,12 @@ const NotFound: React.FC = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search for articles, topics..."
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-transparent dark:bg-gray-700 dark:text-white bg-white shadow-lg"
+                  className="w-full pl-10 pr-4 py-3 border border-medium-contrast rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-transparent dark:bg-gray-700 dark:text-white bg-white shadow-lg"
                 />
               </div>
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 bg-accent-primary text-white rounded-md hover:bg-accent-primary-light transition-colors text-sm font-medium"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 bg-accent-primary text-white rounded-md hover:bg-accent-primary-light transition-colors text-body-sm font-medium"
               >
                 Search
               </button>
@@ -196,17 +196,17 @@ const NotFound: React.FC = () => {
               <div className="flex items-center justify-center mb-3">
                 {action.icon}
               </div>
-              <h3 className="text-lg font-semibold mb-2">{action.title}</h3>
-              <p className="text-sm opacity-90">{action.description}</p>
+              <h3 className="text-body font-semibold mb-2">{action.title}</h3>
+              <p className="text-body-sm opacity-90">{action.description}</p>
             </Link>
           ))}
         </div>
 
         {/* Popular Pages */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl border border-gray-200 dark:border-gray-700 mb-12">
+        <div className="bg-medium-contrast rounded-2xl p-8 shadow-xl border border-low-contrast mb-12">
           <div className="flex items-center mb-6">
             <Lightbulb className="w-6 h-6 text-yellow-500 mr-3" />
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-subtitle font-bold text-high-contrast">
               Popular Pages
             </h2>
           </div>
@@ -224,10 +224,10 @@ const NotFound: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-accent-primary dark:group-hover:text-accent-primary-light transition-colors">
+                  <h3 className="font-semibold text-high-contrast mb-1 group-hover:text-accent-primary dark:group-hover:text-accent-primary-light transition-colors">
                     {page.title}
                   </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-body-sm text-medium-contrast">
                     {page.description}
                   </p>
                 </div>
@@ -239,14 +239,14 @@ const NotFound: React.FC = () => {
 
         {/* Helpful Suggestions */}
         <div className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl p-6 mb-8">
-          <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-200 mb-4">
+          <h3 className="text-body font-semibold text-yellow-800 dark:text-yellow-200 mb-4">
             💡 Why might this have happened?
           </h3>
           <ul className="space-y-2">
             {suggestions.map((suggestion, index) => (
               <li key={index} className="flex items-start text-yellow-700 dark:text-yellow-300">
                 <span className="w-2 h-2 bg-yellow-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                <span className="text-sm">{suggestion}</span>
+                <span className="text-body-sm">{suggestion}</span>
               </li>
             ))}
           </ul>
@@ -256,7 +256,7 @@ const NotFound: React.FC = () => {
         <div className="text-center">
           <button
             onClick={() => navigate(-1)}
-            className="inline-flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 font-medium"
+            className="inline-flex items-center px-6 py-3 border border-medium-contrast rounded-lg text-high-contrast hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 font-medium"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
             Go Back
@@ -265,7 +265,7 @@ const NotFound: React.FC = () => {
 
         {/* Footer Message */}
         <div className="text-center mt-12">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-body-sm text-low-contrast">
             🚀 Still can't find what you're looking for?{' '}
             <Link 
               to="/contact" 

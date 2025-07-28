@@ -106,17 +106,17 @@ export default function Verify() {
 
   if (verified) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full text-center shadow-2xl">
+      <div className="min-h-screen bg-high-contrast flex items-center justify-center p-4">
+        <div className="bg-medium-contrast rounded-2xl p-8 max-w-md w-full text-center shadow-2xl">
           <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
           
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-subtitle font-bold text-high-contrast mb-4">
             🎉 Verification Successful!
           </h1>
           
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-medium-contrast mb-6">
             Your phone number has been verified successfully. Redirecting you now...
           </p>
 
@@ -129,8 +129,8 @@ export default function Verify() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl">
+    <div className="min-h-screen bg-high-contrast flex items-center justify-center p-4">
+      <div className="bg-medium-contrast rounded-2xl p-8 max-w-md w-full shadow-2xl">
         
         {/* Header */}
         <div className="text-center mb-8">
@@ -138,11 +138,11 @@ export default function Verify() {
             <Phone className="w-8 h-8 text-blue-600 dark:text-blue-400" />
           </div>
           
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+          <h1 className="text-subtitle font-bold text-high-contrast mb-2">
             📱 Verify Your Phone
           </h1>
           
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-medium-contrast">
             Enter the 6-digit code sent to
           </p>
           <p className="text-blue-600 dark:text-blue-400 font-medium">
@@ -162,7 +162,7 @@ export default function Verify() {
         {/* OTP Input */}
         <div className="space-y-6">
           <div>
-            <label htmlFor="otp" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label htmlFor="otp" className="block text-body-sm font-medium text-high-contrast mb-2">
               Enter 6-digit OTP
             </label>
             <input
@@ -171,7 +171,7 @@ export default function Verify() {
               value={otpCode}
               onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               placeholder="000000"
-              className="w-full px-4 py-3 text-center text-2xl font-mono border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
+              className="w-full px-4 py-3 text-center text-2xl font-mono border border-medium-contrast rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
               maxLength={6}
               disabled={loading}
               autoComplete="one-time-code"
@@ -193,13 +193,13 @@ export default function Verify() {
           </button>
 
           <div className="text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+            <p className="text-body-sm text-medium-contrast mb-3">
               Didn't receive the code?
             </p>
             <button
               onClick={handleResendOTP}
               disabled={countdown > 0 || loading}
-              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              className="text-body-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
               {countdown > 0 ? `Resend OTP in ${countdown}s` : 'Resend OTP'}
             </button>
@@ -210,7 +210,7 @@ export default function Verify() {
         <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
           <div className="flex items-start">
             <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" />
-            <div className="text-sm text-blue-800 dark:text-blue-200">
+            <div className="text-body-sm text-blue-800 dark:text-blue-200">
               <p className="font-medium mb-1">Having trouble?</p>
               <p>Make sure your phone has network coverage and can receive SMS messages.</p>
             </div>

@@ -179,7 +179,7 @@ export default function ThemeToggle({
             focus:outline-none focus:ring-2 focus:ring-blue-500/50
             disabled:opacity-50 disabled:cursor-not-allowed
             transform hover:scale-105 active:scale-95
-            ${isDropdownOpen ? 'bg-gray-100 dark:bg-gray-800' : ''}
+            ${isDropdownOpen ? 'bg-medium-contrast' : ''}
           `}
           aria-label="Theme settings"
           aria-expanded={isDropdownOpen}
@@ -192,9 +192,9 @@ export default function ThemeToggle({
 
         {/* Dropdown */}
         {isDropdownOpen && (
-          <div className="absolute top-full right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
+          <div className="absolute top-full right-0 mt-2 w-64 bg-medium-contrast rounded-xl shadow-2xl border border-low-contrast z-50 overflow-hidden">
             <div className="p-3">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+              <h3 className="text-body-sm font-semibold text-high-contrast mb-2 flex items-center gap-2">
                 <Settings className="w-4 h-4" />
                 Theme Settings
               </h3>
@@ -211,15 +211,15 @@ export default function ThemeToggle({
                     className={`
                       w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all duration-200
                       hover:bg-gray-100 dark:hover:bg-gray-700
-                      ${mode === option.mode ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'}
+                      ${mode === option.mode ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'text-high-contrast'}
                     `}
                   >
                     <div className="flex-shrink-0">
                       {option.icon}
                     </div>
                     <div className="flex-1">
-                      <div className="text-sm font-medium">{option.label}</div>
-                      <div className="text-xs opacity-70">{option.description}</div>
+                      <div className="text-body-sm font-medium">{option.label}</div>
+                      <div className="text-caption opacity-70">{option.description}</div>
                     </div>
                     {mode === option.mode && (
                       <Check className="w-4 h-4 text-blue-500" />
@@ -232,7 +232,7 @@ export default function ThemeToggle({
               {showAccentPicker && (
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                    <span className="text-caption font-medium text-medium-contrast flex items-center gap-1">
                       <Palette className="w-3 h-3" />
                       Accent Color
                     </span>
@@ -246,7 +246,7 @@ export default function ThemeToggle({
                         className={`w-6 h-6 rounded-full border-2 transition-all duration-200 hover:scale-110 ${
                           accentColor === color 
                             ? 'border-white shadow-md' 
-                            : 'border-gray-300 dark:border-gray-600'
+                            : 'border-medium-contrast'
                         }`}
                         style={{
                           background: color === 'blue' 
@@ -277,9 +277,9 @@ export default function ThemeToggle({
 
   // Full variant - expanded controls
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700 ${className}`}>
+    <div className={`bg-medium-contrast rounded-xl p-4 shadow-lg border border-low-contrast ${className}`}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+        <h3 className="text-body font-semibold text-high-contrast flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-blue-500" />
           Appearance
         </h3>
@@ -290,7 +290,7 @@ export default function ThemeToggle({
 
       {/* Theme Mode Selection */}
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+        <label className="block text-body-sm font-medium text-high-contrast mb-3">
           Theme Mode
         </label>
         <div className="grid grid-cols-3 gap-2">
@@ -303,14 +303,14 @@ export default function ThemeToggle({
                 flex flex-col items-center gap-2 p-3 rounded-lg transition-all duration-200 border-2
                 ${mode === option.mode 
                   ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' 
-                  : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300'
+                  : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 text-high-contrast'
                 }
                 disabled:opacity-50 disabled:cursor-not-allowed
                 transform hover:scale-105 active:scale-95
               `}
             >
               {option.icon}
-              <span className="text-xs font-medium">{option.label}</span>
+              <span className="text-caption font-medium">{option.label}</span>
             </button>
           ))}
         </div>
@@ -319,7 +319,7 @@ export default function ThemeToggle({
       {/* Accent Color Selection */}
       {showAccentPicker && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+          <label className="block text-body-sm font-medium text-high-contrast mb-3">
             Accent Color
           </label>
           <div className="grid grid-cols-5 gap-3">
@@ -331,7 +331,7 @@ export default function ThemeToggle({
                   aspect-square rounded-lg transition-all duration-200 border-2 p-1
                   ${accentColor === option.color 
                     ? 'border-gray-400 dark:border-gray-600' 
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    : 'border-low-contrast hover:border-gray-300 dark:hover:border-gray-600'
                   }
                   transform hover:scale-110 active:scale-95
                 `}
@@ -349,12 +349,12 @@ export default function ThemeToggle({
       )}
 
       {/* Quick Actions */}
-      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="mt-6 pt-4 border-t border-low-contrast">
         <div className="flex gap-2">
           <button
             onClick={cycleTheme}
             disabled={isTransitioning}
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-3 py-2 text-body-sm font-medium text-medium-contrast hover:text-gray-900 dark:hover:text-gray-100 transition-colors disabled:opacity-50"
           >
             <Zap className="w-4 h-4" />
             Quick Cycle

@@ -96,60 +96,60 @@ export const ModernButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, Mo
 
     // Size styles
     const sizeStyles = {
-      xs: 'px-2.5 py-1.5 text-xs rounded-md',
-      sm: 'px-3 py-2 text-sm rounded-md',
-      md: 'px-4 py-2.5 text-sm rounded-lg',
+      xs: 'px-2.5 py-1.5 text-caption rounded-md',
+      sm: 'px-3 py-2 text-body-sm rounded-md',
+      md: 'px-4 py-2.5 text-body-sm rounded-lg',
       lg: 'px-6 py-3 text-base rounded-lg',
-      xl: 'px-8 py-4 text-lg rounded-xl',
-      '2xl': 'px-10 py-5 text-xl rounded-2xl'
+      xl: 'px-8 py-4 text-body rounded-xl',
+      '2xl': 'px-10 py-5 text-body-lg rounded-2xl'
     };
 
-    // Variant styles
+    // Variant styles with proper contrast and gradient support
     const variantStyles = {
       default: {
-        primary: 'btn-gradient-flow text-white shadow-lg hover:shadow-xl hover:hover-gradient-glow',
-        secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700',
-        accent: 'btn-holographic text-white shadow-lg hover:shadow-xl hover:hover-gradient-glow',
-        success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500',
-        warning: 'bg-yellow-600 text-white hover:bg-yellow-700 focus:ring-yellow-500',
-        error: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
-        ghost: 'text-accent-primary hover:bg-gradient-flow-subtle focus:ring-accent-primary'
+        primary: 'btn-gradient-flow text-white shadow-lg hover:shadow-xl hover:hover-gradient-glow font-semibold',
+        secondary: 'bg-medium-contrast text-high-contrast hover:bg-low-contrast focus:ring-blue-500 border border-medium-contrast',
+        accent: 'btn-holographic text-white shadow-lg hover:shadow-xl hover:hover-gradient-glow font-semibold',
+        success: 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 font-medium',
+        warning: 'bg-yellow-600 text-white hover:bg-yellow-700 focus:ring-yellow-500 font-medium',
+        error: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 font-medium',
+        ghost: 'text-gradient-flow hover:bg-gradient-flow-subtle focus:ring-blue-500 font-medium'
       },
       neumorphic: {
-        primary: 'bg-gray-100 text-gray-900 shadow-neumorphic hover:shadow-neumorphic-inset dark:bg-gray-800 dark:text-gray-100 dark:shadow-neumorphic-dark',
-        secondary: 'bg-gray-50 text-gray-700 shadow-neumorphic-sm hover:shadow-neumorphic-inset-sm dark:bg-gray-900 dark:text-gray-300',
-        accent: 'bg-gradient-flow-subtle text-white shadow-neumorphic hover:shadow-neumorphic-inset',
-        success: 'bg-green-50 text-green-700 shadow-neumorphic hover:shadow-neumorphic-inset dark:bg-green-900/20 dark:text-green-300',
-        warning: 'bg-yellow-50 text-yellow-700 shadow-neumorphic hover:shadow-neumorphic-inset dark:bg-yellow-900/20 dark:text-yellow-300',
-        error: 'bg-red-50 text-red-700 shadow-neumorphic hover:shadow-neumorphic-inset dark:bg-red-900/20 dark:text-red-300',
-        ghost: 'text-gray-600 hover:shadow-neumorphic-sm dark:text-gray-400'
+        primary: 'neumorphic text-high-contrast shadow-neumorphic hover:shadow-neumorphic-inset font-medium',
+        secondary: 'bg-medium-contrast text-medium-contrast shadow-neumorphic-sm hover:shadow-neumorphic-inset-sm font-medium',
+        accent: 'bg-gradient-flow-subtle text-white shadow-neumorphic hover:shadow-neumorphic-inset font-medium',
+        success: 'bg-green-100 text-green-800 shadow-neumorphic font-medium dark:bg-green-900 dark:text-green-200',
+        warning: 'bg-yellow-100 text-yellow-800 shadow-neumorphic font-medium dark:bg-yellow-900 dark:text-yellow-200',
+        error: 'bg-red-100 text-red-800 shadow-neumorphic font-medium dark:bg-red-900 dark:text-red-200',
+        ghost: 'text-high-contrast hover:shadow-neumorphic-inset font-medium'
       },
       glass: {
-        primary: 'bg-white/20 backdrop-blur-md border border-white/30 text-gray-900 hover:bg-white/30 dark:text-white',
-        secondary: 'bg-gray-500/20 backdrop-blur-md border border-gray-500/30 text-gray-700 hover:bg-gray-500/30 dark:text-gray-300',
-        accent: 'bg-holographic-subtle backdrop-blur-md border border-white/30 text-white hover:bg-white/30',
-        success: 'bg-green-500/20 backdrop-blur-md border border-green-500/30 text-green-700 hover:bg-green-500/30 dark:text-green-300',
-        warning: 'bg-yellow-500/20 backdrop-blur-md border border-yellow-500/30 text-yellow-700 hover:bg-yellow-500/30 dark:text-yellow-300',
-        error: 'bg-red-500/20 backdrop-blur-md border border-red-500/30 text-red-700 hover:bg-red-500/30 dark:text-red-300',
-        ghost: 'backdrop-blur-sm border border-white/20 text-gray-600 hover:bg-white/10 dark:text-gray-400'
+        primary: 'glass text-white backdrop-blur-md border border-white/20 font-medium',
+        secondary: 'glass text-high-contrast backdrop-blur-md border border-medium-contrast/20 font-medium',
+        accent: 'bg-holographic-subtle text-white backdrop-blur-md border border-white/20 font-medium',
+        success: 'glass text-green-600 border-green-500/20 font-medium dark:text-green-400',
+        warning: 'glass text-yellow-600 border-yellow-500/20 font-medium dark:text-yellow-400',
+        error: 'glass text-red-600 border-red-500/20 font-medium dark:text-red-400',
+        ghost: 'glass text-medium-contrast font-medium'
       },
       brutalist: {
-        primary: 'bg-gradient-flow text-white border-4 border-black hover:bg-white hover:text-black transform hover:translate-x-1 hover:translate-y-1 shadow-brutalist',
-        secondary: 'bg-white text-black border-4 border-black hover:bg-black hover:text-white transform hover:translate-x-1 hover:translate-y-1 shadow-brutalist',
-        accent: 'bg-holographic text-white border-4 border-black hover:bg-white hover:text-black transform hover:translate-x-1 hover:translate-y-1 shadow-brutalist',
-        success: 'bg-green-600 text-white border-4 border-green-600 hover:bg-white hover:text-green-600 transform hover:translate-x-1 hover:translate-y-1 shadow-brutalist',
-        warning: 'bg-yellow-600 text-white border-4 border-yellow-600 hover:bg-white hover:text-yellow-600 transform hover:translate-x-1 hover:translate-y-1 shadow-brutalist',
-        error: 'bg-red-600 text-white border-4 border-red-600 hover:bg-white hover:text-red-600 transform hover:translate-x-1 hover:translate-y-1 shadow-brutalist',
-        ghost: 'border-4 border-black text-black hover:bg-black hover:text-white transform hover:translate-x-1 hover:translate-y-1'
+        primary: 'bg-high-contrast text-white border-4 border-black shadow-brutalist font-bold uppercase tracking-wide',
+        secondary: 'bg-yellow-400 text-black border-4 border-black shadow-brutalist font-bold uppercase',
+        accent: 'bg-holographic text-white border-4 border-black shadow-brutalist font-bold uppercase',
+        success: 'bg-green-400 text-black border-4 border-black shadow-brutalist font-bold uppercase',
+        warning: 'bg-yellow-400 text-black border-4 border-black shadow-brutalist font-bold uppercase',
+        error: 'bg-red-400 text-white border-4 border-black shadow-brutalist font-bold uppercase',
+        ghost: 'text-black border-4 border-black font-bold uppercase'
       },
       minimal: {
-        primary: 'text-gradient-flow hover:underline underline-offset-4 decoration-2',
-        secondary: 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100',
-        accent: 'text-holographic hover:opacity-80',
-        success: 'text-green-600 hover:text-green-700',
-        warning: 'text-yellow-600 hover:text-yellow-700',
-        error: 'text-red-600 hover:text-red-700',
-        ghost: 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+        primary: 'text-gradient-flow hover:underline underline-offset-4 decoration-2 font-medium',
+        secondary: 'text-medium-contrast hover:text-high-contrast font-medium',
+        accent: 'text-holographic hover:underline underline-offset-4 decoration-2 font-medium',
+        success: 'text-green-600 hover:text-green-700 font-medium dark:text-green-400',
+        warning: 'text-yellow-600 hover:text-yellow-700 font-medium dark:text-yellow-400',
+        error: 'text-red-600 hover:text-red-700 font-medium dark:text-red-400',
+        ghost: 'text-subtle hover:text-medium-contrast font-medium'
       }
     };
 
@@ -255,8 +255,8 @@ export const ModernCard = forwardRef<HTMLDivElement, ModernCardProps>(
     };
 
     const variantStyles = {
-      default: 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700',
-      neumorphic: 'bg-gray-100 dark:bg-gray-800 shadow-neumorphic dark:shadow-neumorphic-dark',
+      default: 'bg-medium-contrast border border-low-contrast',
+      neumorphic: 'bg-medium-contrast shadow-neumorphic dark:shadow-neumorphic-dark',
       glass: 'bg-white/10 backdrop-blur-md border border-white/20',
       brutalist: 'bg-white border-4 border-black shadow-brutalist',
       minimal: 'bg-transparent',
@@ -347,20 +347,20 @@ export const ModernInput = forwardRef<HTMLInputElement, ModernInputProps>(
     const baseStyles = 'w-full transition-all duration-200 focus:outline-none';
     
     const sizeStyles = {
-      xs: 'px-2.5 py-1.5 text-xs rounded-md',
-      sm: 'px-3 py-2 text-sm rounded-md',
-      md: 'px-4 py-2.5 text-sm rounded-lg',
+      xs: 'px-2.5 py-1.5 text-caption rounded-md',
+      sm: 'px-3 py-2 text-body-sm rounded-md',
+      md: 'px-4 py-2.5 text-body-sm rounded-lg',
       lg: 'px-5 py-3 text-base rounded-lg',
-      xl: 'px-6 py-4 text-lg rounded-xl',
-      '2xl': 'px-8 py-5 text-xl rounded-2xl'
+      xl: 'px-6 py-4 text-body rounded-xl',
+      '2xl': 'px-8 py-5 text-body-lg rounded-2xl'
     };
 
     const variantStyles = {
-      default: `bg-white dark:bg-gray-800 border ${error ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 dark:border-gray-600 focus:border-accent-primary focus:ring-accent-primary'} focus:ring-2 focus:ring-offset-1`,
-      neumorphic: `bg-gray-100 dark:bg-gray-800 shadow-neumorphic-inset ${error ? 'shadow-red-200' : ''} focus:shadow-neumorphic border-none`,
+      default: `bg-medium-contrast border ${error ? 'border-red-500 focus:ring-red-500' : 'border-medium-contrast focus:border-accent-primary focus:ring-accent-primary'} focus:ring-2 focus:ring-offset-1`,
+      neumorphic: `bg-medium-contrast shadow-neumorphic-inset ${error ? 'shadow-red-200' : ''} focus:shadow-neumorphic border-none`,
       glass: `bg-white/10 backdrop-blur-md border ${error ? 'border-red-500/50' : 'border-white/30'} focus:border-accent-primary/50 focus:bg-white/20`,
       brutalist: `bg-white border-4 ${error ? 'border-red-600' : 'border-black'} focus:border-accent-primary`,
-      minimal: `bg-transparent border-b-2 ${error ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} focus:border-accent-primary rounded-none`
+      minimal: `bg-transparent border-b-2 ${error ? 'border-red-500' : 'border-medium-contrast'} focus:border-accent-primary rounded-none`
     };
 
     const iconPadding = Icon ? (iconPosition === 'left' ? 'pl-10' : 'pr-10') : '';
@@ -369,7 +369,7 @@ export const ModernInput = forwardRef<HTMLInputElement, ModernInputProps>(
     return (
       <div className="relative">
         {label && (
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-body-sm font-medium text-high-contrast mb-2">
             {label}
           </label>
         )}
@@ -393,7 +393,7 @@ export const ModernInput = forwardRef<HTMLInputElement, ModernInputProps>(
           />
         </div>
         {error && (
-          <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>
+          <p className="mt-1 text-body-sm text-red-600 dark:text-red-400">{error}</p>
         )}
       </div>
     );

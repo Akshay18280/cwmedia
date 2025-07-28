@@ -229,18 +229,18 @@ const Newsletter: React.FC = () => {
             </div>
           </div>
 
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 animate-fade-in">
+          <h3 className="text-subtitle font-bold text-high-contrast mb-4 animate-fade-in">
             🎉 Welcome to Our Community!
           </h3>
           
-          <p className="text-lg text-gray-600 dark:text-gray-400 mb-6 animate-fade-in delay-200">
+          <p className="text-body text-medium-contrast mb-6 animate-fade-in delay-200">
             You're now part of an exclusive community of forward-thinking developers.
           </p>
 
           {/* Personalized welcome message */}
           <div className="bg-accent-primary/10 dark:bg-accent-primary/20 rounded-xl p-4 mb-6 animate-fade-in delay-400">
             <Brain className="w-5 h-5 text-accent-primary mx-auto mb-2" />
-            <p className="text-sm text-accent-primary font-medium">
+            <p className="text-body-sm text-accent-primary font-medium">
               Based on your engagement, we've curated {preferences.readingLevel} level content
               {preferences.contentTypes.length > 1 && ` focusing on ${preferences.contentTypes.join(', ')}`}.
             </p>
@@ -250,19 +250,19 @@ const Newsletter: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="text-center animate-fade-in delay-500">
               <Mail className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-body-sm text-medium-contrast">
                 First email in your inbox
               </p>
             </div>
             <div className="text-center animate-fade-in delay-600">
               <Bell className="w-6 h-6 text-purple-600 mx-auto mb-2" />
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-body-sm text-medium-contrast">
                 {preferences.frequency.charAt(0).toUpperCase() + preferences.frequency.slice(1)} updates
               </p>
             </div>
             <div className="text-center animate-fade-in delay-700">
               <Heart className="w-6 h-6 text-red-600 mx-auto mb-2" />
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-body-sm text-medium-contrast">
                 Exclusive content access
               </p>
             </div>
@@ -293,12 +293,7 @@ const Newsletter: React.FC = () => {
       <div className="relative text-center text-white py-16 px-8">
         {/* AI-powered header with dynamic content */}
         <div className="mb-8">
-          <div className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm font-medium mb-6 animate-fade-in">
-            <Brain className="w-4 h-4 mr-2" />
-            Smart Content • {userEngagement.deviceType === 'mobile' ? 'Mobile Optimized' : 'Desktop Experience'}
-          </div>
-          
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 animate-fade-in delay-200" style={{
+          <h2 className="text-headline md:text-5xl font-bold mb-4 animate-fade-in delay-200" style={{
             fontWeight: '900',
             lineHeight: '0.9',
             letterSpacing: '-0.02em'
@@ -309,7 +304,7 @@ const Newsletter: React.FC = () => {
             </span>
           </h2>
           
-          <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed animate-fade-in delay-400">
+          <p className="text-body-lg md:text-2xl text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed animate-fade-in delay-400">
             {getPersonalizedMessage()}
           </p>
         </div>
@@ -359,17 +354,17 @@ const Newsletter: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center">
                   <Zap className="w-5 h-5 text-yellow-300 mr-2" />
-                  <span className="text-sm font-medium text-white">Smart Personalization</span>
+                  <span className="text-body-sm font-medium text-white">Smart Personalization</span>
                 </div>
                 <button
                   onClick={() => setShowPreferences(!showPreferences)}
-                  className="text-xs text-white/70 hover:text-white transition-colors"
+                  className="text-caption text-white/70 hover:text-white transition-colors"
                 >
                   {showPreferences ? 'Hide' : 'Customize'}
                 </button>
               </div>
               
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-2 gap-4 text-body-sm">
                 <div>
                   <span className="text-white/70">Content Level:</span>
                   <span className="text-white font-medium ml-2 capitalize">{preferences.readingLevel}</span>
@@ -384,7 +379,7 @@ const Newsletter: React.FC = () => {
                 <div className="mt-4 pt-4 border-t border-white/20 animate-fade-in">
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm text-white/70 mb-2">Content Types:</label>
+                      <label className="block text-body-sm text-white/70 mb-2">Content Types:</label>
                       <div className="flex flex-wrap gap-2">
                         {['technical', 'general', 'industry', 'tutorials'].map((type) => (
                           <button
@@ -398,7 +393,7 @@ const Newsletter: React.FC = () => {
                                   : [...prev.contentTypes, type as any]
                               }));
                             }}
-                            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                            className={`px-3 py-1 rounded-full text-caption font-medium transition-colors ${
                               preferences.contentTypes.includes(type as any)
                                 ? 'bg-white text-blue-600'
                                 : 'bg-white/20 text-white hover:bg-white/30'
@@ -411,11 +406,11 @@ const Newsletter: React.FC = () => {
                     </div>
                     
                     <div>
-                      <label className="block text-sm text-white/70 mb-2">Frequency:</label>
+                      <label className="block text-body-sm text-white/70 mb-2">Frequency:</label>
                       <select
                         value={preferences.frequency}
                         onChange={(e) => setPreferences(prev => ({ ...prev, frequency: e.target.value as any }))}
-                        className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-white"
+                        className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-body-sm focus:outline-none focus:ring-2 focus:ring-white"
                       >
                         <option value="weekly" className="bg-gray-800 text-white">Weekly</option>
                         <option value="bi-weekly" className="bg-gray-800 text-white">Bi-weekly</option>
@@ -435,29 +430,29 @@ const Newsletter: React.FC = () => {
             <div className="text-center">
               <div className="flex items-center justify-center mb-2">
                 <Users className="w-6 h-6 text-white/80 mr-2" />
-                <span className="text-2xl font-bold text-white">2.5K+</span>
+                <span className="text-subtitle font-bold text-white">2.5K+</span>
               </div>
-              <p className="text-white/70 text-sm">Active Subscribers</p>
+              <p className="text-white/70 text-body-sm">Active Subscribers</p>
             </div>
             
             <div className="text-center">
               <div className="flex items-center justify-center mb-2">
                 <TrendingUp className="w-6 h-6 text-white/80 mr-2" />
-                <span className="text-2xl font-bold text-white">98%</span>
+                <span className="text-subtitle font-bold text-white">98%</span>
               </div>
-              <p className="text-white/70 text-sm">Satisfaction Rate</p>
+              <p className="text-white/70 text-body-sm">Satisfaction Rate</p>
             </div>
             
             <div className="text-center">
               <div className="flex items-center justify-center mb-2">
                 <Eye className="w-6 h-6 text-white/80 mr-2" />
-                <span className="text-2xl font-bold text-white">4.8</span>
+                <span className="text-subtitle font-bold text-white">4.8</span>
               </div>
-              <p className="text-white/70 text-sm">Avg. Reading Time</p>
+              <p className="text-white/70 text-body-sm">Avg. Reading Time</p>
             </div>
           </div>
           
-          <p className="text-white/60 text-sm mt-6 leading-relaxed">
+          <p className="text-white/60 text-body-sm mt-6 leading-relaxed">
             Join developers from Google, Microsoft, Amazon, and other leading tech companies. 
             Unsubscribe anytime with one click.
           </p>
@@ -465,7 +460,7 @@ const Newsletter: React.FC = () => {
 
         {/* Voice interaction hint */}
         <div className="mt-8 animate-fade-in delay-1000">
-          <div className="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-white/80 text-sm">
+          <div className="inline-flex items-center px-4 py-2 bg-white/10 backdrop-blur-sm rounded-full text-white/80 text-body-sm">
             <Volume2 className="w-4 h-4 mr-2" />
             <span>Try saying "subscribe to newsletter" for voice signup</span>
           </div>
