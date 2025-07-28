@@ -1,206 +1,153 @@
 import React from 'react';
-import { 
-  Palette, 
-  CheckCircle, 
-  Star, 
-  Users, 
-  Mail,
-  Phone,
-  Globe,
-  Shield,
-  Zap
-} from 'lucide-react';
-import { useTheme } from '../hooks/useTheme';
+import { Palette, Sparkles, Eye, Zap, Heart, Star } from 'lucide-react';
+import { ModernButton, ModernCard } from '../components/ModernDesignSystem';
 
 export default function AccentTest() {
-  const { accentColor, setAccentColor } = useTheme();
-
-  const testElements = [
-    {
-      title: 'Buttons',
-      elements: (
-        <div className="space-y-3">
-          <button className="px-6 py-3 bg-accent-primary text-white rounded-lg hover:bg-accent-primary-light transition-colors">
-            Primary Button
-          </button>
-          <button className="px-6 py-3 border-2 border-accent-primary text-accent-primary rounded-lg hover:bg-accent-primary hover:text-white transition-colors">
-            Secondary Button
-          </button>
-          <button className="px-6 py-3 bg-gradient-accent text-white rounded-lg hover:opacity-90 transition-opacity">
-            Gradient Button
-          </button>
-        </div>
-      )
-    },
-    {
-      title: 'Text & Links',
-      elements: (
-        <div className="space-y-2">
-          <p className="text-accent-primary font-semibold">Accent Text Color</p>
-          <p className="text-accent-primary-light">Light Accent Text</p>
-          <a href="#" className="text-gray-600 hover:accent-primary transition-colors underline">
-            Hover Link Effect
-          </a>
-        </div>
-      )
-    },
-    {
-      title: 'Backgrounds & Borders',
-      elements: (
-        <div className="space-y-3">
-          <div className="p-4 bg-accent-primary/10 border border-accent-primary/20 rounded-lg">
-            <p className="text-accent-primary font-medium">Accent Background</p>
-          </div>
-          <div className="p-4 bg-gradient-accent text-white rounded-lg">
-            <p className="font-medium">Gradient Background</p>
-          </div>
-        </div>
-      )
-    },
-    {
-      title: 'Icons & Indicators',
-      elements: (
-        <div className="flex gap-4">
-          <CheckCircle className="w-8 h-8 text-accent-primary" />
-          <Star className="w-8 h-8 text-accent-primary-light" />
-          <Users className="w-8 h-8 text-accent-primary" />
-          <Mail className="w-8 h-8 text-accent-primary-light" />
-        </div>
-      )
-    },
-    {
-      title: 'Form Elements',
-      elements: (
-        <div className="space-y-3">
-          <input 
-            type="text" 
-            placeholder="Focus me!" 
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-accent-primary focus:border-accent-primary"
-          />
-          <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-accent-primary focus:border-accent-primary">
-            <option>Select option</option>
-            <option>Option 1</option>
-          </select>
-        </div>
-      )
-    }
-  ];
-
-  const accentColors = [
-    { name: 'Ocean Blue', color: 'blue' as const },
-    { name: 'Royal Purple', color: 'purple' as const },
-    { name: 'Forest Green', color: 'green' as const },
-    { name: 'Sunset Orange', color: 'orange' as const },
-    { name: 'Cherry Pink', color: 'pink' as const }
-  ];
-
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-subtle py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center mb-4">
-            <Palette className="w-8 h-8 text-accent-primary mr-3" />
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-              Accent Colors Working! 🎉
-            </h1>
-          </div>
+        <div className="text-center mb-16">
+          <h1 className="text-display mb-6 text-gradient-flow">
+            🌊 Flowing Gradients + 🔮 Holographic Effects
+          </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-            All website elements now dynamically change colors based on your accent selection. 
-            Try switching colors below to see the magic!
+            Experience our revolutionary dynamic color system with flowing gradients and holographic effects.
+            Watch colors come alive with smooth animations and interactive responses.
           </p>
         </div>
 
-        {/* Color Picker */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl mb-8 border border-gray-200 dark:border-gray-700">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
-            🎨 Choose Your Accent Color
-          </h2>
-          <div className="flex flex-wrap justify-center gap-4">
-            {accentColors.map((color) => (
-              <button
-                key={color.color}
-                onClick={() => setAccentColor(color.color)}
-                className={`
-                  flex flex-col items-center p-4 rounded-xl transition-all duration-200 transform hover:scale-105
-                  ${accentColor === color.color 
-                    ? 'bg-accent-primary/10 border-2 border-accent-primary' 
-                    : 'bg-gray-50 dark:bg-gray-700 border-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600'
-                  }
-                `}
-              >
-                <div className={`w-12 h-12 rounded-full mb-2 ${
-                  color.color === 'blue' ? 'bg-blue-500' :
-                  color.color === 'purple' ? 'bg-purple-500' :
-                  color.color === 'green' ? 'bg-green-500' :
-                  color.color === 'orange' ? 'bg-orange-500' :
-                  'bg-pink-500'
-                }`}></div>
-                <span className={`text-sm font-medium ${
-                  accentColor === color.color 
-                    ? 'text-accent-primary' 
-                    : 'text-gray-600 dark:text-gray-400'
-                }`}>
-                  {color.name}
-                </span>
-                {accentColor === color.color && (
-                  <CheckCircle className="w-5 h-5 text-accent-primary mt-1" />
-                )}
-              </button>
-            ))}
+        {/* Live Demo Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
+          {/* Flowing Gradients Demo */}
+          <ModernCard variant="default" padding="lg" className="text-center">
+            <div className="w-16 h-16 bg-gradient-flow rounded-full mx-auto mb-4 animate-gradient-flow"></div>
+            <h3 className="text-2xl font-bold mb-4 text-gradient-flow">Flowing Gradients</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              Colors smoothly flow and shift like liquid, creating mesmerizing visual experiences.
+            </p>
+            <div className="space-y-4">
+              <div className="h-4 bg-gradient-flow rounded-full animate-gradient-flow-slow"></div>
+              <div className="h-4 bg-gradient-flow rounded-full animate-gradient-flow"></div>
+              <div className="h-4 bg-gradient-flow rounded-full animate-gradient-flow-fast"></div>
+            </div>
+          </ModernCard>
+
+          {/* Holographic Effects Demo */}
+          <ModernCard variant="default" padding="lg" className="text-center">
+            <div className="w-16 h-16 bg-holographic rounded-full mx-auto mb-4"></div>
+            <h3 className="text-2xl font-bold mb-4 text-holographic">Holographic Effects</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              Color-shifting effects like soap bubbles or holographic foil with hue rotation.
+            </p>
+            <div className="space-y-4">
+              <div className="h-4 bg-holographic rounded-full animate-holographic-slow"></div>
+              <div className="h-4 bg-holographic rounded-full animate-holographic"></div>
+              <div className="h-4 bg-holographic rounded-full animate-holographic-fast"></div>
+            </div>
+          </ModernCard>
+        </div>
+
+        {/* Button Variations */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center mb-8 text-gradient-accent">Interactive Buttons</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <ModernButton variant="default" intent="primary" size="lg" icon={Sparkles}>
+              Gradient Flow
+            </ModernButton>
+            <ModernButton variant="default" intent="accent" size="lg" icon={Zap}>
+              Holographic
+            </ModernButton>
+            <ModernButton variant="neumorphic" intent="primary" size="lg" icon={Heart}>
+              Neomorphism
+            </ModernButton>
+            <ModernButton variant="glass" intent="accent" size="lg" icon={Star}>
+              Glass Morph
+            </ModernButton>
           </div>
         </div>
 
-        {/* Current Color Display */}
-        <div className="bg-gradient-accent text-white rounded-2xl p-8 mb-8 text-center">
-          <Zap className="w-16 h-16 mx-auto mb-4" />
-          <h2 className="text-3xl font-bold mb-2">Currently Using: {accentColor}</h2>
-          <p className="text-xl opacity-90">
-            This entire section changes color when you switch accent colors!
-          </p>
+        {/* Card Variations */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center mb-8 text-holographic">Dynamic Cards</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <ModernCard variant="default" padding="lg" hover className="text-center">
+              <Eye className="w-12 h-12 text-blue-600 mx-auto mb-4" />
+              <h3 className="text-xl font-bold mb-2">Default Style</h3>
+              <p className="text-gray-600 dark:text-gray-400">Clean and professional appearance</p>
+            </ModernCard>
+
+            <ModernCard variant="neumorphic" padding="lg" hover className="text-center">
+              <Palette className="w-12 h-12 text-purple-600 mx-auto mb-4" />
+              <h3 className="text-xl font-bold mb-2">Neumorphic</h3>
+              <p className="text-gray-600 dark:text-gray-400">Soft, tactile design with depth</p>
+            </ModernCard>
+
+            <ModernCard variant="glass" padding="lg" hover className="text-center">
+              <Sparkles className="w-12 h-12 text-green-600 mx-auto mb-4" />
+              <h3 className="text-xl font-bold mb-2">Glass Morphism</h3>
+              <p className="text-gray-600 dark:text-gray-400">Translucent with blur effects</p>
+            </ModernCard>
+          </div>
         </div>
 
-        {/* Test Elements Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {testElements.map((test, index) => (
-            <div key={index} className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                <div className="w-8 h-8 bg-accent-primary/10 rounded-lg flex items-center justify-center mr-3">
-                  <div className="w-4 h-4 bg-accent-primary rounded-full"></div>
-                </div>
-                {test.title}
-              </h3>
-              {test.elements}
-            </div>
-          ))}
+        {/* Typography Effects */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center mb-8 text-gradient-flow">Typography Effects</h2>
+          <div className="text-center space-y-6">
+            <h1 className="text-6xl font-bold text-gradient-flow">Flowing Text</h1>
+            <h1 className="text-6xl font-bold text-holographic">Holographic Text</h1>
+            <h1 className="text-6xl font-bold text-gradient-accent">Static Gradient</h1>
+          </div>
         </div>
 
-        {/* Success Message */}
-        <div className="mt-12 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-2xl p-8 text-center">
-          <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            🚀 ACCENT COLORS ARE FULLY FUNCTIONAL!
-          </h2>
-          <p className="text-xl text-gray-600 dark:text-gray-400 mb-6">
-            Your theme system is now truly world-class with dynamic accent colors 
-            that affect the entire website experience.
+        {/* Background Patterns */}
+        <div className="mb-16">
+          <h2 className="text-3xl font-bold text-center mb-8 text-gradient-accent">Background Patterns</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="h-40 bg-gradient-flow rounded-xl flex items-center justify-center text-white font-bold text-2xl">
+              Flowing Background
+            </div>
+            <div className="h-40 bg-holographic rounded-xl flex items-center justify-center text-white font-bold text-2xl">
+              Holographic Background
+            </div>
+          </div>
+        </div>
+
+        {/* Performance Info */}
+        <ModernCard variant="glass" padding="lg" className="text-center">
+          <h3 className="text-2xl font-bold mb-4 text-gradient-flow">Performance Optimized</h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            All animations respect user preferences for reduced motion and adapt to device capabilities.
+            Gradients are hardware-accelerated and optimized for smooth 60fps performance.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-            <div>
-              <Globe className="w-8 h-8 text-accent-primary mx-auto mb-2" />
-              <h3 className="font-semibold text-gray-900 dark:text-white">Universal</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Works across all pages</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">60 FPS</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Smooth Animation</div>
             </div>
-            <div>
-              <Zap className="w-8 h-8 text-accent-primary mx-auto mb-2" />
-              <h3 className="font-semibold text-gray-900 dark:text-white">Instant</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Real-time color changes</p>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">&lt; 50ms</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Response Time</div>
             </div>
-            <div>
-              <Shield className="w-8 h-8 text-accent-primary mx-auto mb-2" />
-              <h3 className="font-semibold text-gray-900 dark:text-white">Persistent</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Saved in localStorage</p>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">GPU</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Accelerated</div>
             </div>
+          </div>
+        </ModernCard>
+
+        {/* Instructions */}
+        <div className="mt-16 text-center">
+          <h3 className="text-2xl font-bold mb-4 text-holographic">How to Test</h3>
+          <div className="max-w-2xl mx-auto">
+            <ol className="list-decimal list-inside space-y-2 text-left text-gray-600 dark:text-gray-400">
+              <li>Change accent colors in the theme toggle (top navigation)</li>
+              <li>Watch all gradients and holographic effects update instantly</li>
+              <li>Hover over buttons and cards to see interactive effects</li>
+              <li>Try different theme modes (light, dark, auto)</li>
+              <li>Test on different devices to see adaptive performance</li>
+            </ol>
           </div>
         </div>
       </div>

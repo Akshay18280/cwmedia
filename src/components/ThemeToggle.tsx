@@ -237,23 +237,33 @@ export default function ThemeToggle({
                       Accent Color
                     </span>
                   </div>
+                  {/* Accent Color Options */}
                   <div className="flex gap-2">
-                    {accentOptions.map((option) => (
+                    {(['blue', 'purple', 'green', 'orange', 'pink'] as AccentColor[]).map((color) => (
                       <button
-                        key={option.color}
-                        onClick={() => setAccentColor(option.color)}
-                        className={`
-                          w-8 h-8 rounded-full transition-all duration-200 transform hover:scale-110
-                          ${option.colors.light} ${option.colors.dark}
-                          ${accentColor === option.color ? 'ring-2 ring-offset-2 ring-gray-400 dark:ring-gray-600' : ''}
-                          hover:shadow-lg
-                        `}
-                        title={option.name}
-                      >
-                        {accentColor === option.color && (
-                          <Check className="w-4 h-4 text-white mx-auto" />
-                        )}
-                      </button>
+                        key={color}
+                        onClick={() => setAccentColor(color)}
+                        className={`w-6 h-6 rounded-full border-2 transition-all duration-200 hover:scale-110 ${
+                          accentColor === color 
+                            ? 'border-white shadow-md' 
+                            : 'border-gray-300 dark:border-gray-600'
+                        }`}
+                        style={{
+                          background: color === 'blue' 
+                            ? 'linear-gradient(-45deg, #3b82f6, #60a5fa, #93c5fd)' 
+                            : color === 'purple'
+                            ? 'linear-gradient(-45deg, #8b5cf6, #a78bfa, #c4b5fd)'
+                            : color === 'green'
+                            ? 'linear-gradient(-45deg, #10b981, #34d399, #6ee7b7)'
+                            : color === 'orange'
+                            ? 'linear-gradient(-45deg, #f59e0b, #fbbf24, #fcd34d)'
+                            : 'linear-gradient(-45deg, #ec4899, #f472b6, #f9a8d4)',
+                          backgroundSize: '200% 200%',
+                          animation: accentColor === color ? 'gradient-flow 3s ease infinite' : 'none'
+                        }}
+                        title={`${color.charAt(0).toUpperCase() + color.slice(1)} gradient theme`}
+                        aria-label={`Select ${color} gradient accent color`}
+                      />
                     ))}
                   </div>
                 </div>

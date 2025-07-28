@@ -83,20 +83,13 @@ export default function Layout({ children }: LayoutProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <Link 
-              to="/" 
-              className="flex items-center group"
-              aria-label="Carelwave Media Home"
-            >
-              <div className="w-10 h-10 bg-gradient-accent rounded-xl flex items-center justify-center transform group-hover:scale-105 transition-transform duration-200">
-                <span className="text-xl font-bold text-white">CM</span>
+            <Link to="/" className="flex items-center">
+              <div className="w-8 h-8 bg-gradient-flow rounded-lg flex items-center justify-center mr-3 animate-gradient-flow">
+                <span className="text-white font-bold text-lg">C</span>
               </div>
-              <div className="ml-3 hidden sm:block">
-                <span className="text-2xl font-bold text-gray-900 dark:text-white">Carelwave</span>
-                <span className="text-xl font-light accent-primary ml-1">
-                  Media
-                </span>
-              </div>
+              <span className="text-xl font-bold text-gradient-flow">
+                Carelwave Media
+              </span>
             </Link>
 
             {/* Desktop Navigation */}
@@ -214,15 +207,12 @@ export default function Layout({ children }: LayoutProps) {
             {/* Company info */}
             <div className="md:col-span-2">
               <Link to="/" className="flex items-center">
-                <div className="w-10 h-10 bg-gradient-accent rounded-xl flex items-center justify-center">
-                  <span className="text-xl font-bold text-white">CM</span>
+                <div className="w-8 h-8 bg-gradient-flow rounded-lg flex items-center justify-center mr-3 animate-gradient-flow">
+                  <span className="text-white font-bold text-lg">C</span>
                 </div>
-                <div className="ml-3">
-                  <span className="text-2xl font-bold text-gray-900 dark:text-white">Carelwave</span>
-                  <span className="text-xl font-light accent-primary ml-1">
-                    Media
-                  </span>
-                </div>
+                <span className="text-xl font-bold text-gradient-flow">
+                  Carelwave Media
+                </span>
               </Link>
               <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-md">
                 Empowering developers and tech enthusiasts with cutting-edge insights, 
