@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Eye, Edit, Trash2, Users, FileText, Mail, TrendingUp, MessageSquare, Star } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, Users, FileText, Mail, TrendingUp, MessageSquare, Star, Shield } from 'lucide-react';
 import { postsService } from '../services/posts';
 import { authService } from '../services/auth';
 import { reviewsService } from '../services/reviews';
 import { toast } from 'sonner';
 import AdminReviewManagement from '../components/AdminReviewManagement';
+import IPAuthManager from '../components/admin/IPAuthManager';
 import type { Post } from '../types';
 
 export default function AdminDashboard() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'posts' | 'reviews'>('posts');
+  const [activeTab, setActiveTab] = useState<'posts' | 'reviews' | 'security'>('posts');
+  const [showIPAuthManager, setShowIPAuthManager] = useState(false);
   const [stats, setStats] = useState({
     totalPosts: 0,
     totalViews: 0,
@@ -241,6 +243,17 @@ export default function AdminDashboard() {
                   </span>
                 )}
               </button>
+              <button
+                onClick={() => setActiveTab('security')}
+                className={`py-4 px-1 border-b-2 font-medium text-body-sm ${
+                  activeTab === 'security'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-low-contrast hover:text-gray-700 dark:hover:text-gray-300'
+                } relative`}
+              >
+                <Shield className="w-4 h-4 inline mr-2" />
+                IP Authentication
+              </button>
             </nav>
           </div>
         </div>
@@ -357,10 +370,54 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
-        ) : (
+        ) : activeTab === 'reviews' ? (
           <AdminReviewManagement />
-        )}
+        ) : activeTab === 'security' ? (
+          <div className="bg-medium-contrast rounded-lg shadow-sm">
+            <div className="px-6 py-4 border-b border-low-contrast">
+              <div className="flex justify-between items-center">
+                <h2 className="text-body font-medium text-high-contrast">IP Authentication Settings</h2>
+                <button
+                  onClick={() => setShowIPAuthManager(true)}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  Manage IP Access
+                </button>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="text-center py-12">
+                <Shield className="h-16 w-16 mx-auto text-blue-500 mb-4" />
+                <h3 className="text-body font-medium text-high-contrast mb-2">
+                  IP-Based Authentication
+                </h3>
+                <p className="text-medium-contrast mb-6 max-w-md mx-auto">
+                  Configure automatic admin login for trusted IP addresses. 
+                  This allows seamless access without entering credentials.
+                </p>
+                <button
+                  onClick={() => setShowIPAuthManager(true)}
+                  className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Shield className="w-5 h-5 mr-2" />
+                  Configure IP Authentication
+                </button>
+              </div>
+            </div>
+            <IPAuthManager 
+              isOpen={showIPAuthManager} 
+              onClose={() => setShowIPAuthManager(false)} 
+            />
+          </div>
+        ) : null}
       </div>
+
+      {/* Global IP Auth Manager Modal */}
+      <IPAuthManager 
+        isOpen={showIPAuthManager} 
+        onClose={() => setShowIPAuthManager(false)} 
+      />
     </div>
   );
 } 
