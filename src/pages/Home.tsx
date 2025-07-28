@@ -173,7 +173,7 @@ export default function Home() {
                   <div className="w-2 h-2 bg-white/70 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
                   <div className="w-2 h-2 bg-white/50 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
                 </div>
-                <span className="text-sm font-medium">Listening...</span>
+                <span className="text-body-sm font-medium">Listening...</span>
                 <div 
                   className="w-8 h-1 bg-white/30 rounded-full overflow-hidden"
                 >
@@ -184,7 +184,7 @@ export default function Home() {
                 </div>
               </div>
               {lastCommand && (
-                <div className="text-xs text-white/80 mt-2">
+                <div className="text-caption text-white/80 mt-2">
                   Last: "{lastCommand}"
                 </div>
               )}
@@ -203,7 +203,7 @@ export default function Home() {
             </span>
           </h1>
 
-          <p className="text-xl text-medium-contrast mb-12 max-w-3xl mx-auto animate-fade-in delay-200">
+          <p className="text-body-lg text-medium-contrast mb-12 max-w-3xl mx-auto animate-fade-in delay-200">
             {userBehavior.engagementLevel === 'high' 
               ? "Welcome back! Discover cutting-edge insights, tutorials, and innovations that are shaping tomorrow's digital landscape."
               : "Discover cutting-edge insights, tutorials, and innovations that are shaping tomorrow's digital landscape."
@@ -254,25 +254,25 @@ export default function Home() {
           {/* Live Analytics Dashboard */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
             <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-gradient-accent mb-2">
+              <div className="text-title md:text-4xl font-bold text-gradient-accent mb-2">
                 {formatNumber(realStats.totalArticles)}
               </div>
               <div className="text-medium-contrast">Articles Published</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-holographic mb-2">
+              <div className="text-title md:text-4xl font-bold text-holographic mb-2">
                 {formatNumber(realStats.totalNewsletterSubscribers)}
               </div>
               <div className="text-medium-contrast">Newsletter Subscribers</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-gradient-flow mb-2">
+              <div className="text-title md:text-4xl font-bold text-gradient-flow mb-2">
                 {formatNumber(realStats.totalPageViews)}
               </div>
               <div className="text-medium-contrast">Page Views</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl md:text-4xl font-bold text-accent-primary mb-2">
+              <div className="text-title md:text-4xl font-bold text-accent-primary mb-2">
                 {formatNumber(realStats.githubStars)}
               </div>
               <div className="text-medium-contrast">GitHub Stars</div>
@@ -285,10 +285,10 @@ export default function Home() {
       <section className="py-20 bg-high-contrast" id="featured-content">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-high-contrast mb-6 text-gradient-flow">
+            <h2 className="text-headline md:text-5xl font-bold text-high-contrast mb-6 text-gradient-flow">
               Featured Content
             </h2>
-            <p className="text-xl text-medium-contrast max-w-3xl mx-auto">
+            <p className="text-body-lg text-medium-contrast max-w-3xl mx-auto">
               Hand-picked articles and tutorials that showcase the latest in technology innovation.
             </p>
           </div>
@@ -320,7 +320,7 @@ export default function Home() {
                     <div className="absolute inset-0 bg-gradient-flow opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
                   </div>
                   
-                  <h3 className="text-xl font-bold text-high-contrast mb-3 group-hover:text-gradient-accent transition-colors duration-200">
+                  <h3 className="text-body-lg font-bold text-high-contrast mb-3 group-hover:text-gradient-accent transition-colors duration-200">
                     {post.title}
                   </h3>
                   
@@ -329,7 +329,7 @@ export default function Home() {
                   </p>
                   
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center text-sm text-low-contrast">
+                    <div className="flex items-center text-body-sm text-low-contrast">
                       <Calendar className="w-4 h-4 mr-1" />
                       {new Date(post.publishedAt).toLocaleDateString()}
                     </div>
@@ -355,7 +355,7 @@ export default function Home() {
       {voiceSupported && (
         <section className="py-12 bg-medium-contrast">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h3 className="text-xl font-bold mb-4 text-high-contrast">Voice Navigation</h3>
+            <h3 className="text-body-lg font-bold mb-4 text-high-contrast">Voice Navigation</h3>
             <p className="text-medium-contrast mb-6">
               Use voice commands to navigate and interact with content hands-free
             </p>
@@ -364,7 +364,7 @@ export default function Home() {
               {availableCommands.slice(0, 6).map((cmd, index) => (
                 <span 
                   key={index}
-                  className="px-3 py-1 bg-low-contrast text-high-contrast rounded-full text-sm"
+                  className="px-3 py-1 bg-low-contrast text-high-contrast rounded-full text-body-sm"
                 >
                   "{cmd.command}"
                 </span>

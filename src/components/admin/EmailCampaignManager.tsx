@@ -166,11 +166,11 @@ export const EmailCampaignManager: React.FC<EmailCampaignManagerProps> = ({ post
       <ModernCard variant="gradient-flow" padding="lg" className="text-white">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold">Email Campaign Manager</h2>
+            <h2 className="text-subtitle font-bold">Email Campaign Manager</h2>
             <p className="text-white/80">Manage automated email campaigns with psychological triggers</p>
           </div>
           <div className="text-right">
-            <div className="text-3xl font-bold">{campaigns.length}</div>
+            <div className="text-title font-bold">{campaigns.length}</div>
             <div className="text-white/80">Total Campaigns</div>
           </div>
         </div>
@@ -180,7 +180,7 @@ export const EmailCampaignManager: React.FC<EmailCampaignManagerProps> = ({ post
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <ModernCard variant="neumorphic" padding="lg" className="text-center">
           <Send className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-          <div className="text-2xl font-bold text-gradient-accent">
+          <div className="text-subtitle font-bold text-gradient-accent">
             {campaigns.filter(c => c.status === 'sent').length}
           </div>
           <div className="text-medium-contrast">Campaigns Sent</div>
@@ -188,7 +188,7 @@ export const EmailCampaignManager: React.FC<EmailCampaignManagerProps> = ({ post
 
         <ModernCard variant="glass" padding="lg" className="text-center">
           <Users className="w-8 h-8 text-green-600 mx-auto mb-3" />
-          <div className="text-2xl font-bold text-holographic">
+          <div className="text-subtitle font-bold text-holographic">
             {campaigns.reduce((total, c) => total + c.recipients, 0).toLocaleString()}
           </div>
           <div className="text-medium-contrast">Total Recipients</div>
@@ -196,7 +196,7 @@ export const EmailCampaignManager: React.FC<EmailCampaignManagerProps> = ({ post
 
         <ModernCard variant="default" padding="lg" className="text-center">
           <Eye className="w-8 h-8 text-purple-600 mx-auto mb-3" />
-          <div className="text-2xl font-bold text-gradient-flow">
+          <div className="text-subtitle font-bold text-gradient-flow">
             {campaigns.reduce((total, c) => total + c.opens, 0).toLocaleString()}
           </div>
           <div className="text-medium-contrast">Total Opens</div>
@@ -204,7 +204,7 @@ export const EmailCampaignManager: React.FC<EmailCampaignManagerProps> = ({ post
 
         <ModernCard variant="brutalist" padding="lg" className="text-center">
           <MousePointer className="w-8 h-8 text-orange-600 mx-auto mb-3" />
-          <div className="text-2xl font-bold text-accent-primary">
+          <div className="text-subtitle font-bold text-accent-primary">
             {campaigns.reduce((total, c) => total + c.clicks, 0).toLocaleString()}
           </div>
           <div className="text-medium-contrast">Total Clicks</div>
@@ -219,10 +219,10 @@ export const EmailCampaignManager: React.FC<EmailCampaignManagerProps> = ({ post
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              className={`flex items-center px-4 py-2 rounded-lg text-body-sm font-medium transition-all duration-200 ${
                 activeTab === tab.id 
                   ? 'bg-gradient-flow text-white shadow-lg' 
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gradient-flow-subtle hover:text-white'
+                  : 'text-medium-contrast hover:bg-gradient-flow-subtle hover:text-white'
               }`}
             >
               <Icon className="w-4 h-4 mr-2" />
@@ -237,7 +237,7 @@ export const EmailCampaignManager: React.FC<EmailCampaignManagerProps> = ({ post
         <div className="space-y-6">
           {/* Create Campaign Button */}
           <div className="flex justify-between items-center">
-            <h3 className="text-xl font-bold text-gradient-accent">Email Campaigns</h3>
+            <h3 className="text-body-lg font-bold text-gradient-accent">Email Campaigns</h3>
             <ModernButton
               variant="default"
               intent="primary"
@@ -256,14 +256,14 @@ export const EmailCampaignManager: React.FC<EmailCampaignManagerProps> = ({ post
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
                       <h4 className="font-bold text-high-contrast">{campaign.name}</h4>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
+                      <span className={`px-2 py-1 rounded-full text-caption font-medium ${getStatusColor(campaign.status)}`}>
                         {campaign.status}
                       </span>
                     </div>
                     
                     <p className="text-medium-contrast mb-3">{campaign.subject}</p>
                     
-                    <div className="flex items-center space-x-6 text-sm">
+                    <div className="flex items-center space-x-6 text-body-sm">
                       <div className="flex items-center space-x-1">
                         <Users className="w-4 h-4 text-gray-400" />
                         <span>{campaign.recipients.toLocaleString()} recipients</span>
@@ -294,7 +294,7 @@ export const EmailCampaignManager: React.FC<EmailCampaignManagerProps> = ({ post
                             return (
                               <span
                                 key={trigger}
-                                className="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs"
+                                className="inline-flex items-center px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-caption"
                               >
                                 <TriggerIcon className="w-3 h-3 mr-1" />
                                 {trigger}
@@ -360,7 +360,7 @@ export const EmailCampaignManager: React.FC<EmailCampaignManagerProps> = ({ post
 
       {activeTab === 'templates' && (
         <div className="space-y-6">
-          <h3 className="text-xl font-bold text-gradient-accent">Email Templates</h3>
+          <h3 className="text-body-lg font-bold text-gradient-accent">Email Templates</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {templates.map((template) => (
@@ -368,10 +368,10 @@ export const EmailCampaignManager: React.FC<EmailCampaignManagerProps> = ({ post
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-bold text-high-contrast mb-1">{template.name}</h4>
-                    <p className="text-sm text-medium-contrast">{template.description}</p>
+                    <p className="text-body-sm text-medium-contrast">{template.description}</p>
                   </div>
                   
-                  <div className="text-sm">
+                  <div className="text-body-sm">
                     <div className="font-medium text-high-contrast mb-1">Subject Preview:</div>
                     <div className="text-medium-contrast italic">"{template.subject}"</div>
                   </div>
@@ -384,7 +384,7 @@ export const EmailCampaignManager: React.FC<EmailCampaignManagerProps> = ({ post
                       return (
                         <span
                           key={trigger}
-                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${triggerData?.color || 'text-gray-600'} bg-gray-100`}
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-caption ${triggerData?.color || 'text-gray-600'} bg-gray-100`}
                         >
                           <TriggerIcon className="w-3 h-3 mr-1" />
                           {triggerData?.name || trigger}
@@ -394,7 +394,7 @@ export const EmailCampaignManager: React.FC<EmailCampaignManagerProps> = ({ post
                   </div>
                   
                   <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                    <div className="text-sm">
+                    <div className="text-body-sm">
                       <span className="text-green-600 font-medium">{template.conversionRate}%</span>
                       <span className="text-medium-contrast"> conversion</span>
                     </div>
@@ -421,12 +421,12 @@ export const EmailCampaignManager: React.FC<EmailCampaignManagerProps> = ({ post
 
       {activeTab === 'analytics' && (
         <div className="space-y-6">
-          <h3 className="text-xl font-bold text-gradient-accent">Campaign Analytics</h3>
+          <h3 className="text-body-lg font-bold text-gradient-accent">Campaign Analytics</h3>
           
           {/* Overall Performance */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <ModernCard variant="glass" padding="lg" className="text-center">
-              <div className="text-2xl font-bold text-holographic mb-2">
+              <div className="text-subtitle font-bold text-holographic mb-2">
                 {campaigns.length > 0 
                   ? formatPercentage(
                       campaigns.reduce((total, c) => total + c.opens, 0),
@@ -439,7 +439,7 @@ export const EmailCampaignManager: React.FC<EmailCampaignManagerProps> = ({ post
             </ModernCard>
             
             <ModernCard variant="neumorphic" padding="lg" className="text-center">
-              <div className="text-2xl font-bold text-gradient-accent mb-2">
+              <div className="text-subtitle font-bold text-gradient-accent mb-2">
                 {campaigns.length > 0 
                   ? formatPercentage(
                       campaigns.reduce((total, c) => total + c.clicks, 0),
@@ -452,7 +452,7 @@ export const EmailCampaignManager: React.FC<EmailCampaignManagerProps> = ({ post
             </ModernCard>
             
             <ModernCard variant="default" padding="lg" className="text-center">
-              <div className="text-2xl font-bold text-gradient-flow mb-2">
+              <div className="text-subtitle font-bold text-gradient-flow mb-2">
                 {campaigns.filter(c => c.status === 'sent').length > 0 
                   ? Math.round(
                       campaigns.reduce((total, c) => total + c.recipients, 0) / 
@@ -467,7 +467,7 @@ export const EmailCampaignManager: React.FC<EmailCampaignManagerProps> = ({ post
 
           {/* Psychology Trigger Performance */}
           <ModernCard variant="default" padding="lg">
-            <h4 className="text-lg font-bold mb-4 text-gradient-accent">Psychology Trigger Performance</h4>
+            <h4 className="text-body font-bold mb-4 text-gradient-accent">Psychology Trigger Performance</h4>
             <div className="space-y-3">
               {psychologyTriggers.map((trigger) => {
                 const campaignsWithTrigger = campaigns.filter(c => 
@@ -485,12 +485,12 @@ export const EmailCampaignManager: React.FC<EmailCampaignManagerProps> = ({ post
                       <Icon className={`w-5 h-5 ${trigger.color}`} />
                       <div>
                         <div className="font-medium text-high-contrast">{trigger.name}</div>
-                        <div className="text-sm text-medium-contrast">{trigger.description}</div>
+                        <div className="text-body-sm text-medium-contrast">{trigger.description}</div>
                       </div>
                     </div>
                     <div className="text-right">
                       <div className="font-bold text-high-contrast">{openRate.toFixed(1)}%</div>
-                      <div className="text-xs text-low-contrast">{campaignsWithTrigger.length} campaigns</div>
+                      <div className="text-caption text-low-contrast">{campaignsWithTrigger.length} campaigns</div>
                     </div>
                   </div>
                 );

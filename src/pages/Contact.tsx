@@ -101,14 +101,14 @@ export default function Contact() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="bg-white dark:bg-gray-800 rounded-3xl p-12 shadow-xl border border-gray-200 dark:border-gray-700">
+          <div className="bg-medium-contrast rounded-3xl p-12 shadow-xl border border-low-contrast">
             <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+            <h1 className="text-title font-bold text-high-contrast mb-4">
               Message Sent Successfully! 🎉
             </h1>
-            <p className="text-xl text-gray-600 dark:text-gray-400 mb-8">
+            <p className="text-body-lg text-medium-contrast mb-8">
               Thank you for reaching out. We'll get back to you within 24 hours.
             </p>
             <button
@@ -132,20 +132,20 @@ export default function Contact() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="flex items-center justify-center mb-6">
             <Sparkles className="w-8 h-8 text-accent-primary mr-3" />
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-headline md:text-6xl font-bold text-high-contrast">
               Let's Build Something Amazing
             </h1>
           </div>
-          <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+          <p className="text-body-lg md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
             Ready to discuss your next project? We'd love to hear from you and explore how we can bring your ideas to life.
           </p>
 
           {/* Contact Info Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-6 border border-gray-200 dark:border-gray-700 transform hover:scale-105 transition-all duration-200">
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-6 border border-low-contrast transform hover:scale-105 transition-all duration-200">
               <Mail className="w-8 h-8 text-accent-primary mx-auto mb-4" />
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Email Us</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">General inquiries and project discussions</p>
+              <h3 className="font-semibold text-high-contrast mb-2">Email Us</h3>
+              <p className="text-body-sm text-medium-contrast mb-3">General inquiries and project discussions</p>
               <a 
                 href="mailto:contact@carelwave.com"
                 className="text-accent-primary hover:text-accent-primary-light transition-colors font-medium"
@@ -154,17 +154,17 @@ export default function Contact() {
               </a>
             </div>
 
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-6 border border-gray-200 dark:border-gray-700 transform hover:scale-105 transition-all duration-200">
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-6 border border-low-contrast transform hover:scale-105 transition-all duration-200">
               <Clock className="w-8 h-8 text-accent-primary mx-auto mb-4" />
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Response Time</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">We respond to all inquiries promptly</p>
+              <h3 className="font-semibold text-high-contrast mb-2">Response Time</h3>
+              <p className="text-body-sm text-medium-contrast mb-3">We respond to all inquiries promptly</p>
               <span className="text-accent-primary font-medium">Within 24 hours</span>
             </div>
 
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-6 border border-gray-200 dark:border-gray-700 transform hover:scale-105 transition-all duration-200">
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-6 border border-low-contrast transform hover:scale-105 transition-all duration-200">
               <Globe className="w-8 h-8 text-accent-primary mx-auto mb-4" />
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Global Reach</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Working with clients worldwide</p>
+              <h3 className="font-semibold text-high-contrast mb-2">Global Reach</h3>
+              <p className="text-body-sm text-medium-contrast mb-3">Working with clients worldwide</p>
               <span className="text-accent-primary font-medium">Remote-first</span>
             </div>
           </div>
@@ -174,12 +174,12 @@ export default function Contact() {
       {/* Contact Form Section */}
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 md:p-12 shadow-xl border border-gray-200 dark:border-gray-700">
+          <div className="bg-medium-contrast rounded-3xl p-8 md:p-12 shadow-xl border border-low-contrast">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-title font-bold text-high-contrast mb-4">
                 Start the Conversation
               </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400">
+              <p className="text-body text-medium-contrast">
                 Tell us about your project and we'll get back to you with ideas and solutions.
               </p>
             </div>
@@ -187,7 +187,7 @@ export default function Contact() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="name" className="block text-body-sm font-medium text-high-contrast mb-2">
                     Full Name *
                   </label>
                   <input
@@ -198,13 +198,13 @@ export default function Contact() {
                     onChange={handleChange}
                     required
                     disabled={loading}
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition-colors text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-medium-contrast rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition-colors text-high-contrast placeholder-gray-500 dark:placeholder-gray-400"
                     placeholder="John Doe"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="email" className="block text-body-sm font-medium text-high-contrast mb-2">
                     Email Address *
                   </label>
                   <input
@@ -215,7 +215,7 @@ export default function Contact() {
                     onChange={handleChange}
                     required
                     disabled={loading}
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition-colors text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-medium-contrast rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition-colors text-high-contrast placeholder-gray-500 dark:placeholder-gray-400"
                     placeholder="john@example.com"
                   />
                 </div>
@@ -223,7 +223,7 @@ export default function Contact() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="company" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="company" className="block text-body-sm font-medium text-high-contrast mb-2">
                     Company (Optional)
                   </label>
                   <input
@@ -233,13 +233,13 @@ export default function Contact() {
                     value={formData.company}
                     onChange={handleChange}
                     disabled={loading}
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition-colors text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-medium-contrast rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition-colors text-high-contrast placeholder-gray-500 dark:placeholder-gray-400"
                     placeholder="Your Company"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="subject" className="block text-body-sm font-medium text-high-contrast mb-2">
                     Subject *
                   </label>
                   <select
@@ -249,7 +249,7 @@ export default function Contact() {
                     onChange={handleChange}
                     required
                     disabled={loading}
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition-colors text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-medium-contrast rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition-colors text-high-contrast"
                   >
                     <option value="">Select a topic</option>
                     <option value="Project Inquiry">Project Inquiry</option>
@@ -262,7 +262,7 @@ export default function Contact() {
               </div>
 
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="message" className="block text-body-sm font-medium text-high-contrast mb-2">
                   Message *
                 </label>
                 <textarea
@@ -273,7 +273,7 @@ export default function Contact() {
                   onChange={handleChange}
                   required
                   disabled={loading}
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition-colors text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none"
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-medium-contrast rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition-colors text-high-contrast placeholder-gray-500 dark:placeholder-gray-400 resize-none"
                   placeholder="Tell us about your project, timeline, budget, or any specific requirements..."
                 />
               </div>
@@ -306,10 +306,10 @@ export default function Contact() {
       <section className="py-20 bg-white/50 dark:bg-gray-800/50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-title font-bold text-high-contrast mb-4">
               Frequently Asked Questions
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400">
+            <p className="text-body text-medium-contrast">
               Quick answers to common questions about our services and collaboration process.
             </p>
           </div>
@@ -333,12 +333,12 @@ export default function Contact() {
                 answer: "Project timelines vary based on complexity and scope. Simple websites take 2-4 weeks, while complex applications can take 2-6 months. We'll provide a detailed timeline during our initial consultation."
               }
             ].map((faq, index) => (
-              <div key={index} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+              <div key={index} className="bg-medium-contrast rounded-xl p-6 border border-low-contrast">
+                <h3 className="text-body font-semibold text-high-contrast mb-3 flex items-center">
                   <MessageSquare className="w-5 h-5 text-accent-primary mr-3" />
                   {faq.question}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                <p className="text-medium-contrast leading-relaxed">
                   {faq.answer}
                 </p>
               </div>
@@ -346,7 +346,7 @@ export default function Contact() {
           </div>
 
           <div className="text-center mt-12">
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-medium-contrast mb-4">
               Have more questions? We're here to help!
             </p>
             <a

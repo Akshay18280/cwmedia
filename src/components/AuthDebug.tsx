@@ -162,15 +162,15 @@ export default function AuthDebug() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+    <div className="max-w-4xl mx-auto p-6 bg-medium-contrast rounded-lg shadow-lg">
+      <h1 className="text-subtitle font-bold text-high-contrast mb-6 flex items-center">
         <Shield className="w-6 h-6 mr-2" />
         Authentication Debug Center
       </h1>
 
       {/* Firebase Configuration Test */}
       <div className="mb-6 p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+        <h2 className="text-body font-semibold text-high-contrast mb-3 flex items-center">
           <Settings className="w-5 h-5 mr-2" />
           Firebase Configuration
         </h2>
@@ -185,7 +185,7 @@ export default function AuthDebug() {
 
       {/* Google Sign In Test */}
       <div className="mb-6 p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+        <h2 className="text-body font-semibold text-high-contrast mb-3 flex items-center">
           <Chrome className="w-5 h-5 mr-2" />
           Google Sign In Test
         </h2>
@@ -200,7 +200,7 @@ export default function AuthDebug() {
 
       {/* Phone Authentication Test */}
       <div className="mb-6 p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+        <h2 className="text-body font-semibold text-high-contrast mb-3 flex items-center">
           <Phone className="w-5 h-5 mr-2" />
           Phone Authentication Test
         </h2>
@@ -211,7 +211,7 @@ export default function AuthDebug() {
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
             placeholder="Phone (6264507878 for admin)"
-            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
+            className="flex-1 px-3 py-2 border border-medium-contrast rounded-md dark:bg-gray-700 dark:text-white"
             disabled={loading || otpSent}
           />
           <button
@@ -231,7 +231,7 @@ export default function AuthDebug() {
               onChange={(e) => setOtpCode(e.target.value)}
               placeholder="Enter 6-digit OTP"
               maxLength={6}
-              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-700 dark:text-white"
+              className="flex-1 px-3 py-2 border border-medium-contrast rounded-md dark:bg-gray-700 dark:text-white"
               disabled={loading}
             />
             <button
@@ -248,10 +248,10 @@ export default function AuthDebug() {
       {/* Debug Logs */}
       <div className="mb-6 p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
         <div className="flex justify-between items-center mb-3">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Debug Logs</h2>
+          <h2 className="text-body font-semibold text-high-contrast">Debug Logs</h2>
           <button
             onClick={clearLogs}
-            className="px-3 py-1 bg-red-600 text-white text-sm rounded-md hover:bg-red-700"
+            className="px-3 py-1 bg-red-600 text-white text-body-sm rounded-md hover:bg-red-700"
           >
             Clear Logs
           </button>
@@ -259,10 +259,10 @@ export default function AuthDebug() {
         
         <div className="bg-gray-100 dark:bg-gray-900 rounded-md p-4 max-h-80 overflow-y-auto">
           {debugLogs.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400">No logs yet. Run a test to see debug information.</p>
+            <p className="text-body-sm text-low-contrast">No logs yet. Run a test to see debug information.</p>
           ) : (
             debugLogs.map((log, index) => (
-              <div key={index} className="text-xs font-mono text-gray-700 dark:text-gray-300 mb-1 break-all">
+              <div key={index} className="text-caption font-mono text-high-contrast mb-1 break-all">
                 {log}
               </div>
             ))
@@ -272,12 +272,12 @@ export default function AuthDebug() {
 
       {/* Setup Instructions */}
       <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-        <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-3 flex items-center">
+        <h3 className="text-body font-semibold text-blue-800 dark:text-blue-200 mb-3 flex items-center">
           <AlertCircle className="w-5 h-5 mr-2" />
           Common Issues & Solutions
         </h3>
         
-        <div className="text-sm text-blue-700 dark:text-blue-300 space-y-2">
+        <div className="text-body-sm text-blue-700 dark:text-blue-300 space-y-2">
           <div>
             <strong>🔧 Firebase Environment Variables Missing:</strong>
             <p>Check that all VITE_FIREBASE_* variables are set in your hosting platform (Vercel/Netlify).</p>

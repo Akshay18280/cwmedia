@@ -156,11 +156,11 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({ onScheduleUpda
       <ModernCard variant="gradient-flow" padding="lg" className="text-white">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold">Schedule Manager</h2>
+            <h2 className="text-subtitle font-bold">Schedule Manager</h2>
             <p className="text-white/80">Plan and optimize your content publishing</p>
           </div>
           <div className="text-right">
-            <div className="text-3xl font-bold">{scheduledPosts.length}</div>
+            <div className="text-title font-bold">{scheduledPosts.length}</div>
             <div className="text-white/80">Scheduled Posts</div>
           </div>
         </div>
@@ -170,7 +170,7 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({ onScheduleUpda
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Date Picker */}
         <ModernCard variant="neumorphic" padding="lg">
-          <h3 className="text-xl font-bold mb-4 text-gradient-accent">Select Date</h3>
+          <h3 className="text-body-lg font-bold mb-4 text-gradient-accent">Select Date</h3>
           
           <input
             type="date"
@@ -180,7 +180,7 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({ onScheduleUpda
           />
           
           <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">Time Zone</label>
+            <label className="block text-body-sm font-medium mb-2">Time Zone</label>
             <select
               value={timeZone}
               onChange={(e) => setTimeZone(e.target.value)}
@@ -199,18 +199,18 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({ onScheduleUpda
 
         {/* Optimal Times */}
         <ModernCard variant="glass" padding="lg">
-          <h3 className="text-xl font-bold mb-4 text-holographic">Optimal Publishing Times</h3>
+          <h3 className="text-body-lg font-bold mb-4 text-holographic">Optimal Publishing Times</h3>
           
           <div className="space-y-3">
             {getOptimalTimes().map((slot, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-low-contrast rounded-lg">
                 <div>
                   <div className="font-medium text-high-contrast">{slot.time} - {slot.label}</div>
-                  <div className="text-sm text-medium-contrast">
+                  <div className="text-body-sm text-medium-contrast">
                     Engagement: {slot.engagement}
                   </div>
                 </div>
-                <div className="text-sm text-low-contrast">
+                <div className="text-body-sm text-low-contrast">
                   {formatDateTime(slot.datetime)}
                 </div>
               </div>
@@ -222,7 +222,7 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({ onScheduleUpda
       {/* Scheduled Posts List */}
       <ModernCard variant="default" padding="lg">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold text-gradient-accent">Scheduled Posts</h3>
+          <h3 className="text-body-lg font-bold text-gradient-accent">Scheduled Posts</h3>
           <ModernButton
             variant="minimal"
             intent="primary"
@@ -241,17 +241,17 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({ onScheduleUpda
         ) : scheduledPosts.length === 0 ? (
           <div className="text-center py-8">
             <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h4 className="text-lg font-medium text-high-contrast mb-2">No scheduled posts</h4>
+            <h4 className="text-body font-medium text-high-contrast mb-2">No scheduled posts</h4>
             <p className="text-medium-contrast">Schedule your posts to automate publishing</p>
           </div>
         ) : (
           <div className="space-y-4">
             {scheduledPosts.map((post) => (
-              <div key={post.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+              <div key={post.id} className="border border-low-contrast rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <h4 className="font-medium text-high-contrast mb-1">{post.title}</h4>
-                    <div className="flex items-center space-x-4 text-sm text-medium-contrast">
+                    <div className="flex items-center space-x-4 text-body-sm text-medium-contrast">
                       <div className="flex items-center">
                         <Clock className="w-4 h-4 mr-1" />
                         {formatDateTime(post.scheduledAt)}
@@ -268,11 +268,11 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({ onScheduleUpda
                   </div>
                   
                   <div className="flex items-center space-x-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(post.status)}`}>
+                    <span className={`px-2 py-1 rounded-full text-caption font-medium ${getStatusColor(post.status)}`}>
                       {post.status}
                     </span>
                     
-                    <div className="text-sm text-low-contrast">
+                    <div className="text-body-sm text-low-contrast">
                       {getDaysUntilPost(post.scheduledAt)}
                     </div>
                     
@@ -323,21 +323,21 @@ export const ScheduleManager: React.FC<ScheduleManagerProps> = ({ onScheduleUpda
       {/* Analytics Preview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <ModernCard variant="neumorphic" padding="lg" className="text-center">
-          <div className="text-2xl font-bold text-blue-600 mb-2">
+          <div className="text-subtitle font-bold text-blue-600 mb-2">
             {scheduledPosts.filter(p => p.status === 'scheduled').length}
           </div>
           <div className="text-medium-contrast">Pending</div>
         </ModernCard>
         
         <ModernCard variant="glass" padding="lg" className="text-center">
-          <div className="text-2xl font-bold text-green-600 mb-2">
+          <div className="text-subtitle font-bold text-green-600 mb-2">
             {scheduledPosts.filter(p => p.status === 'published').length}
           </div>
           <div className="text-medium-contrast">Published</div>
         </ModernCard>
         
         <ModernCard variant="brutalist" padding="lg" className="text-center">
-          <div className="text-2xl font-bold text-purple-600 mb-2">
+          <div className="text-subtitle font-bold text-purple-600 mb-2">
             {scheduledPosts.reduce((total, post) => total + post.estimatedViews, 0)}
           </div>
           <div className="text-medium-contrast">Est. Total Views</div>

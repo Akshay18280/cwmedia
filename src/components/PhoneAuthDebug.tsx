@@ -88,15 +88,15 @@ export default function PhoneAuthDebug() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+    <div className="max-w-2xl mx-auto p-6 bg-medium-contrast rounded-lg shadow-lg">
+      <h2 className="text-body-lg font-bold text-high-contrast mb-6 flex items-center">
         <Phone className="w-5 h-5 mr-2" />
         Phone Authentication Debug
       </h2>
 
       {/* Phone Number Input */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-body-sm font-medium text-high-contrast mb-2">
           Phone Number (without +91)
         </label>
         <input
@@ -104,7 +104,7 @@ export default function PhoneAuthDebug() {
           value={phoneNumber}
           onChange={(e) => setPhoneNumber(e.target.value)}
           placeholder="6264507878"
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+          className="w-full px-3 py-2 border border-medium-contrast rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
           disabled={loading || otpSent}
         />
       </div>
@@ -121,7 +121,7 @@ export default function PhoneAuthDebug() {
       {/* OTP Input */}
       {otpSent && (
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-body-sm font-medium text-high-contrast mb-2">
             Enter OTP Code
           </label>
           <input
@@ -130,7 +130,7 @@ export default function PhoneAuthDebug() {
             onChange={(e) => setOtpCode(e.target.value)}
             placeholder="123456"
             maxLength={6}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+            className="w-full px-3 py-2 border border-medium-contrast rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
             disabled={loading}
           />
         </div>
@@ -163,20 +163,20 @@ export default function PhoneAuthDebug() {
       {/* Debug Logs */}
       <div className="bg-gray-100 dark:bg-gray-900 rounded-md p-4">
         <div className="flex justify-between items-center mb-2">
-          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Debug Logs</h3>
+          <h3 className="text-body-sm font-medium text-high-contrast">Debug Logs</h3>
           <button
             onClick={clearLogs}
-            className="text-xs px-2 py-1 bg-red-600 text-white rounded"
+            className="text-caption px-2 py-1 bg-red-600 text-white rounded"
           >
             Clear
           </button>
         </div>
         <div className="max-h-60 overflow-y-auto">
           {debugLogs.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400">No logs yet...</p>
+            <p className="text-body-sm text-low-contrast">No logs yet...</p>
           ) : (
             debugLogs.map((log, index) => (
-              <div key={index} className="text-xs font-mono text-gray-700 dark:text-gray-300 mb-1">
+              <div key={index} className="text-caption font-mono text-high-contrast mb-1">
                 {log}
               </div>
             ))
@@ -186,11 +186,11 @@ export default function PhoneAuthDebug() {
 
       {/* Instructions */}
       <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md">
-        <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
+        <h4 className="text-body-sm font-medium text-blue-800 dark:text-blue-200 mb-2">
           <AlertCircle className="w-4 h-4 inline mr-1" />
           Testing Instructions
         </h4>
-        <ul className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
+        <ul className="text-caption text-blue-700 dark:text-blue-300 space-y-1">
           <li>• For admin: Use phone number 6264507878</li>
           <li>• For regular user: Use any other 10-digit number</li>
           <li>• Check browser console for detailed Firebase errors</li>

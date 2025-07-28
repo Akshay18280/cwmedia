@@ -144,10 +144,10 @@ export default function AboutAkshay() {
           <h1 className="text-display mb-6 text-gradient-flow">
             About Akshay Verma
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-4">
+          <p className="text-body-lg text-medium-contrast max-w-3xl mx-auto mb-4">
             Software Development Engineer with expertise in GoLang, AWS, and scalable microservices architecture.
           </p>
-          <p className="text-lg text-gray-500 dark:text-gray-500 max-w-2xl mx-auto">
+          <p className="text-body text-low-contrast max-w-2xl mx-auto">
             Passionate about building efficient solutions, mentoring teams, and driving technological innovation.
           </p>
           {isSupported && (
@@ -172,26 +172,26 @@ export default function AboutAkshay() {
             {professionalTimeline.map((item, index) => (
               <div
                 key={index}
-                className="relative bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700"
+                className="relative bg-medium-contrast rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-low-contrast"
               >
                 <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6">
                   <div className="lg:flex-1">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                    <h3 className="text-body-lg font-bold text-high-contrast mb-2">
                       {item.role}
                     </h3>
-                    <p className="text-lg text-gradient-flow font-semibold mb-1">
+                    <p className="text-body text-gradient-flow font-semibold mb-1">
                       {item.company}
                     </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                    <p className="text-caption text-low-contrast mb-1">
                       {item.type}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-500 flex items-center">
+                    <p className="text-caption text-subtle flex items-center">
                       <MapPin className="w-4 h-4 mr-1" />
                       {item.location}
                     </p>
                   </div>
                   <div className="mt-4 lg:mt-0">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-flow text-white">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-body-sm font-medium bg-gradient-flow text-white">
                       {item.period}
                     </span>
                   </div>
@@ -200,7 +200,7 @@ export default function AboutAkshay() {
                   {item.highlights.map((highlight, idx) => (
                     <li key={idx} className="flex items-start">
                       <Star className="w-4 h-4 text-yellow-500 mt-1 mr-3 flex-shrink-0" />
-                      <span className="text-gray-700 dark:text-gray-300">{highlight}</span>
+                      <span className="text-high-contrast">{highlight}</span>
                     </li>
                   ))}
                 </ul>
@@ -216,9 +216,9 @@ export default function AboutAkshay() {
             {Object.entries(technicalSkills).map(([category, skills], index) => (
               <div
                 key={index}
-                className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700"
+                className="bg-medium-contrast rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-low-contrast"
               >
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                <h3 className="text-body font-bold text-high-contrast mb-4 flex items-center">
                   <Code className="w-5 h-5 mr-2 text-gradient-flow" />
                   {category}
                 </h3>
@@ -226,7 +226,7 @@ export default function AboutAkshay() {
                   {skills.map((skill, idx) => (
                     <span
                       key={idx}
-                      className="px-3 py-1 bg-gradient-flow-subtle text-white text-sm rounded-full font-medium"
+                      className="px-3 py-1 bg-gradient-flow-subtle text-white text-body-sm rounded-full font-medium"
                     >
                       {skill}
                     </span>
@@ -244,17 +244,17 @@ export default function AboutAkshay() {
             {projects.map((project, index) => (
               <div
                 key={index}
-                className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700"
+                className="bg-medium-contrast rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-low-contrast"
               >
                 <div className="mb-6">
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                  <h3 className="text-body-lg font-bold text-high-contrast mb-2">
                     {project.title}
                   </h3>
                   {project.company && (
                     <p className="text-gradient-flow font-semibold mb-1">{project.company}</p>
                   )}
-                  <p className="text-sm text-gray-500 dark:text-gray-500 mb-3">{project.period}</p>
-                  <p className="text-gray-700 dark:text-gray-300 mb-4">{project.description}</p>
+                  <p className="text-body-sm text-subtle mb-3">{project.period}</p>
+                  <p className="text-high-contrast mb-4">{project.description}</p>
                 </div>
                 
                 <div className="mb-4">
@@ -262,7 +262,7 @@ export default function AboutAkshay() {
                     {project.technologies.map((tech, idx) => (
                       <span
                         key={idx}
-                        className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-lg font-medium"
+                        className="px-2 py-1 bg-low-contrast text-high-contrast text-caption rounded-lg font-medium"
                       >
                         {tech}
                       </span>
@@ -274,7 +274,7 @@ export default function AboutAkshay() {
                   {project.highlights.map((highlight, idx) => (
                     <li key={idx} className="flex items-start">
                       <Zap className="w-4 h-4 text-blue-500 mt-1 mr-3 flex-shrink-0" />
-                      <span className="text-gray-700 dark:text-gray-300 text-sm">{highlight}</span>
+                      <span className="text-high-contrast text-body-sm">{highlight}</span>
                     </li>
                   ))}
                 </ul>
@@ -290,25 +290,25 @@ export default function AboutAkshay() {
             {achievements.map((achievement, index) => (
               <div
                 key={index}
-                className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700"
+                className="bg-medium-contrast rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-low-contrast"
               >
                 <div className="flex items-start">
                   <Award className="w-8 h-8 text-yellow-500 mt-1 mr-4 flex-shrink-0" />
                   <div className="flex-1">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+                    <h3 className="text-body font-bold text-high-contrast mb-2">
                       {achievement.title}
                     </h3>
                     <p className="text-gradient-flow font-semibold mb-1">
                       {achievement.organization}
                     </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                    <p className="text-body-sm text-medium-contrast mb-1">
                       {achievement.type}
                     </p>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500 dark:text-gray-500">
+                      <span className="text-body-sm text-subtle">
                         {achievement.period}
                       </span>
-                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                      <span className="text-caption text-gray-400 dark:text-gray-500">
                         {achievement.location}
                       </span>
                     </div>
@@ -322,22 +322,22 @@ export default function AboutAkshay() {
         {/* Education */}
         <section id="education" className="mb-20">
           <h2 className="text-section-title mb-12 text-center">Education</h2>
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+          <div className="bg-medium-contrast rounded-xl p-8 shadow-lg border border-low-contrast">
             <div className="flex items-start">
               <BookOpen className="w-8 h-8 text-blue-500 mt-1 mr-4 flex-shrink-0" />
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                <h3 className="text-body-lg font-bold text-high-contrast mb-2">
                   Bachelor of Technology in Computer Science Engineering
                 </h3>
-                <p className="text-lg text-gradient-flow font-semibold mb-1">
+                <p className="text-body text-gradient-flow font-semibold mb-1">
                   Shri Vaishnav Vidyapeeth Vishwavidyalaya University
                 </p>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400 flex items-center">
+                  <span className="text-medium-contrast flex items-center">
                     <MapPin className="w-4 h-4 mr-1" />
                     Indore, MP
                   </span>
-                  <span className="text-sm font-medium text-gray-500 dark:text-gray-500">
+                  <span className="text-body-sm font-medium text-subtle">
                     2018 - 2022
                   </span>
                 </div>
@@ -350,7 +350,7 @@ export default function AboutAkshay() {
         <section id="contact" className="mb-20">
           <h2 className="text-section-title mb-12 text-center">Connect With Me</h2>
           <div className="bg-gradient-flow rounded-xl p-8 text-white text-center">
-            <p className="text-xl mb-8">Let's build something amazing together!</p>
+            <p className="text-body-lg mb-8">Let's build something amazing together!</p>
             <div className="flex justify-center space-x-6">
               <a
                 href="https://linkedin.com/in/akshay-verma-024aa0152/"
@@ -381,13 +381,13 @@ export default function AboutAkshay() {
             {interests.map((interest, index) => (
               <div
                 key={index}
-                className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 text-center"
+                className="bg-medium-contrast rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-low-contrast text-center"
               >
                 <interest.icon className="w-12 h-12 text-gradient-flow mx-auto mb-4" />
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+                <h3 className="text-body font-bold text-high-contrast mb-2">
                   {interest.title}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-medium-contrast">
                   {interest.description}
                 </p>
               </div>

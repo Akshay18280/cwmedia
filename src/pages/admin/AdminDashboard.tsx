@@ -216,7 +216,7 @@ export default function AdminDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+              <h1 className="text-title font-bold">Admin Dashboard</h1>
               <p className="text-white/80 mt-1">Manage your content empire</p>
             </div>
             <div className="flex items-center gap-4">
@@ -229,8 +229,8 @@ export default function AdminDashboard() {
                 Create Post
               </ModernButton>
               <div className="text-right">
-                <div className="text-sm text-white/80">Total Views</div>
-                <div className="text-2xl font-bold">{analytics.totalViews.toLocaleString()}</div>
+                <div className="text-body-sm text-white/80">Total Views</div>
+                <div className="text-subtitle font-bold">{analytics.totalViews.toLocaleString()}</div>
               </div>
             </div>
           </div>
@@ -247,10 +247,10 @@ export default function AdminDashboard() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`flex items-center px-4 py-2 rounded-lg text-body-sm font-medium transition-all duration-200 ${
                     activeTab === tab.id 
                       ? 'bg-gradient-flow text-white shadow-lg' 
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gradient-flow-subtle hover:text-white'
+                      : 'text-medium-contrast hover:bg-gradient-flow-subtle hover:text-white'
                   }`}
                 >
                   <Icon className="w-4 h-4 mr-2" />
@@ -270,38 +270,38 @@ export default function AdminDashboard() {
                 <div className="w-12 h-12 bg-gradient-flow rounded-full mx-auto mb-4 flex items-center justify-center">
                   <FileText className="w-6 h-6 text-white" />
                 </div>
-                <div className="text-2xl font-bold text-gradient-accent">{analytics.totalPosts}</div>
-                <div className="text-gray-600 dark:text-gray-400">Total Posts</div>
+                <div className="text-subtitle font-bold text-gradient-accent">{analytics.totalPosts}</div>
+                <div className="text-medium-contrast">Total Posts</div>
               </ModernCard>
 
               <ModernCard variant="glass" padding="lg" className="text-center">
                 <div className="w-12 h-12 bg-holographic rounded-full mx-auto mb-4 flex items-center justify-center">
                   <Eye className="w-6 h-6 text-white" />
                 </div>
-                <div className="text-2xl font-bold text-holographic">{analytics.totalViews.toLocaleString()}</div>
-                <div className="text-gray-600 dark:text-gray-400">Total Views</div>
+                <div className="text-subtitle font-bold text-holographic">{analytics.totalViews.toLocaleString()}</div>
+                <div className="text-medium-contrast">Total Views</div>
               </ModernCard>
 
               <ModernCard variant="default" padding="lg" className="text-center">
                 <div className="w-12 h-12 bg-gradient-flow-subtle rounded-full mx-auto mb-4 flex items-center justify-center">
                   <Users className="w-6 h-6 text-white" />
                 </div>
-                <div className="text-2xl font-bold text-gradient-flow">{analytics.totalSubscribers}</div>
-                <div className="text-gray-600 dark:text-gray-400">Subscribers</div>
+                <div className="text-subtitle font-bold text-gradient-flow">{analytics.totalSubscribers}</div>
+                <div className="text-medium-contrast">Subscribers</div>
               </ModernCard>
 
               <ModernCard variant="brutalist" padding="lg" className="text-center">
                 <div className="w-12 h-12 bg-gradient-accent rounded-full mx-auto mb-4 flex items-center justify-center">
                   <TrendingUp className="w-6 h-6 text-white" />
                 </div>
-                <div className="text-2xl font-bold text-gradient-accent">{analytics.engagementRate}%</div>
-                <div className="text-gray-600 dark:text-gray-400">Engagement</div>
+                <div className="text-subtitle font-bold text-gradient-accent">{analytics.engagementRate}%</div>
+                <div className="text-medium-contrast">Engagement</div>
               </ModernCard>
             </div>
 
             {/* Quick Actions */}
             <ModernCard variant="default" padding="lg">
-              <h3 className="text-2xl font-bold mb-6 text-gradient-flow">Create New Content</h3>
+              <h3 className="text-subtitle font-bold mb-6 text-gradient-flow">Create New Content</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {postTypes.map(type => {
                   const Icon = type.icon;
@@ -370,14 +370,14 @@ export default function AdminDashboard() {
                     {/* Post Header */}
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="font-bold text-lg line-clamp-2 text-gradient-accent">
+                        <h3 className="font-bold text-body line-clamp-2 text-gradient-accent">
                           {post.title || 'Untitled Post'}
                         </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        <p className="text-body-sm text-low-contrast mt-1">
                           {post.category} • {post.mediaFiles.length} files
                         </p>
                       </div>
-                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      <div className={`px-2 py-1 rounded-full text-caption font-medium ${
                         post.status === 'live' ? 'bg-green-100 text-green-800' :
                         post.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
                         post.status === 'hidden' ? 'bg-gray-100 text-gray-800' :
@@ -398,15 +398,15 @@ export default function AdminDashboard() {
                           </div>
                         ))}
                         {post.mediaFiles.length > 3 && (
-                          <div className="flex-shrink-0 w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
-                            <span className="text-xs font-medium">+{post.mediaFiles.length - 3}</span>
+                          <div className="flex-shrink-0 w-16 h-16 bg-medium-contrast rounded-lg flex items-center justify-center">
+                            <span className="text-caption font-medium">+{post.mediaFiles.length - 3}</span>
                           </div>
                         )}
                       </div>
                     )}
 
                     {/* Stats */}
-                    <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center gap-4 text-body-sm text-medium-contrast">
                       <div className="flex items-center gap-1">
                         <Eye className="w-4 h-4" />
                         {post.views}

@@ -86,7 +86,7 @@ export default function Blog() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
+      <div className="min-h-screen bg-high-contrast py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header Skeleton */}
           <div className="text-center mb-12">
@@ -106,7 +106,7 @@ export default function Blog() {
           {/* Posts Skeleton */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden animate-pulse">
+              <div key={i} className="bg-medium-contrast rounded-xl shadow-md overflow-hidden animate-pulse">
                 <div className="h-48 bg-gray-200 dark:bg-gray-700"></div>
                 <div className="p-6 space-y-4">
                   <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
@@ -125,14 +125,14 @@ export default function Blog() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
+    <div className="min-h-screen bg-high-contrast py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-display mb-4 text-gradient-flow">
             Technology Insights & Innovation
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
+          <p className="text-body-lg text-medium-contrast mb-8 max-w-2xl mx-auto">
             Discover cutting-edge technology trends, tutorials, and insights that shape the future.
           </p>
           
@@ -145,7 +145,7 @@ export default function Blog() {
                 placeholder="Search articles..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="input-modern pl-10 pr-4 py-3 w-full text-lg border-gradient-accent focus:ring-gradient-accent"
+                className="input-modern pl-10 pr-4 py-3 w-full text-body border-gradient-accent focus:ring-gradient-accent"
               />
             </div>
             
@@ -154,7 +154,7 @@ export default function Blog() {
                 <button
                   key={category}
                   onClick={() => setSelectedCategory(category === 'All' ? '' : category)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                  className={`px-4 py-2 rounded-full text-body-sm font-medium transition-all duration-200 ${
                     (category === 'All' && !selectedCategory) || selectedCategory === category
                       ? 'bg-gradient-flow text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gradient-flow-subtle hover:text-white dark:bg-gray-800 dark:text-gray-300'
@@ -169,7 +169,7 @@ export default function Blog() {
 
         {/* Results Count */}
         <div className="mb-6 text-center">
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-medium-contrast">
             {filteredPosts.length === posts.length 
               ? `Showing all ${posts.length} articles`
               : `Showing ${filteredPosts.length} of ${posts.length} articles`
@@ -183,7 +183,7 @@ export default function Blog() {
             {filteredPosts.map((post, index) => (
               <article
                 key={post.id}
-                className="group bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden animate-fade-in"
+                className="group bg-medium-contrast rounded-xl shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden animate-fade-in"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
                 {post.cover_image && (
@@ -198,27 +198,27 @@ export default function Blog() {
                 
                 <div className="p-6">
                   {/* Meta Info */}
-                  <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-3">
+                  <div className="flex items-center justify-between text-body-sm text-low-contrast mb-3">
                     <div className="flex items-center space-x-2">
                       <Calendar className="w-4 h-4" />
                       <time dateTime={post.published_at}>
                         {formatDate(post.published_at)}
                       </time>
                     </div>
-                    <span className="bg-accent-primary/10 dark:bg-accent-primary/20/20 text-accent-primary dark:text-accent-primary-light px-2 py-1 rounded-full text-xs font-medium">
+                    <span className="bg-accent-primary/10 dark:bg-accent-primary/20/20 text-accent-primary dark:text-accent-primary-light px-2 py-1 rounded-full text-caption font-medium">
                       {post.category}
                     </span>
                   </div>
                   
                   {/* Title */}
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-accent-primary dark:group-hover:text-accent-primary-light transition-colors">
+                  <h2 className="text-body-lg font-bold text-high-contrast mb-3 group-hover:text-accent-primary dark:group-hover:text-accent-primary-light transition-colors">
                     <Link to={`/blog/${post.id}`} className="hover:underline">
                       {post.title}
                     </Link>
                   </h2>
                   
                   {/* Excerpt */}
-                  <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
+                  <p className="text-medium-contrast mb-4 line-clamp-3">
                     {post.excerpt}
                   </p>
                   
@@ -228,7 +228,7 @@ export default function Blog() {
                       {post.tags.slice(0, 3).map(tag => (
                         <span
                           key={tag}
-                          className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full"
+                          className="text-caption bg-low-contrast text-high-contrast px-2 py-1 rounded-full"
                         >
                           #{tag}
                         </span>
@@ -237,8 +237,8 @@ export default function Blog() {
                   )}
                   
                   {/* Footer */}
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center justify-between pt-4 border-t border-low-contrast">
+                    <div className="flex items-center space-x-4 text-body-sm text-low-contrast">
                       <span className="flex items-center">
                         <Eye className="w-4 h-4 mr-1" />
                         {post.views || 0}
@@ -254,7 +254,7 @@ export default function Blog() {
                     </div>
                     
                     {post.featured && (
-                      <span className="text-xs bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300 px-2 py-1 rounded-full font-medium">
+                      <span className="text-caption bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-300 px-2 py-1 rounded-full font-medium">
                         Featured
                       </span>
                     )}
@@ -268,10 +268,10 @@ export default function Blog() {
             <div className="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
               <Search className="w-12 h-12 text-gray-400" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            <h3 className="text-body-lg font-semibold text-high-contrast mb-2">
               No articles found
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-medium-contrast mb-6">
               Try adjusting your search terms or filters to find what you're looking for.
             </p>
             <button
@@ -290,7 +290,7 @@ export default function Blog() {
         {/* Load More (placeholder for pagination) */}
         {filteredPosts.length > 0 && filteredPosts.length === posts.length && posts.length >= 9 && (
           <div className="text-center mt-12">
-            <button className="inline-flex items-center px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-medium rounded-lg transition-colors">
+            <button className="inline-flex items-center px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-high-contrast font-medium rounded-lg transition-colors">
               Load More Articles
             </button>
           </div>

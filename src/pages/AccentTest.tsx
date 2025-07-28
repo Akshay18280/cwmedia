@@ -11,7 +11,7 @@ export default function AccentTest() {
           <h1 className="text-display mb-6 text-gradient-flow">
             🌊 Flowing Gradients + 🔮 Holographic Effects
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+          <p className="text-body-lg text-medium-contrast max-w-3xl mx-auto">
             Experience our revolutionary dynamic color system with flowing gradients and holographic effects.
             Watch colors come alive with smooth animations and interactive responses.
           </p>
@@ -22,8 +22,8 @@ export default function AccentTest() {
           {/* Flowing Gradients Demo */}
           <ModernCard variant="default" padding="lg" className="text-center">
             <div className="w-16 h-16 bg-gradient-flow rounded-full mx-auto mb-4 animate-gradient-flow"></div>
-            <h3 className="text-2xl font-bold mb-4 text-gradient-flow">Flowing Gradients</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <h3 className="text-subtitle font-bold mb-4 text-gradient-flow">Flowing Gradients</h3>
+            <p className="text-medium-contrast mb-6">
               Colors smoothly flow and shift like liquid, creating mesmerizing visual experiences.
             </p>
             <div className="space-y-4">
@@ -36,8 +36,8 @@ export default function AccentTest() {
           {/* Holographic Effects Demo */}
           <ModernCard variant="default" padding="lg" className="text-center">
             <div className="w-16 h-16 bg-holographic rounded-full mx-auto mb-4"></div>
-            <h3 className="text-2xl font-bold mb-4 text-holographic">Holographic Effects</h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <h3 className="text-subtitle font-bold mb-4 text-holographic">Holographic Effects</h3>
+            <p className="text-medium-contrast mb-6">
               Color-shifting effects like soap bubbles or holographic foil with hue rotation.
             </p>
             <div className="space-y-4">
@@ -50,7 +50,7 @@ export default function AccentTest() {
 
         {/* Button Variations */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gradient-accent">Interactive Buttons</h2>
+          <h2 className="text-title font-bold text-center mb-8 text-gradient-accent">Interactive Buttons</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <ModernButton variant="default" intent="primary" size="lg" icon={Sparkles}>
               Gradient Flow
@@ -69,31 +69,31 @@ export default function AccentTest() {
 
         {/* Card Variations */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8 text-holographic">Dynamic Cards</h2>
+          <h2 className="text-title font-bold text-center mb-8 text-holographic">Dynamic Cards</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <ModernCard variant="default" padding="lg" hover className="text-center">
               <Eye className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-              <h3 className="text-xl font-bold mb-2">Default Style</h3>
-              <p className="text-gray-600 dark:text-gray-400">Clean and professional appearance</p>
+              <h3 className="text-body-lg font-bold mb-2">Default Style</h3>
+              <p className="text-medium-contrast">Clean and professional appearance</p>
             </ModernCard>
 
             <ModernCard variant="neumorphic" padding="lg" hover className="text-center">
               <Palette className="w-12 h-12 text-purple-600 mx-auto mb-4" />
-              <h3 className="text-xl font-bold mb-2">Neumorphic</h3>
-              <p className="text-gray-600 dark:text-gray-400">Soft, tactile design with depth</p>
+              <h3 className="text-body-lg font-bold mb-2">Neumorphic</h3>
+              <p className="text-medium-contrast">Soft, tactile design with depth</p>
             </ModernCard>
 
             <ModernCard variant="glass" padding="lg" hover className="text-center">
               <Sparkles className="w-12 h-12 text-green-600 mx-auto mb-4" />
-              <h3 className="text-xl font-bold mb-2">Glass Morphism</h3>
-              <p className="text-gray-600 dark:text-gray-400">Translucent with blur effects</p>
+              <h3 className="text-body-lg font-bold mb-2">Glass Morphism</h3>
+              <p className="text-medium-contrast">Translucent with blur effects</p>
             </ModernCard>
           </div>
         </div>
 
         {/* Typography Effects */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gradient-flow">Typography Effects</h2>
+          <h2 className="text-title font-bold text-center mb-8 text-gradient-flow">Typography Effects</h2>
           <div className="text-center space-y-6">
             <h1 className="text-6xl font-bold text-gradient-flow">Flowing Text</h1>
             <h1 className="text-6xl font-bold text-holographic">Holographic Text</h1>
@@ -103,7 +103,7 @@ export default function AccentTest() {
 
         {/* Background Patterns */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gradient-accent">Background Patterns</h2>
+          <h2 className="text-title font-bold text-center mb-8 text-gradient-accent">Background Patterns</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="h-40 bg-gradient-flow rounded-xl flex items-center justify-center text-white font-bold text-2xl">
               Flowing Background
@@ -116,32 +116,32 @@ export default function AccentTest() {
 
         {/* Performance Info */}
         <ModernCard variant="glass" padding="lg" className="text-center">
-          <h3 className="text-2xl font-bold mb-4 text-gradient-flow">Performance Optimized</h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
+          <h3 className="text-subtitle font-bold mb-4 text-gradient-flow">Performance Optimized</h3>
+          <p className="text-medium-contrast mb-4">
             All animations respect user preferences for reduced motion and adapt to device capabilities.
             Gradients are hardware-accelerated and optimized for smooth 60fps performance.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">60 FPS</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Smooth Animation</div>
+              <div className="text-subtitle font-bold text-green-600">60 FPS</div>
+              <div className="text-body-sm text-medium-contrast">Smooth Animation</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">&lt; 50ms</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Response Time</div>
+              <div className="text-subtitle font-bold text-blue-600">&lt; 50ms</div>
+              <div className="text-body-sm text-medium-contrast">Response Time</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">GPU</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Accelerated</div>
+              <div className="text-subtitle font-bold text-purple-600">GPU</div>
+              <div className="text-body-sm text-medium-contrast">Accelerated</div>
             </div>
           </div>
         </ModernCard>
 
         {/* Instructions */}
         <div className="mt-16 text-center">
-          <h3 className="text-2xl font-bold mb-4 text-holographic">How to Test</h3>
+          <h3 className="text-subtitle font-bold mb-4 text-holographic">How to Test</h3>
           <div className="max-w-2xl mx-auto">
-            <ol className="list-decimal list-inside space-y-2 text-left text-gray-600 dark:text-gray-400">
+            <ol className="list-decimal list-inside space-y-2 text-left text-medium-contrast">
               <li>Change accent colors in the theme toggle (top navigation)</li>
               <li>Watch all gradients and holographic effects update instantly</li>
               <li>Hover over buttons and cards to see interactive effects</li>

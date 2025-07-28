@@ -89,17 +89,17 @@ export default function Unsubscribe() {
 
   if (loading && status === 'loading') {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full text-center shadow-2xl">
+      <div className="min-h-screen bg-high-contrast flex items-center justify-center p-4">
+        <div className="bg-medium-contrast rounded-2xl p-8 max-w-md w-full text-center shadow-2xl">
           <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-6">
             <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent"></div>
           </div>
           
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-subtitle font-bold text-high-contrast mb-4">
             Processing Unsubscribe...
           </h1>
           
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-medium-contrast">
             Please wait while we process your unsubscribe request.
           </p>
         </div>
@@ -108,20 +108,20 @@ export default function Unsubscribe() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full text-center shadow-2xl">
+    <div className="min-h-screen bg-high-contrast flex items-center justify-center p-4">
+      <div className="bg-medium-contrast rounded-2xl p-8 max-w-md w-full text-center shadow-2xl">
         {/* Status Icon */}
         <div className={`w-16 h-16 ${getStatusColor()} rounded-full flex items-center justify-center mx-auto mb-6`}>
           {getStatusIcon()}
         </div>
         
         {/* Title */}
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+        <h1 className="text-subtitle font-bold text-high-contrast mb-4">
           {getTitle()}
         </h1>
         
         {/* Message */}
-        <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+        <p className="text-medium-contrast mb-6 leading-relaxed">
           {message}
         </p>
 
@@ -129,12 +129,12 @@ export default function Unsubscribe() {
         {status === 'success' && (
           <div className="space-y-4">
             <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-              <p className="text-green-800 dark:text-green-200 text-sm">
+              <p className="text-green-800 dark:text-green-200 text-body-sm">
                 You have been successfully unsubscribed from our newsletter. You will no longer receive email updates from us.
               </p>
             </div>
             
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-body-sm text-low-contrast">
               Changed your mind? You can always subscribe again from our website.
             </p>
           </div>
@@ -143,7 +143,7 @@ export default function Unsubscribe() {
         {(status === 'error' || status === 'not-found') && (
           <div className="space-y-4">
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-              <p className="text-red-800 dark:text-red-200 text-sm">
+              <p className="text-red-800 dark:text-red-200 text-body-sm">
                 {status === 'not-found' 
                   ? 'This unsubscribe link appears to be invalid or expired.'
                   : 'There was an issue processing your unsubscribe request.'
@@ -151,7 +151,7 @@ export default function Unsubscribe() {
               </p>
             </div>
             
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-body-sm text-low-contrast">
               If you continue to experience issues, please contact us directly at{' '}
               <a 
                 href="mailto:support@carelwave.com" 
@@ -176,7 +176,7 @@ export default function Unsubscribe() {
           {status === 'success' && (
             <Link
               to="/blog"
-              className="flex items-center justify-center px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="flex items-center justify-center px-4 py-3 border border-medium-contrast text-high-contrast font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               Browse Our Blog
             </Link>
@@ -185,7 +185,7 @@ export default function Unsubscribe() {
           {(status === 'error' || status === 'not-found') && (
             <button
               onClick={() => window.location.reload()}
-              className="flex items-center justify-center px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="flex items-center justify-center px-4 py-3 border border-medium-contrast text-high-contrast font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             >
               Try Again
             </button>
@@ -194,13 +194,13 @@ export default function Unsubscribe() {
 
         {/* Newsletter subscription link for success case */}
         {status === 'success' && (
-          <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+          <div className="mt-6 pt-6 border-t border-low-contrast">
+            <p className="text-body-sm text-low-contrast mb-3">
               Want to stay updated with our latest content?
             </p>
             <Link
               to="/#newsletter"
-              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+              className="text-body-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
             >
               Subscribe Again →
             </Link>

@@ -51,15 +51,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
       {/* Navigation Header */}
-      <nav className="sticky top-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
+      <nav className="sticky top-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-low-contrast">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-flow rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">CW</span>
+                <span className="text-white font-bold text-body-sm">CW</span>
               </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">
+              <span className="text-body-lg font-bold text-high-contrast">
                 Carelwave Media
               </span>
             </Link>
@@ -70,10 +70,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                  className={`px-3 py-2 rounded-md text-body-sm font-medium transition-colors duration-200 ${
                     location.pathname === link.path
                       ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                      : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                      : 'text-high-contrast hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800'
                   }`}
                 >
                   {link.name}
@@ -101,7 +101,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               {/* Theme Toggle */}
               <button
                 onClick={toggleTheme}
-                className="p-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+                className="p-2 bg-medium-contrast text-medium-contrast rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
                 title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
               >
                 {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -110,26 +110,26 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               {/* User Menu */}
               {isAuthenticated && currentUser ? (
                 <div className="relative group">
-                  <button className="flex items-center space-x-2 p-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200">
-                    <User className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                  <button className="flex items-center space-x-2 p-2 bg-medium-contrast rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200">
+                    <User className="w-5 h-5 text-medium-contrast" />
+                    <span className="text-body-sm text-high-contrast">
                       {currentUser.displayName || 'User'}
                     </span>
                   </button>
                   
                   {/* Dropdown Menu */}
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-medium-contrast rounded-lg shadow-lg border border-low-contrast opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                     <div className="py-2">
                       <Link
                         to="/admin"
-                        className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        className="flex items-center space-x-2 px-4 py-2 text-body-sm text-high-contrast hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
                         <Settings className="w-4 h-4" />
                         <span>Admin Dashboard</span>
                       </Link>
                       <button
                         onClick={handleLogout}
-                        className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        className="flex items-center space-x-2 w-full px-4 py-2 text-body-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                       >
                         <LogOut className="w-4 h-4" />
                         <span>Sign Out</span>
@@ -140,7 +140,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               ) : (
                 <Link
                   to="/login"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-body-sm font-medium"
                 >
                   Sign In
                 </Link>
@@ -151,7 +151,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="md:hidden">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="p-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+                className="p-2 bg-medium-contrast text-medium-contrast rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
               >
                 {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
@@ -161,17 +161,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         {/* Mobile Navigation Menu */}
         {isMenuOpen && (
-          <div className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+          <div className="md:hidden bg-white dark:bg-gray-900 border-t border-low-contrast">
             <div className="px-4 pt-2 pb-4 space-y-2">
               {navLinks.map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                  className={`block px-3 py-2 rounded-md text-body-sm font-medium transition-colors duration-200 ${
                     location.pathname === link.path
                       ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                      : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                      : 'text-high-contrast hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800'
                   }`}
                 >
                   {link.name}
@@ -179,17 +179,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               ))}
               
               {/* Mobile Action Buttons */}
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+              <div className="pt-4 border-t border-low-contrast space-y-2">
                 {voiceSupported && (
                   <button
                     onClick={() => {
                       toggleListening();
                       setIsMenuOpen(false);
                     }}
-                    className={`flex items-center space-x-2 w-full px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
+                    className={`flex items-center space-x-2 w-full px-3 py-2 rounded-md text-body-sm font-medium transition-colors duration-200 ${
                       isListening
                         ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                        : 'text-high-contrast hover:bg-gray-50 dark:hover:bg-gray-800'
                     }`}
                   >
                     {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
@@ -202,7 +202,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     toggleTheme();
                     setIsMenuOpen(false);
                   }}
-                  className="flex items-center space-x-2 w-full px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
+                  className="flex items-center space-x-2 w-full px-3 py-2 rounded-md text-body-sm font-medium text-high-contrast hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
                 >
                   {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                   <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
@@ -213,14 +213,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <Link
                       to="/admin"
                       onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center space-x-2 w-full px-3 py-2 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
+                      className="flex items-center space-x-2 w-full px-3 py-2 rounded-md text-body-sm font-medium text-high-contrast hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
                     >
                       <Settings className="w-5 h-5" />
                       <span>Admin Dashboard</span>
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="flex items-center space-x-2 w-full px-3 py-2 rounded-md text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
+                      className="flex items-center space-x-2 w-full px-3 py-2 rounded-md text-body-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
                     >
                       <LogOut className="w-5 h-5" />
                       <span>Sign Out</span>
@@ -230,7 +230,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <Link
                     to="/login"
                     onClick={() => setIsMenuOpen(false)}
-                    className="block w-full px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-sm font-medium text-center"
+                    className="block w-full px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-body-sm font-medium text-center"
                   >
                     Sign In
                   </Link>
@@ -247,30 +247,30 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+      <footer className="bg-high-contrast border-t border-low-contrast">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Brand Column */}
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center space-x-2 mb-4">
                 <div className="w-8 h-8 bg-gradient-flow rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">CW</span>
+                  <span className="text-white font-bold text-body-sm">CW</span>
                 </div>
-                <span className="text-xl font-bold text-gray-900 dark:text-white">
+                <span className="text-body-lg font-bold text-high-contrast">
                   Carelwave Media
                 </span>
               </div>
-              <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-md">
+              <p className="text-medium-contrast mb-4 max-w-md">
                 Building the future of technology content with innovation, passion, and dedication to excellence.
               </p>
-              <div className="text-sm text-gray-500 dark:text-gray-500">
+              <div className="text-body-sm text-subtle">
                 © 2025 Carelwave Media. All rights reserved.
               </div>
             </div>
 
             {/* Quick Links */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">
+              <h3 className="text-body-sm font-semibold text-high-contrast uppercase tracking-wider mb-4">
                 Quick Links
               </h3>
               <ul className="space-y-2">
@@ -278,7 +278,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <li key={link.path}>
                     <Link
                       to={link.path}
-                      className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
+                      className="text-medium-contrast hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
                     >
                       {link.name}
                     </Link>
@@ -289,14 +289,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
             {/* Connect */}
             <div>
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wider mb-4">
+              <h3 className="text-body-sm font-semibold text-high-contrast uppercase tracking-wider mb-4">
                 Connect
               </h3>
-              <ul className="space-y-2 text-sm">
+              <ul className="space-y-2 text-body-sm">
                 <li>
                   <a
                     href="mailto:contact@carelwavemedia.com"
-                    className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
+                    className="text-medium-contrast hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
                   >
                     contact@carelwavemedia.com
                   </a>
@@ -304,7 +304,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <li>
                   <a
                     href="tel:+15551234567"
-                    className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
+                    className="text-medium-contrast hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
                   >
                     +1 (555) 123-4567
                   </a>

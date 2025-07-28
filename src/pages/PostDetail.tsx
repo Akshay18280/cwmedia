@@ -55,8 +55,8 @@ export default function PostDetail() {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Post Not Found</h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">The post you're looking for doesn't exist.</p>
+          <h1 className="text-subtitle font-bold text-high-contrast">Post Not Found</h1>
+          <p className="mt-2 text-medium-contrast">The post you're looking for doesn't exist.</p>
           <Link to="/blog" className="mt-4 inline-flex items-center text-blue-600 hover:text-blue-800">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Blog
@@ -90,18 +90,18 @@ export default function PostDetail() {
 
       {/* Category */}
       <div className="mb-4">
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-body-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
           {post.category}
         </span>
       </div>
 
       {/* Title */}
-      <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+      <h1 className="text-title md:text-4xl font-bold text-high-contrast mb-6">
         {post.title}
       </h1>
 
       {/* Metadata */}
-      <div className="flex flex-wrap items-center gap-6 mb-8 text-sm text-gray-500 dark:text-gray-400">
+      <div className="flex flex-wrap items-center gap-6 mb-8 text-body-sm text-low-contrast">
         <div className="flex items-center">
           <Calendar className="w-4 h-4 mr-2" />
           {new Date(post.published_at).toLocaleDateString('en-US', {
@@ -129,15 +129,15 @@ export default function PostDetail() {
 
       {/* Author */}
       {post.author && (
-        <div className="flex items-center mb-8 pb-8 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center mb-8 pb-8 border-b border-low-contrast">
           <img
             src={post.author.avatar_url || '/images/default-avatar.png'}
             alt={post.author.name}
             className="w-12 h-12 rounded-full mr-4"
           />
           <div>
-            <p className="font-medium text-gray-900 dark:text-white">{post.author.name}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Author</p>
+            <p className="font-medium text-high-contrast">{post.author.name}</p>
+            <p className="text-body-sm text-low-contrast">Author</p>
           </div>
         </div>
       )}
@@ -149,13 +149,13 @@ export default function PostDetail() {
 
       {/* Tags */}
       {post.tags && post.tags.length > 0 && (
-        <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Tags</h3>
+        <div className="mt-12 pt-8 border-t border-low-contrast">
+          <h3 className="text-body font-medium text-high-contrast mb-4">Tags</h3>
           <div className="flex flex-wrap gap-2">
             {post.tags.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+                className="inline-flex items-center px-3 py-1 rounded-full text-body-sm font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
               >
                 #{tag}
               </span>

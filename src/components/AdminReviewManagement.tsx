@@ -152,45 +152,45 @@ export default function AdminReviewManagement() {
   return (
     <div className="space-y-6">
       {/* Header with Stats */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+      <div className="bg-medium-contrast rounded-lg p-6 shadow-sm">
+        <h2 className="text-subtitle font-bold text-high-contrast mb-6">
           Review Management
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
           <div className="bg-accent-primary/5 dark:bg-accent-primary/20/20 rounded-lg p-4">
-            <div className="text-2xl font-bold text-accent-primary dark:text-accent-primary-light">
+            <div className="text-subtitle font-bold text-accent-primary dark:text-accent-primary-light">
               {reviewStats.total}
             </div>
-            <div className="text-sm text-accent-primary dark:text-accent-primary-light">Total Reviews</div>
+            <div className="text-body-sm text-accent-primary dark:text-accent-primary-light">Total Reviews</div>
           </div>
           
           <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4">
-            <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+            <div className="text-subtitle font-bold text-yellow-600 dark:text-yellow-400">
               {reviewStats.pending}
             </div>
-            <div className="text-sm text-yellow-800 dark:text-yellow-300">Pending</div>
+            <div className="text-body-sm text-yellow-800 dark:text-yellow-300">Pending</div>
           </div>
           
           <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+            <div className="text-subtitle font-bold text-green-600 dark:text-green-400">
               {reviewStats.approved}
             </div>
-            <div className="text-sm text-green-800 dark:text-green-300">Approved</div>
+            <div className="text-body-sm text-green-800 dark:text-green-300">Approved</div>
           </div>
           
           <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
-            <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+            <div className="text-subtitle font-bold text-red-600 dark:text-red-400">
               {reviewStats.rejected}
             </div>
-            <div className="text-sm text-red-800 dark:text-red-300">Rejected</div>
+            <div className="text-body-sm text-red-800 dark:text-red-300">Rejected</div>
           </div>
           
           <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
-            <div className="text-2xl font-bold text-accent-primary dark:text-accent-primary-light">
+            <div className="text-subtitle font-bold text-accent-primary dark:text-accent-primary-light">
               {reviewStats.averageRating.toFixed(1)}
             </div>
-            <div className="text-sm text-purple-800 dark:text-purple-300">Avg Rating</div>
+            <div className="text-body-sm text-purple-800 dark:text-purple-300">Avg Rating</div>
           </div>
         </div>
 
@@ -203,7 +203,7 @@ export default function AdminReviewManagement() {
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 filter === filterOption
                   ? 'bg-accent-primary text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  : 'bg-low-contrast text-high-contrast hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
               {filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
@@ -213,16 +213,16 @@ export default function AdminReviewManagement() {
       </div>
 
       {/* Reviews List */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+      <div className="bg-medium-contrast rounded-lg shadow-sm">
         {isLoading ? (
           <div className="p-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-primary mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">Loading reviews...</p>
+            <p className="text-medium-contrast">Loading reviews...</p>
           </div>
         ) : reviews.length === 0 ? (
           <div className="p-8 text-center">
             <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 dark:text-gray-400">No reviews found for this filter.</p>
+            <p className="text-medium-contrast">No reviews found for this filter.</p>
           </div>
         ) : (
           <div className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -243,15 +243,15 @@ export default function AdminReviewManagement() {
                         />
                       ) : null}
                       <div className={`w-12 h-12 bg-accent-primary/10 rounded-full flex items-center justify-center mr-4 ${review.reviewerImage ? 'hidden' : ''}`}>
-                        <span className="text-accent-primary font-semibold text-lg">
+                        <span className="text-accent-primary font-semibold text-body">
                           {review.reviewerName.charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                        <h3 className="font-semibold text-high-contrast">
                           {review.reviewerName}
                         </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-body-sm text-medium-contrast">
                           {review.reviewerPosition} at {review.reviewerCompany}
                         </p>
                       </div>
@@ -259,7 +259,7 @@ export default function AdminReviewManagement() {
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(review.status)}`}>
+                    <span className={`px-3 py-1 rounded-full text-caption font-medium ${getStatusColor(review.status)}`}>
                       {review.status}
                     </span>
                     <button
@@ -273,10 +273,10 @@ export default function AdminReviewManagement() {
                 </div>
 
                 <div className="space-y-2">
-                  <h4 className="font-medium text-gray-900 dark:text-white">
+                  <h4 className="font-medium text-high-contrast">
                     {review.title}
                   </h4>
-                  <p className="text-gray-700 dark:text-gray-300 line-clamp-3">
+                  <p className="text-high-contrast line-clamp-3">
                     {review.content}
                   </p>
                   
@@ -285,13 +285,13 @@ export default function AdminReviewManagement() {
                       {review.skills.slice(0, 3).map((skill, index) => (
                         <span
                           key={index}
-                          className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded"
+                          className="text-caption bg-low-contrast text-high-contrast px-2 py-1 rounded"
                         >
                           {skill}
                         </span>
                       ))}
                       {review.skills.length > 3 && (
-                        <span className="text-xs text-gray-500">
+                        <span className="text-caption text-gray-500">
                           +{review.skills.length - 3} more
                         </span>
                       )}
@@ -332,10 +332,10 @@ export default function AdminReviewManagement() {
       {/* Review Detail Modal */}
       {selectedReview && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-medium-contrast rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                <h3 className="text-body-lg font-bold text-high-contrast">
                   Review Details
                 </h3>
                 <button
@@ -364,18 +364,18 @@ export default function AdminReviewManagement() {
                     />
                   ) : null}
                   <div className={`w-16 h-16 bg-accent-primary/10 rounded-full flex items-center justify-center mr-4 ${selectedReview.reviewerImage ? 'hidden' : ''}`}>
-                    <span className="text-accent-primary font-semibold text-xl">
+                    <span className="text-accent-primary font-semibold text-body-lg">
                       {selectedReview.reviewerName.charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                    <h3 className="text-body-lg font-bold text-high-contrast">
                       {selectedReview.reviewerName}
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-400">
+                    <p className="text-medium-contrast">
                       {selectedReview.reviewerPosition} at {selectedReview.reviewerCompany}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-body-sm text-low-contrast">
                       {selectedReview.reviewerEmail}
                     </p>
                   </div>
@@ -383,25 +383,25 @@ export default function AdminReviewManagement() {
 
                 {/* Review Content */}
                 <div>
-                  <h5 className="font-medium text-gray-900 dark:text-white mb-2">
+                  <h5 className="font-medium text-high-contrast mb-2">
                     {selectedReview.title}
                   </h5>
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                  <p className="text-high-contrast leading-relaxed">
                     {selectedReview.content}
                   </p>
                 </div>
 
                 {/* Additional Info */}
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="grid grid-cols-2 gap-4 text-body-sm">
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Work Relationship:</span>
-                    <p className="font-medium text-gray-900 dark:text-white">
+                    <span className="text-low-contrast">Work Relationship:</span>
+                    <p className="font-medium text-high-contrast">
                       {selectedReview.workRelationship}
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Submitted:</span>
-                    <p className="font-medium text-gray-900 dark:text-white">
+                    <span className="text-low-contrast">Submitted:</span>
+                    <p className="font-medium text-high-contrast">
                       {formatDate(selectedReview.submittedAt)}
                     </p>
                   </div>
@@ -410,12 +410,12 @@ export default function AdminReviewManagement() {
                 {/* Skills & Projects */}
                 {selectedReview.skills && selectedReview.skills.length > 0 && (
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400 text-sm">Skills:</span>
+                    <span className="text-low-contrast text-body-sm">Skills:</span>
                     <div className="flex flex-wrap gap-2 mt-1">
                       {selectedReview.skills.map((skill, index) => (
                         <span
                           key={index}
-                          className="text-xs bg-accent-primary/10 dark:bg-accent-primary/20 text-accent-primary dark:text-white/70 px-2 py-1 rounded-full"
+                          className="text-caption bg-accent-primary/10 dark:bg-accent-primary/20 text-accent-primary dark:text-white/70 px-2 py-1 rounded-full"
                         >
                           {skill}
                         </span>
@@ -426,8 +426,8 @@ export default function AdminReviewManagement() {
 
                 {selectedReview.projectsWorkedOn && selectedReview.projectsWorkedOn.length > 0 && (
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400 text-sm">Projects:</span>
-                    <p className="text-gray-700 dark:text-gray-300 mt-1">
+                    <span className="text-low-contrast text-body-sm">Projects:</span>
+                    <p className="text-high-contrast mt-1">
                       {selectedReview.projectsWorkedOn.join(', ')}
                     </p>
                   </div>
@@ -436,14 +436,14 @@ export default function AdminReviewManagement() {
                 {/* Moderator Notes */}
                 {selectedReview.status === 'pending' && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-body-sm font-medium text-high-contrast mb-2">
                       Moderator Notes (Optional for approval, required for rejection)
                     </label>
                     <textarea
                       value={moderatorNotes}
                       onChange={(e) => setModeratorNotes(e.target.value)}
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
+                      className="w-full px-3 py-2 border border-medium-contrast rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
                       placeholder="Add notes about your decision..."
                     />
                   </div>
@@ -454,11 +454,11 @@ export default function AdminReviewManagement() {
                   <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <AlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
-                      <span className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
+                      <span className="text-body-sm font-medium text-yellow-800 dark:text-yellow-300">
                         Moderator Notes
                       </span>
                     </div>
-                    <p className="text-yellow-700 dark:text-yellow-300 text-sm">
+                    <p className="text-yellow-700 dark:text-yellow-300 text-body-sm">
                       {selectedReview.moderatorNotes}
                     </p>
                   </div>
@@ -466,13 +466,13 @@ export default function AdminReviewManagement() {
 
                 {/* Action Buttons */}
                 {selectedReview.status === 'pending' && (
-                  <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex justify-end gap-3 pt-4 border-t border-low-contrast">
                     <button
                       onClick={() => {
                         setSelectedReview(null);
                         setModeratorNotes('');
                       }}
-                      className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                      className="px-4 py-2 border border-medium-contrast text-high-contrast rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
                       Cancel
                     </button>

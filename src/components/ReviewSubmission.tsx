@@ -158,10 +158,10 @@ export default function ReviewSubmission({ onClose, onSuccess }: ReviewSubmissio
   if (isCheckingUser) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-md w-full mx-4">
+        <div className="bg-medium-contrast rounded-xl p-6 max-w-md w-full mx-4">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">Checking authentication...</p>
+            <p className="text-medium-contrast">Checking authentication...</p>
           </div>
         </div>
       </div>
@@ -170,10 +170,10 @@ export default function ReviewSubmission({ onClose, onSuccess }: ReviewSubmissio
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-medium-contrast rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-subtitle font-bold text-high-contrast">
               Write a Professional Review
             </h2>
             <button
@@ -208,7 +208,7 @@ export default function ReviewSubmission({ onClose, onSuccess }: ReviewSubmissio
                 <button
                   onClick={handleGoogleLogin}
                   disabled={isLoading}
-                  className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex items-center justify-center gap-2 px-4 py-2 border border-medium-contrast text-high-contrast font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
                     <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -244,18 +244,18 @@ export default function ReviewSubmission({ onClose, onSuccess }: ReviewSubmissio
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* User Info Display */}
               <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
-                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <h3 className="text-body-sm font-medium text-high-contrast mb-2">
                   Submitting as:
                 </h3>
                 <div className="flex items-center">
                   <div className="w-10 h-10 bg-accent-primary/10 rounded-full flex items-center justify-center mr-3">
-                    <span className="text-accent-primary font-semibold text-lg">
+                    <span className="text-accent-primary font-semibold text-body">
                       {currentUser.name.charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white">{currentUser.name}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{currentUser.email}</p>
+                    <p className="font-medium text-high-contrast">{currentUser.name}</p>
+                    <p className="text-body-sm text-medium-contrast">{currentUser.email}</p>
                   </div>
                 </div>
               </div>
@@ -263,27 +263,27 @@ export default function ReviewSubmission({ onClose, onSuccess }: ReviewSubmissio
               {/* Professional Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-body-sm font-medium text-high-contrast mb-2">
                     Your Position *
                   </label>
                   <input
                     type="text"
                     value={formData.userPosition}
                     onChange={(e) => setFormData(prev => ({ ...prev, userPosition: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-medium-contrast rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                     placeholder="Software Engineer"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-body-sm font-medium text-high-contrast mb-2">
                     Company *
                   </label>
                   <input
                     type="text"
                     value={formData.userCompany}
                     onChange={(e) => setFormData(prev => ({ ...prev, userCompany: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border border-medium-contrast rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                     placeholder="Tech Company Inc."
                     required
                   />
@@ -292,12 +292,12 @@ export default function ReviewSubmission({ onClose, onSuccess }: ReviewSubmissio
 
               {/* Rating */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-body-sm font-medium text-high-contrast mb-2">
                   Overall Rating *
                 </label>
                 <div className="flex items-center gap-1">
                   {renderStars()}
-                  <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                  <span className="ml-2 text-body-sm text-medium-contrast">
                     ({formData.rating}/5)
                   </span>
                 </div>
@@ -305,13 +305,13 @@ export default function ReviewSubmission({ onClose, onSuccess }: ReviewSubmissio
 
               {/* Work Relationship */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-body-sm font-medium text-high-contrast mb-2">
                   Work Relationship *
                 </label>
                 <select
                   value={formData.workRelationship}
                   onChange={(e) => setFormData(prev => ({ ...prev, workRelationship: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-medium-contrast rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                   required
                 >
                   <option value="colleague">Colleague</option>
@@ -325,14 +325,14 @@ export default function ReviewSubmission({ onClose, onSuccess }: ReviewSubmissio
 
               {/* Review Title */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-body-sm font-medium text-high-contrast mb-2">
                   Review Title *
                 </label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-medium-contrast rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                   placeholder="Excellent developer with strong technical skills"
                   maxLength={100}
                   required
@@ -341,47 +341,47 @@ export default function ReviewSubmission({ onClose, onSuccess }: ReviewSubmissio
 
               {/* Review Content */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-body-sm font-medium text-high-contrast mb-2">
                   Review Content *
                 </label>
                 <textarea
                   value={formData.content}
                   onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
                   rows={5}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-medium-contrast rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                   placeholder="Share your experience working with Akshay. What stood out about their work, skills, or collaboration style?"
                   maxLength={1000}
                   required
                 />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-caption text-low-contrast mt-1">
                   {formData.content.length}/1000 characters
                 </p>
               </div>
 
               {/* Projects Worked On */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-body-sm font-medium text-high-contrast mb-2">
                   Projects Worked On (Optional)
                 </label>
                 <input
                   type="text"
                   value={formData.projectsWorkedOn}
                   onChange={(e) => setFormData(prev => ({ ...prev, projectsWorkedOn: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-medium-contrast rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                   placeholder="Project Alpha, Backend Redesign, API Migration (comma-separated)"
                 />
               </div>
 
               {/* Skills */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-body-sm font-medium text-high-contrast mb-2">
                   Skills Observed (Optional)
                 </label>
                 <input
                   type="text"
                   value={formData.skills}
                   onChange={(e) => setFormData(prev => ({ ...prev, skills: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-medium-contrast rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
                   placeholder="Golang, AWS, Leadership, Problem Solving (comma-separated)"
                 />
               </div>
@@ -390,7 +390,7 @@ export default function ReviewSubmission({ onClose, onSuccess }: ReviewSubmissio
               <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
                 <div className="flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
-                  <div className="text-sm text-yellow-800 dark:text-yellow-200">
+                  <div className="text-body-sm text-yellow-800 dark:text-yellow-200">
                     <p className="font-medium mb-1">Important Notes:</p>
                     <ul className="list-disc list-inside space-y-1">
                       <li>Reviews are moderated and verified before publication</li>
@@ -407,7 +407,7 @@ export default function ReviewSubmission({ onClose, onSuccess }: ReviewSubmissio
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  className="px-6 py-2 border border-medium-contrast text-high-contrast font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   Cancel
                 </button>

@@ -143,11 +143,11 @@ export const CommentManager: React.FC<CommentManagerProps> = ({ postId }) => {
       <ModernCard variant="gradient-flow" padding="lg" className="text-white">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold">Comment Management</h2>
+            <h2 className="text-subtitle font-bold">Comment Management</h2>
             <p className="text-white/80">Moderate and respond to user comments</p>
           </div>
           <div className="text-right">
-            <div className="text-3xl font-bold">{comments.length}</div>
+            <div className="text-title font-bold">{comments.length}</div>
             <div className="text-white/80">Total Comments</div>
           </div>
         </div>
@@ -165,7 +165,7 @@ export const CommentManager: React.FC<CommentManagerProps> = ({ postId }) => {
           <button
             key={filterOption.key}
             onClick={() => setFilter(filterOption.key)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+            className={`px-4 py-2 rounded-full text-body-sm font-medium transition-all duration-200 ${
               filter === filterOption.key
                 ? 'bg-gradient-flow text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gradient-flow-subtle hover:text-white dark:bg-gray-800 dark:text-gray-300'
@@ -189,8 +189,8 @@ export const CommentManager: React.FC<CommentManagerProps> = ({ postId }) => {
                   </div>
                   <div>
                     <div className="font-medium text-gradient-accent">{comment.userName}</div>
-                    <div className="text-sm text-gray-500">{comment.userEmail}</div>
-                    <div className="text-xs text-gray-400">
+                    <div className="text-body-sm text-gray-500">{comment.userEmail}</div>
+                    <div className="text-caption text-gray-400">
                       {new Date(comment.createdAt).toLocaleDateString()} at{' '}
                       {new Date(comment.createdAt).toLocaleTimeString()}
                     </div>
@@ -199,28 +199,28 @@ export const CommentManager: React.FC<CommentManagerProps> = ({ postId }) => {
                 
                 <div className="flex items-center space-x-2">
                   {/* Sentiment Indicator */}
-                  <span className={`text-sm ${getSentimentColor(comment.sentiment)}`}>
+                  <span className={`text-body-sm ${getSentimentColor(comment.sentiment)}`}>
                     {getSentimentIcon(comment.sentiment)} {comment.sentiment}
                   </span>
                   
                   {/* Status Badges */}
                   {comment.isSpam && (
-                    <span className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
+                    <span className="px-2 py-1 bg-red-100 text-red-800 text-caption rounded-full">
                       Spam
                     </span>
                   )}
                   {!comment.isApproved && (
-                    <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                    <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-caption rounded-full">
                       Pending
                     </span>
                   )}
                   {comment.isApproved && comment.isVisible && (
-                    <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                    <span className="px-2 py-1 bg-green-100 text-green-800 text-caption rounded-full">
                       Live
                     </span>
                   )}
                   {!comment.isVisible && !comment.isSpam && (
-                    <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">
+                    <span className="px-2 py-1 bg-gray-100 text-gray-800 text-caption rounded-full">
                       Hidden
                     </span>
                   )}
@@ -229,7 +229,7 @@ export const CommentManager: React.FC<CommentManagerProps> = ({ postId }) => {
 
               {/* Comment Content */}
               <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                <p className="text-gray-700 dark:text-gray-300">{comment.content}</p>
+                <p className="text-high-contrast">{comment.content}</p>
               </div>
 
               {/* Actions */}
@@ -302,20 +302,20 @@ export const CommentManager: React.FC<CommentManagerProps> = ({ postId }) => {
                   </ModernButton>
                 </div>
 
-                <div className="text-sm text-gray-500">
+                <div className="text-body-sm text-gray-500">
                   Visible to: Commenter & Admin only
                 </div>
               </div>
 
               {/* Replies */}
               {comment.replies.length > 0 && (
-                <div className="ml-8 space-y-2 border-l-2 border-gray-200 dark:border-gray-700 pl-4">
+                <div className="ml-8 space-y-2 border-l-2 border-low-contrast pl-4">
                   {comment.replies.map(reply => (
                     <div key={reply.id} className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
-                      <div className="text-sm font-medium text-blue-800 dark:text-blue-300">
+                      <div className="text-body-sm font-medium text-blue-800 dark:text-blue-300">
                         Admin Reply
                       </div>
-                      <div className="text-sm text-blue-700 dark:text-blue-400 mt-1">
+                      <div className="text-body-sm text-blue-700 dark:text-blue-400 mt-1">
                         {reply.content}
                       </div>
                     </div>
@@ -362,10 +362,10 @@ export const CommentManager: React.FC<CommentManagerProps> = ({ postId }) => {
       {filteredComments.length === 0 && (
         <ModernCard variant="neumorphic" padding="xl" className="text-center">
           <MessageSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-gray-600 dark:text-gray-400 mb-2">
+          <h3 className="text-body-lg font-bold text-medium-contrast mb-2">
             No comments found
           </h3>
-          <p className="text-gray-500 dark:text-gray-500">
+          <p className="text-subtle">
             {filter === 'all' ? 'No comments yet.' : `No ${filter} comments.`}
           </p>
         </ModernCard>

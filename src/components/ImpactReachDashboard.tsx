@@ -130,16 +130,16 @@ export default function ImpactReachDashboard() {
     }, [isVisible, end]);
 
     return (
-      <div ref={elementRef} className="metric-card bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+      <div ref={elementRef} className="metric-card bg-medium-contrast rounded-xl p-6 shadow-lg border border-low-contrast">
         <div className="flex items-center justify-between mb-4">
           <div className="text-blue-600 dark:text-blue-400">
             {icon}
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">
+            <div className="text-subtitle font-bold text-high-contrast">
               {count.toLocaleString()}
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-body-sm text-medium-contrast">
               {label}
             </div>
           </div>
@@ -150,11 +150,11 @@ export default function ImpactReachDashboard() {
 
   if (loading) {
     return (
-      <section className="py-16 bg-gray-50 dark:bg-gray-900">
+      <section className="py-16 bg-high-contrast">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600 dark:text-gray-400">Loading real analytics data...</p>
+            <p className="mt-4 text-medium-contrast">Loading real analytics data...</p>
           </div>
         </div>
       </section>
@@ -163,13 +163,13 @@ export default function ImpactReachDashboard() {
 
   if (error) {
     return (
-      <section className="py-16 bg-gray-50 dark:bg-gray-900">
+      <section className="py-16 bg-high-contrast">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="text-red-600 dark:text-red-400 mb-4">
               <Activity className="w-12 h-12 mx-auto" />
             </div>
-            <p className="text-gray-600 dark:text-gray-400">{error}</p>
+            <p className="text-medium-contrast">{error}</p>
             <button 
               onClick={loadRealAnalytics}
               className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -185,21 +185,21 @@ export default function ImpactReachDashboard() {
   if (!analyticsData) return null;
 
   return (
-    <section className="py-16 bg-gray-50 dark:bg-gray-900">
+    <section className="py-16 bg-high-contrast">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-title font-bold text-high-contrast mb-4">
             Real-Time Global Impact
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+          <p className="text-body text-medium-contrast max-w-3xl mx-auto">
             Live production metrics from real data sources - GitHub API, database analytics, and social media engagement.
           </p>
         </div>
 
         {/* Tab Navigation */}
         <div className="flex justify-center mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-1 shadow-lg border border-gray-200 dark:border-gray-700">
+          <div className="bg-medium-contrast rounded-lg p-1 shadow-lg border border-low-contrast">
             {[
               { id: 'overview', label: 'Overview', icon: <Globe className="w-4 h-4" /> },
               { id: 'metrics', label: 'Metrics', icon: <BarChart3 className="w-4 h-4" /> },
@@ -245,45 +245,45 @@ export default function ImpactReachDashboard() {
         {activeTab === 'overview' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* GitHub Statistics */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+            <div className="bg-medium-contrast rounded-xl p-6 shadow-lg border border-low-contrast">
+              <h3 className="text-body-lg font-semibold text-high-contrast mb-4 flex items-center">
                 <Activity className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-400" />
                 GitHub Activity
               </h3>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">Public Repositories</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">{analyticsData.githubRepos}</span>
+                  <span className="text-medium-contrast">Public Repositories</span>
+                  <span className="font-semibold text-high-contrast">{analyticsData.githubRepos}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">Total Stars</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">{analyticsData.githubStars}</span>
+                  <span className="text-medium-contrast">Total Stars</span>
+                  <span className="font-semibold text-high-contrast">{analyticsData.githubStars}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">Followers</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">{analyticsData.githubFollowers}</span>
+                  <span className="text-medium-contrast">Followers</span>
+                  <span className="font-semibold text-high-contrast">{analyticsData.githubFollowers}</span>
                 </div>
               </div>
             </div>
 
             {/* Content Metrics */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+            <div className="bg-medium-contrast rounded-xl p-6 shadow-lg border border-low-contrast">
+              <h3 className="text-body-lg font-semibold text-high-contrast mb-4 flex items-center">
                 <TrendingUp className="w-5 h-5 mr-2 text-green-600 dark:text-green-400" />
                 Content Impact
               </h3>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">Total Articles</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">{analyticsData.totalArticles}</span>
+                  <span className="text-medium-contrast">Total Articles</span>
+                  <span className="font-semibold text-high-contrast">{analyticsData.totalArticles}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">Professional Reviews</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">{analyticsData.approvedReviews}</span>
+                  <span className="text-medium-contrast">Professional Reviews</span>
+                  <span className="font-semibold text-high-contrast">{analyticsData.approvedReviews}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600 dark:text-gray-400">Avg. Views per Article</span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
+                  <span className="text-medium-contrast">Avg. Views per Article</span>
+                  <span className="font-semibold text-high-contrast">
                     {analyticsData.totalArticles > 0 ? Math.round(analyticsData.totalPageViews / analyticsData.totalArticles) : 0}
                   </span>
                 </div>
@@ -293,37 +293,37 @@ export default function ImpactReachDashboard() {
         )}
 
         {activeTab === 'metrics' && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Real-Time Analytics</h3>
+          <div className="bg-medium-contrast rounded-xl p-6 shadow-lg border border-low-contrast">
+            <h3 className="text-body-lg font-semibold text-high-contrast mb-6">Real-Time Analytics</h3>
             
             {analyticsData.activeUsers > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                  <div className="text-title font-bold text-blue-600 dark:text-blue-400 mb-2">
                     {analyticsData.activeUsers}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Active Users</div>
+                  <div className="text-body-sm text-medium-contrast">Active Users</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
+                  <div className="text-title font-bold text-green-600 dark:text-green-400 mb-2">
                     {analyticsData.todayVisitors}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Today's Visitors</div>
+                  <div className="text-body-sm text-medium-contrast">Today's Visitors</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
+                  <div className="text-title font-bold text-purple-600 dark:text-purple-400 mb-2">
                     {analyticsData.totalPageViews}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Total Page Views</div>
+                  <div className="text-body-sm text-medium-contrast">Total Page Views</div>
                 </div>
               </div>
             ) : (
               <div className="text-center py-8">
-                <div className="text-gray-500 dark:text-gray-400 mb-4">
+                <div className="text-low-contrast mb-4">
                   <Activity className="w-12 h-12 mx-auto mb-2" />
                   Real-time visitor analytics require backend Google Analytics integration
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-body-sm text-medium-contrast">
                   Database metrics and GitHub API data are live and updating
                 </p>
               </div>
@@ -332,39 +332,39 @@ export default function ImpactReachDashboard() {
         )}
 
         {activeTab === 'impact' && (
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Professional Impact</h3>
+          <div className="bg-medium-contrast rounded-xl p-6 shadow-lg border border-low-contrast">
+            <h3 className="text-body-lg font-semibold text-high-contrast mb-6">Professional Impact</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-4">Content & Engagement</h4>
+                <h4 className="font-semibold text-high-contrast mb-4">Content & Engagement</h4>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Published Articles</span>
+                    <span className="text-medium-contrast">Published Articles</span>
                     <span className="font-semibold">{analyticsData.totalArticles}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Newsletter Reach</span>
+                    <span className="text-medium-contrast">Newsletter Reach</span>
                     <span className="font-semibold">{analyticsData.totalNewsletterSubscribers}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Professional Reviews</span>
+                    <span className="text-medium-contrast">Professional Reviews</span>
                     <span className="font-semibold">{analyticsData.approvedReviews}</span>
                   </div>
                 </div>
               </div>
               <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-4">Developer Community</h4>
+                <h4 className="font-semibold text-high-contrast mb-4">Developer Community</h4>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">GitHub Stars</span>
+                    <span className="text-medium-contrast">GitHub Stars</span>
                     <span className="font-semibold">{analyticsData.githubStars}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">GitHub Followers</span>
+                    <span className="text-medium-contrast">GitHub Followers</span>
                     <span className="font-semibold">{analyticsData.githubFollowers}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Open Source Projects</span>
+                    <span className="text-medium-contrast">Open Source Projects</span>
                     <span className="font-semibold">{analyticsData.githubRepos}</span>
                   </div>
                 </div>
@@ -375,12 +375,12 @@ export default function ImpactReachDashboard() {
 
         {/* Real Data Badge */}
         <div className="text-center mt-12">
-          <div className="inline-flex items-center space-x-2 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400 px-4 py-2 rounded-full text-sm">
+          <div className="inline-flex items-center space-x-2 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400 px-4 py-2 rounded-full text-body-sm">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
             <span>Live production data • Updated every minute</span>
             <span className="text-green-600 dark:text-green-400 font-medium">Real GitHub API + Database Analytics</span>
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+          <p className="text-caption text-low-contrast mt-2">
             Last updated: {new Date(analyticsData.lastUpdated).toLocaleTimeString()}
           </p>
         </div>

@@ -116,7 +116,7 @@ class ErrorBoundary extends Component<Props, State> {
           <div className="max-w-2xl w-full">
             
             {/* Error Card */}
-            <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-2xl border border-red-200 dark:border-red-800 text-center">
+            <div className="bg-medium-contrast rounded-3xl p-8 shadow-2xl border border-red-200 dark:border-red-800 text-center">
               
               {/* Error Icon */}
               <div className="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -124,12 +124,12 @@ class ErrorBoundary extends Component<Props, State> {
               </div>
 
               {/* Error Title */}
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+              <h1 className="text-title font-bold text-high-contrast mb-4">
                 Oops! Something went wrong
               </h1>
 
               {/* Error Description */}
-              <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+              <p className="text-medium-contrast mb-6 leading-relaxed">
                 We encountered an unexpected error. Don't worry - our development team has been notified 
                 and we're working to fix this issue.
               </p>
@@ -139,23 +139,23 @@ class ErrorBoundary extends Component<Props, State> {
                 <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-6 text-left">
                   <div className="flex items-center mb-3">
                     <Bug className="w-5 h-5 text-red-600 dark:text-red-400 mr-2" />
-                    <h3 className="text-lg font-semibold text-red-800 dark:text-red-200">
+                    <h3 className="text-body font-semibold text-red-800 dark:text-red-200">
                       Development Error Details
                     </h3>
                   </div>
                   
                   <div className="space-y-3">
                     <div>
-                      <p className="text-sm font-medium text-red-700 dark:text-red-300 mb-1">Error:</p>
-                      <code className="text-xs bg-red-100 dark:bg-red-900/40 p-2 rounded block text-red-800 dark:text-red-200 overflow-x-auto">
+                      <p className="text-body-sm font-medium text-red-700 dark:text-red-300 mb-1">Error:</p>
+                      <code className="text-caption bg-red-100 dark:bg-red-900/40 p-2 rounded block text-red-800 dark:text-red-200 overflow-x-auto">
                         {this.state.error.name}: {this.state.error.message}
                       </code>
                     </div>
                     
                     {this.state.error.stack && (
                       <div>
-                        <p className="text-sm font-medium text-red-700 dark:text-red-300 mb-1">Stack Trace:</p>
-                        <code className="text-xs bg-red-100 dark:bg-red-900/40 p-2 rounded block text-red-800 dark:text-red-200 overflow-x-auto max-h-32 overflow-y-auto">
+                        <p className="text-body-sm font-medium text-red-700 dark:text-red-300 mb-1">Stack Trace:</p>
+                        <code className="text-caption bg-red-100 dark:bg-red-900/40 p-2 rounded block text-red-800 dark:text-red-200 overflow-x-auto max-h-32 overflow-y-auto">
                           {this.state.error.stack}
                         </code>
                       </div>
@@ -186,7 +186,7 @@ class ErrorBoundary extends Component<Props, State> {
 
                 <button
                   onClick={this.handleGoHome}
-                  className="flex items-center justify-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
+                  className="flex items-center justify-center px-6 py-3 border border-medium-contrast text-high-contrast font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200"
                 >
                   <Home className="w-5 h-5 mr-3" />
                   Go Home
@@ -202,8 +202,8 @@ class ErrorBoundary extends Component<Props, State> {
               </div>
 
               {/* Additional Help */}
-              <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+              <div className="mt-8 pt-6 border-t border-low-contrast">
+                <p className="text-body-sm text-low-contrast">
                   If this problem persists, please contact us at{' '}
                   <a 
                     href="mailto:contact@carelwavemedia.com" 
@@ -217,7 +217,7 @@ class ErrorBoundary extends Component<Props, State> {
 
             {/* Professional Footer */}
             <div className="text-center mt-6">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-body-sm text-low-contrast">
                 🛡️ Error boundary protecting your experience • Carelwave Media
               </p>
             </div>

@@ -230,8 +230,8 @@ export const ModalHeader: React.FC<ModalHeaderProps> = ({
   className = ''
 }) => {
   return (
-    <div className={`modal-header flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 ${className}`}>
-      <div className="modal-title text-xl font-semibold text-gray-900 dark:text-white">
+    <div className={`modal-header flex items-center justify-between p-6 border-b border-low-contrast ${className}`}>
+      <div className="modal-title text-body-lg font-semibold text-high-contrast">
         {children}
       </div>
       {closeButton && onClose && (
@@ -287,7 +287,7 @@ export const ModalFooter: React.FC<ModalFooterProps> = ({
   };
 
   return (
-    <div className={`modal-footer flex ${alignClasses[align]} gap-3 p-6 border-t border-gray-200 dark:border-gray-700 ${className}`}>
+    <div className={`modal-footer flex ${alignClasses[align]} gap-3 p-6 border-t border-low-contrast ${className}`}>
       {children}
     </div>
   );
@@ -341,7 +341,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       </ModalHeader>
       
       <ModalBody>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-medium-contrast">
           {message}
         </p>
       </ModalBody>
@@ -351,7 +351,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           type="button"
           onClick={onClose}
           disabled={loading}
-          className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 text-high-contrast bg-low-contrast hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {cancelText}
         </button>
@@ -417,7 +417,7 @@ export const AlertModal: React.FC<AlertModalProps> = ({
       </ModalHeader>
       
       <ModalBody>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-medium-contrast">
           {message}
         </p>
       </ModalBody>
@@ -460,10 +460,10 @@ export const LoadingModal: React.FC<LoadingModalProps> = ({
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            <h3 className="text-body font-semibold text-high-contrast mb-2">
               {title}
             </h3>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-medium-contrast">
               {message}
             </p>
           </div>

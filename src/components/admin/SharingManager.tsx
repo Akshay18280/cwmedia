@@ -86,8 +86,8 @@ export const SharingManager: React.FC<SharingManagerProps> = ({ post, onShare })
     <ModernCard variant="glass" padding="lg">
       <div className="space-y-6">
         <div className="text-center">
-          <h3 className="text-2xl font-bold text-gradient-flow mb-2">Share This Post</h3>
-          <p className="text-gray-600 dark:text-gray-400">
+          <h3 className="text-subtitle font-bold text-gradient-flow mb-2">Share This Post</h3>
+          <p className="text-medium-contrast">
             Help spread the knowledge across platforms
           </p>
         </div>
@@ -106,7 +106,7 @@ export const SharingManager: React.FC<SharingManagerProps> = ({ post, onShare })
                   <Icon className="w-6 h-6" />
                   <div className="text-left">
                     <div className="font-medium">{option.name}</div>
-                    <div className="text-xs opacity-80">{option.description}</div>
+                    <div className="text-caption opacity-80">{option.description}</div>
                   </div>
                 </div>
               </button>
@@ -118,7 +118,7 @@ export const SharingManager: React.FC<SharingManagerProps> = ({ post, onShare })
         <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
           <div className="flex items-center justify-between">
             <div className="flex-1 mr-4">
-              <label className="block text-sm font-medium mb-2 text-gradient-accent">
+              <label className="block text-body-sm font-medium mb-2 text-gradient-accent">
                 Direct Link
               </label>
               <input
@@ -157,7 +157,7 @@ export const SharingManager: React.FC<SharingManagerProps> = ({ post, onShare })
                 alt="QR Code for post"
                 className="w-48 h-48 mx-auto"
               />
-              <p className="text-sm text-gray-600 mt-2">
+              <p className="text-body-sm text-gray-600 mt-2">
                 Scan to open post on mobile
               </p>
             </div>
@@ -165,55 +165,55 @@ export const SharingManager: React.FC<SharingManagerProps> = ({ post, onShare })
         </div>
 
         {/* Share Analytics Preview */}
-        <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-          <h4 className="text-lg font-bold mb-3 text-holographic">Share Analytics</h4>
+        <div className="border-t border-low-contrast pt-4">
+          <h4 className="text-body font-bold mb-3 text-holographic">Share Analytics</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
             <div>
-              <div className="text-2xl font-bold text-blue-600">24</div>
-              <div className="text-xs text-gray-500">LinkedIn Shares</div>
+              <div className="text-subtitle font-bold text-blue-600">24</div>
+              <div className="text-caption text-gray-500">LinkedIn Shares</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-green-600">15</div>
-              <div className="text-xs text-gray-500">WhatsApp Shares</div>
+              <div className="text-subtitle font-bold text-green-600">15</div>
+              <div className="text-caption text-gray-500">WhatsApp Shares</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-black dark:text-white">8</div>
-              <div className="text-xs text-gray-500">Twitter Shares</div>
+              <div className="text-subtitle font-bold text-black dark:text-white">8</div>
+              <div className="text-caption text-gray-500">Twitter Shares</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-gray-600">12</div>
-              <div className="text-xs text-gray-500">Direct Links</div>
+              <div className="text-subtitle font-bold text-gray-600">12</div>
+              <div className="text-caption text-gray-500">Direct Links</div>
             </div>
           </div>
         </div>
 
         {/* Optimized Share Text Templates */}
         <div className="space-y-3">
-          <h4 className="text-lg font-bold text-gradient-accent">Suggested Share Text</h4>
+          <h4 className="text-body font-bold text-gradient-accent">Suggested Share Text</h4>
           
           <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border-l-4 border-blue-500">
-            <div className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-1">
+            <div className="text-body-sm font-medium text-blue-800 dark:text-blue-300 mb-1">
               For LinkedIn (Professional)
             </div>
-            <div className="text-sm text-blue-700 dark:text-blue-400">
+            <div className="text-body-sm text-blue-700 dark:text-blue-400">
               "Just discovered valuable insights on {post.title}. Key takeaways that could transform your approach to {post.category}. Worth the read! 💡 #Technology #Innovation"
             </div>
           </div>
 
           <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border-l-4 border-green-500">
-            <div className="text-sm font-medium text-green-800 dark:text-green-300 mb-1">
+            <div className="text-body-sm font-medium text-green-800 dark:text-green-300 mb-1">
               For WhatsApp (Personal)
             </div>
-            <div className="text-sm text-green-700 dark:text-green-400">
+            <div className="text-body-sm text-green-700 dark:text-green-400">
               "Hey! Found this amazing article: {post.title}. You might find it useful for your projects 🚀"
             </div>
           </div>
 
           <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border-l-4 border-gray-500">
-            <div className="text-sm font-medium text-gray-800 dark:text-gray-300 mb-1">
+            <div className="text-body-sm font-medium text-gray-800 dark:text-gray-300 mb-1">
               For Twitter (Engaging)
             </div>
-            <div className="text-sm text-gray-700 dark:text-gray-400">
+            <div className="text-body-sm text-gray-700 dark:text-gray-400">
               "🔥 {post.title} - This changes everything! Must-read for anyone in {post.category} 👇 #TechTrends"
             </div>
           </div>

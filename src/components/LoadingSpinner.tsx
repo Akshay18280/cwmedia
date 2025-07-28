@@ -38,11 +38,11 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   };
 
   const textSizeClasses = {
-    xs: 'text-xs',
-    sm: 'text-sm',
+    xs: 'text-caption',
+    sm: 'text-body-sm',
     md: 'text-base',
-    lg: 'text-lg',
-    xl: 'text-xl'
+    lg: 'text-body',
+    xl: 'text-body-lg'
   };
 
   const renderSpinner = () => {
@@ -160,7 +160,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
           ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm' 
           : 'bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20'
       }`}>
-        <div className={`${transparent ? '' : 'bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-2xl border border-gray-200 dark:border-gray-700'}`}>
+        <div className={`${transparent ? '' : 'bg-medium-contrast rounded-2xl p-8 shadow-2xl border border-low-contrast'}`}>
           {content}
         </div>
       </div>
@@ -199,7 +199,7 @@ export const ButtonLoader: React.FC = () => (
 );
 
 export const CardLoader: React.FC = () => (
-  <div className="p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+  <div className="p-6 bg-medium-contrast rounded-xl border border-low-contrast">
     <LoadingSpinner 
       variant="skeleton" 
       size="md"
