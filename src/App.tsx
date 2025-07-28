@@ -20,6 +20,7 @@ import Verify from './pages/verify';
 
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminLogin from './components/AdminLogin';
 
 function App() {
   return (
@@ -52,6 +53,7 @@ function App() {
                 
                 {/* Admin routes */}
                 <Route path="admin" element={<AdminDashboard />} />
+                <Route path="admin/login" element={<AdminLogin />} />
                 <Route path="admin/dashboard" element={<AdminDashboard />} />
                 
                 {/* Catch all route */}
