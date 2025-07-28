@@ -1,138 +1,168 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Sun, Moon, User, LogOut, Settings, Mic, MicOff } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, Search, User, LogOut, Settings, Sun, Moon, Mic, MicOff } from 'lucide-react';
+import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../contexts/AuthContext';
 import { useVoiceCommands } from '../hooks/useVoiceCommands';
+import { SearchBar } from './search/SearchBar';
+import { LiveNotifications } from './realtime/LiveNotifications';
+import { ModernButton } from './ModernDesignSystem';
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+export default function Layout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
   const location = useLocation();
-  const { currentUser, logout, isAuthenticated } = useAuth();
-  const { isListening, toggleListening, isSupported: voiceSupported } = useVoiceCommands();
+  const navigate = useNavigate();
+  const { currentUser, logout } = useAuth();
+  const { isListening, toggleListening, isSupported } = useVoiceCommands();
+  
+  const menuRef = useRef<HTMLDivElement>(null);
 
+  // Close menu when clicking outside
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const shouldUseDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
-    
-    setIsDarkMode(shouldUseDark);
-    document.documentElement.classList.toggle('dark', shouldUseDark);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const toggleTheme = () => {
-    const newTheme = !isDarkMode;
-    setIsDarkMode(newTheme);
-    localStorage.setItem('theme', newTheme ? 'dark' : 'light');
-    document.documentElement.classList.toggle('dark', newTheme);
+  // Close menu on route change
+  useEffect(() => {
+    setIsMenuOpen(false);
+    setShowMobileSearch(false);
+  }, [location.pathname]);
+
+  const navigation = [
+    { name: 'Home', href: '/' },
+    { name: 'About', href: '/about' },
+    { name: 'About Akshay', href: '/about-akshay' },
+    { name: 'Blog', href: '/blog' },
+    { name: 'Contact', href: '/contact' },
+  ];
+
+  const handleSearch = (query: string) => {
+    navigate(`/search?q=${encodeURIComponent(query)}`);
   };
 
   const handleLogout = async () => {
     try {
       await logout();
-      setIsMenuOpen(false);
+      navigate('/');
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error('Logout error:', error);
     }
   };
 
-  const navLinks = [
-    { name: 'Home', path: '/' },
-    { name: 'About', path: '/about' },
-    { name: 'About Akshay', path: '/about-akshay' },
-    { name: 'Blog', path: '/blog' },
-    { name: 'Contact', path: '/contact' }
-  ];
-
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
-      {/* Navigation Header */}
-      <nav className="sticky top-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-low-contrast">
+    <div className="min-h-screen bg-high-contrast">
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-medium-contrast/95 backdrop-blur-sm border-b border-medium-contrast">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2">
+            <Link 
+              to="/" 
+              className="flex items-center space-x-2 text-body-lg font-bold text-gradient-flow hover:opacity-80 transition-opacity"
+            >
               <div className="w-8 h-8 bg-gradient-flow rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-body-sm">CW</span>
+                <span className="text-white font-black text-body">C</span>
               </div>
-              <span className="text-body-lg font-bold text-high-contrast">
-                Carelwave Media
-              </span>
+              <span className="hidden sm:block">Carelwave Media</span>
             </Link>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={`px-3 py-2 rounded-md text-body-sm font-medium transition-colors duration-200 ${
-                    location.pathname === link.path
-                      ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                      : 'text-high-contrast hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800'
-                  }`}
-                >
-                  {link.name}
-                </Link>
-              ))}
+            {/* Desktop Navigation & Search */}
+            <div className="hidden md:flex items-center space-x-6 flex-1 max-w-2xl mx-8">
+              <SearchBar
+                onSearch={handleSearch}
+                onFiltersToggle={() => navigate('/search')}
+                placeholder="Search posts, articles..."
+                showVoiceSearch={true}
+                showFilters={false}
+                className="flex-1"
+              />
             </div>
 
-            {/* Desktop Action Buttons */}
+            {/* Desktop Navigation Links */}
+            <nav className="hidden md:flex items-center space-x-6">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`text-body-sm font-medium transition-colors hover:text-gradient-flow ${
+                    location.pathname === item.href
+                      ? 'text-gradient-flow'
+                      : 'text-medium-contrast'
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </nav>
+
+            {/* Desktop Actions */}
             <div className="hidden md:flex items-center space-x-4">
-              {/* Voice Commands Button */}
-              {voiceSupported && (
+              {/* Voice Commands */}
+              {isSupported && (
                 <button
                   onClick={toggleListening}
-                  className={`p-2 rounded-lg transition-all duration-200 ${
+                  className={`p-2 rounded-lg transition-all ${
                     isListening
-                      ? 'bg-red-100 text-red-600 dark:bg-red-900/20 dark:text-red-400'
-                      : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      ? 'text-red-500 bg-red-50 dark:bg-red-900/20'
+                      : 'text-low-contrast hover:text-medium-contrast'
                   }`}
-                  title={isListening ? 'Stop Voice Commands' : 'Start Voice Commands'}
+                  title={isListening ? 'Stop voice commands' : 'Start voice commands'}
                 >
                   {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
                 </button>
               )}
 
-              {/* Theme Toggle */}
-              <button
-                onClick={toggleTheme}
-                className="p-2 bg-medium-contrast text-medium-contrast rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
-                title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              {/* Live Notifications */}
+              {currentUser && (
+                <LiveNotifications
+                  variant="dropdown"
+                  showSettings={true}
+                />
+              )}
+
+              {/* Advanced Search Link */}
+              <Link
+                to="/search"
+                className="p-2 text-low-contrast hover:text-medium-contrast transition-colors rounded-lg"
+                title="Advanced search"
               >
-                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
+                <Search className="w-5 h-5" />
+              </Link>
+
+              <ThemeToggle />
 
               {/* User Menu */}
-              {isAuthenticated && currentUser ? (
+              {currentUser ? (
                 <div className="relative group">
-                  <button className="flex items-center space-x-2 p-2 bg-medium-contrast rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200">
-                    <User className="w-5 h-5 text-medium-contrast" />
-                    <span className="text-body-sm text-high-contrast">
-                      {currentUser.displayName || 'User'}
-                    </span>
+                  <button className="flex items-center space-x-2 p-2 text-medium-contrast hover:text-high-contrast transition-colors rounded-lg">
+                    <User className="w-5 h-5" />
+                    <span className="text-body-sm font-medium">{currentUser.name}</span>
                   </button>
-                  
-                  {/* Dropdown Menu */}
-                  <div className="absolute right-0 top-full mt-2 w-48 bg-medium-contrast rounded-lg shadow-lg border border-low-contrast opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                    <div className="py-2">
-                      <Link
-                        to="/admin"
-                        className="flex items-center space-x-2 px-4 py-2 text-body-sm text-high-contrast hover:bg-gray-100 dark:hover:bg-gray-700"
-                      >
-                        <Settings className="w-4 h-4" />
-                        <span>Admin Dashboard</span>
-                      </Link>
+                  <div className="absolute right-0 mt-2 w-48 bg-medium-contrast border border-medium-contrast rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                    <div className="py-1">
+                      {currentUser.role === 'admin' && (
+                        <Link
+                          to="/admin"
+                          className="flex items-center px-4 py-2 text-body-sm text-medium-contrast hover:bg-low-contrast hover:text-high-contrast transition-colors"
+                        >
+                          <Settings className="w-4 h-4 mr-2" />
+                          Admin Dashboard
+                        </Link>
+                      )}
                       <button
                         onClick={handleLogout}
-                        className="flex items-center space-x-2 w-full px-4 py-2 text-body-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        className="flex items-center w-full px-4 py-2 text-body-sm text-medium-contrast hover:bg-low-contrast hover:text-high-contrast transition-colors"
                       >
-                        <LogOut className="w-4 h-4" />
-                        <span>Sign Out</span>
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Sign Out
                       </button>
                     </div>
                   </div>
@@ -140,97 +170,124 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               ) : (
                 <Link
                   to="/login"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 text-body-sm font-medium"
+                  className="text-body-sm font-medium text-medium-contrast hover:text-high-contrast transition-colors"
                 >
                   Sign In
                 </Link>
               )}
             </div>
 
-            {/* Mobile Menu Button */}
-            <div className="md:hidden">
+            {/* Mobile menu button */}
+            <div className="md:hidden flex items-center space-x-2">
+              {/* Mobile Notifications */}
+              {currentUser && (
+                <LiveNotifications
+                  variant="dropdown"
+                  showSettings={false}
+                />
+              )}
+              
+              <button
+                onClick={() => setShowMobileSearch(!showMobileSearch)}
+                className="p-2 text-medium-contrast hover:text-high-contrast transition-colors rounded-lg"
+              >
+                <Search className="w-5 h-5" />
+              </button>
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="p-2 bg-medium-contrast text-medium-contrast rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200"
+                className="p-2 text-medium-contrast hover:text-high-contrast transition-colors rounded-lg"
               >
-                {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
           </div>
+
+          {/* Mobile Search Bar */}
+          {showMobileSearch && (
+            <div className="md:hidden py-4 border-t border-medium-contrast">
+              <SearchBar
+                onSearch={handleSearch}
+                onFiltersToggle={() => navigate('/search')}
+                placeholder="Search posts, articles..."
+                showVoiceSearch={true}
+                showFilters={true}
+              />
+            </div>
+          )}
         </div>
 
-        {/* Mobile Navigation Menu */}
+        {/* Mobile menu */}
         {isMenuOpen && (
-          <div className="md:hidden bg-white dark:bg-gray-900 border-t border-low-contrast">
-            <div className="px-4 pt-2 pb-4 space-y-2">
-              {navLinks.map((link) => (
+          <div className="md:hidden" ref={menuRef}>
+            <div className="px-2 pt-2 pb-3 space-y-1 bg-medium-contrast border-t border-medium-contrast">
+              {navigation.map((item) => (
                 <Link
-                  key={link.path}
-                  to={link.path}
-                  onClick={() => setIsMenuOpen(false)}
-                  className={`block px-3 py-2 rounded-md text-body-sm font-medium transition-colors duration-200 ${
-                    location.pathname === link.path
-                      ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                      : 'text-high-contrast hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800'
+                  key={item.name}
+                  to={item.href}
+                  className={`block px-3 py-2 text-body font-medium rounded-lg transition-colors ${
+                    location.pathname === item.href
+                      ? 'text-gradient-flow bg-low-contrast'
+                      : 'text-medium-contrast hover:text-high-contrast hover:bg-low-contrast'
                   }`}
                 >
-                  {link.name}
+                  {item.name}
                 </Link>
               ))}
               
-              {/* Mobile Action Buttons */}
+              {/* Mobile Actions */}
               <div className="pt-4 border-t border-low-contrast space-y-2">
-                {voiceSupported && (
+                <Link
+                  to="/search"
+                  className="flex items-center px-3 py-2 text-body font-medium text-medium-contrast hover:text-high-contrast hover:bg-low-contrast rounded-lg transition-colors"
+                >
+                  <Search className="w-5 h-5 mr-2" />
+                  Advanced Search
+                </Link>
+                
+                {isSupported && (
                   <button
-                    onClick={() => {
-                      toggleListening();
-                      setIsMenuOpen(false);
-                    }}
-                    className={`flex items-center space-x-2 w-full px-3 py-2 rounded-md text-body-sm font-medium transition-colors duration-200 ${
+                    onClick={toggleListening}
+                    className={`flex items-center w-full px-3 py-2 text-body font-medium rounded-lg transition-colors ${
                       isListening
-                        ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20'
-                        : 'text-high-contrast hover:bg-gray-50 dark:hover:bg-gray-800'
+                        ? 'text-red-500 bg-red-50 dark:bg-red-900/20'
+                        : 'text-medium-contrast hover:text-high-contrast hover:bg-low-contrast'
                     }`}
                   >
-                    {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-                    <span>{isListening ? 'Stop Voice Commands' : 'Start Voice Commands'}</span>
+                    {isListening ? <MicOff className="w-5 h-5 mr-2" /> : <Mic className="w-5 h-5 mr-2" />}
+                    {isListening ? 'Stop Voice Commands' : 'Voice Commands'}
                   </button>
                 )}
-                
-                <button
-                  onClick={() => {
-                    toggleTheme();
-                    setIsMenuOpen(false);
-                  }}
-                  className="flex items-center space-x-2 w-full px-3 py-2 rounded-md text-body-sm font-medium text-high-contrast hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
-                >
-                  {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                  <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
-                </button>
 
-                {isAuthenticated && currentUser ? (
-                  <>
-                    <Link
-                      to="/admin"
-                      onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center space-x-2 w-full px-3 py-2 rounded-md text-body-sm font-medium text-high-contrast hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
-                    >
-                      <Settings className="w-5 h-5" />
-                      <span>Admin Dashboard</span>
-                    </Link>
+                <div className="px-3 py-2">
+                  <ThemeToggle />
+                </div>
+
+                {currentUser ? (
+                  <div className="space-y-2">
+                    <div className="px-3 py-2 text-body-sm text-medium-contrast border-t border-low-contrast">
+                      Signed in as {currentUser.name}
+                    </div>
+                    {currentUser.role === 'admin' && (
+                      <Link
+                        to="/admin"
+                        className="flex items-center px-3 py-2 text-body font-medium text-medium-contrast hover:text-high-contrast hover:bg-low-contrast rounded-lg transition-colors"
+                      >
+                        <Settings className="w-5 h-5 mr-2" />
+                        Admin Dashboard
+                      </Link>
+                    )}
                     <button
                       onClick={handleLogout}
-                      className="flex items-center space-x-2 w-full px-3 py-2 rounded-md text-body-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200"
+                      className="flex items-center w-full px-3 py-2 text-body font-medium text-medium-contrast hover:text-high-contrast hover:bg-low-contrast rounded-lg transition-colors"
                     >
-                      <LogOut className="w-5 h-5" />
-                      <span>Sign Out</span>
+                      <LogOut className="w-5 h-5 mr-2" />
+                      Sign Out
                     </button>
-                  </>
+                  </div>
                 ) : (
                   <Link
                     to="/login"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="block w-full px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200 text-body-sm font-medium text-center"
+                    className="block px-3 py-2 text-body font-medium text-medium-contrast hover:text-high-contrast hover:bg-low-contrast rounded-lg transition-colors"
                   >
                     Sign In
                   </Link>
@@ -239,111 +296,75 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
           </div>
         )}
-      </nav>
+      </header>
 
       {/* Main Content */}
       <main className="flex-1">
-        {children}
+        <Outlet />
       </main>
 
       {/* Footer */}
-      <footer className="bg-high-contrast border-t border-low-contrast">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <footer className="bg-medium-contrast border-t border-medium-contrast mt-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* Brand Column */}
             <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center space-x-2 mb-4">
+              <Link to="/" className="flex items-center space-x-2 mb-4">
                 <div className="w-8 h-8 bg-gradient-flow rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-body-sm">CW</span>
+                  <span className="text-white font-black text-body">C</span>
                 </div>
-                <span className="text-body-lg font-bold text-high-contrast">
-                  Carelwave Media
-                </span>
-              </div>
-              <p className="text-medium-contrast mb-4 max-w-md">
-                Building the future of technology content with innovation, passion, and dedication to excellence.
+                <span className="text-body-lg font-bold text-gradient-flow">Carelwave Media</span>
+              </Link>
+              <p className="text-body text-medium-contrast mb-4 max-w-md">
+                Building the future of technology through innovative solutions and cutting-edge insights.
               </p>
-              <div className="text-body-sm text-subtle">
-                © 2025 Carelwave Media. All rights reserved.
+              <div className="flex items-center space-x-4">
+                <Link to="/search" className="text-low-contrast hover:text-medium-contrast transition-colors">
+                  <Search className="w-5 h-5" />
+                </Link>
               </div>
             </div>
-
-            {/* Quick Links */}
+            
             <div>
-              <h3 className="text-body-sm font-semibold text-high-contrast uppercase tracking-wider mb-4">
-                Quick Links
-              </h3>
-              <ul className="space-y-2">
-                {navLinks.map((link) => (
-                  <li key={link.path}>
-                    <Link
-                      to={link.path}
-                      className="text-medium-contrast hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
-                    >
-                      {link.name}
-                    </Link>
-                  </li>
+              <h3 className="text-body font-semibold text-high-contrast mb-4">Quick Links</h3>
+              <div className="space-y-2">
+                {navigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className="block text-body-sm text-medium-contrast hover:text-high-contrast transition-colors"
+                  >
+                    {item.name}
+                  </Link>
                 ))}
-              </ul>
+                <Link
+                  to="/search"
+                  className="block text-body-sm text-medium-contrast hover:text-high-contrast transition-colors"
+                >
+                  Search
+                </Link>
+              </div>
             </div>
-
-            {/* Connect */}
+            
             <div>
-              <h3 className="text-body-sm font-semibold text-high-contrast uppercase tracking-wider mb-4">
-                Connect
-              </h3>
-              <ul className="space-y-2 text-body-sm">
-                <li>
-                  <a
-                    href="mailto:contact@carelwavemedia.com"
-                    className="text-medium-contrast hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
-                  >
-                    contact@carelwavemedia.com
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="tel:+15551234567"
-                    className="text-medium-contrast hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
-                  >
-                    +1 (555) 123-4567
-                  </a>
-                </li>
-                <li className="pt-2">
-                  <div className="flex space-x-3">
-                    <a
-                      href="https://linkedin.com/in/akshay-verma-tech"
-                      className="text-gray-400 hover:text-blue-600 transition-colors duration-200"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      LinkedIn
-                    </a>
-                    <a
-                      href="https://github.com/akshayverma"
-                      className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      GitHub
-                    </a>
-                    <a
-                      href="https://twitter.com/akshayverma_dev"
-                      className="text-gray-400 hover:text-blue-400 transition-colors duration-200"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Twitter
-                    </a>
-                  </div>
-                </li>
-              </ul>
+              <h3 className="text-body font-semibold text-high-contrast mb-4">Resources</h3>
+              <div className="space-y-2">
+                <Link to="/theme-showcase" className="block text-body-sm text-medium-contrast hover:text-high-contrast transition-colors">
+                  Theme Showcase
+                </Link>
+                <Link to="/accent-test" className="block text-body-sm text-medium-contrast hover:text-high-contrast transition-colors">
+                  Design System
+                </Link>
+              </div>
             </div>
+          </div>
+          
+          <div className="border-t border-low-contrast mt-8 pt-8 text-center">
+            <p className="text-body-sm text-low-contrast">
+              © 2025 Carelwave Media. Built with modern web technologies and real-time features.
+            </p>
           </div>
         </div>
       </footer>
     </div>
   );
-};
-
-export default Layout;
+}

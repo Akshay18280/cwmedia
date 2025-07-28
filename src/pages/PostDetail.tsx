@@ -1,65 +1,176 @@
-import React, { useEffect, useState } from 'react';
+/**
+ * Post Detail Page with Real-time Features
+ * Displays individual posts with live comments and visitor tracking
+ * @version 1.0.0
+ */
+
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Calendar, Clock, ArrowLeft, Heart, Eye } from 'lucide-react';
-import { postsService } from '../services/posts';
-import type { Post } from '../types';
+import { Calendar, User, Eye, Heart, Share2, ArrowLeft, Clock, Tag } from 'lucide-react';
+import { firebasePostsService } from '../services/firebase/posts.service';
+import { liveVisitorService } from '../services/realtime/LiveVisitorService';
+import { LiveComments } from '../components/realtime/LiveComments';
+import { LiveVisitorCounter } from '../components/realtime/LiveVisitorCounter';
+import { ModernCard, ModernButton } from '../components/ModernDesignSystem';
+import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'sonner';
+
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  excerpt: string;
+  author: string;
+  authorId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  published: boolean;
+  featured: boolean;
+  imageUrl?: string;
+  tags: string[];
+  categories: string[];
+  views: number;
+  likes: number;
+  commentCount: number;
+}
 
 export default function PostDetail() {
   const { id } = useParams<{ id: string }>();
+  const { currentUser } = useAuth();
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [liked, setLiked] = useState(false);
+  const [likes, setLikes] = useState(0);
 
+  // Load post data
   useEffect(() => {
-    const fetchPost = async () => {
+    const loadPost = async () => {
       if (!id) return;
 
       try {
-        const data = await postsService.getPostById(id);
+        setLoading(true);
+        const postData = await firebasePostsService.getPostById(id);
         
-        // Increment view count
-        await postsService.incrementViews(id);
-
-        setPost(data);
+        if (postData) {
+          setPost(postData);
+          setLikes(postData.likes);
+          
+          // Track page view
+          liveVisitorService.trackPageView();
+          
+          // Increment view count
+          await firebasePostsService.incrementViews(id);
+        } else {
+          toast.error('Post not found');
+        }
       } catch (error) {
-        console.error('Error fetching post:', error);
-        setError('Post not found');
+        console.error('Error loading post:', error);
+        toast.error('Failed to load post');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPost();
+    loadPost();
   }, [id]);
 
+  // Handle like toggle
   const handleLike = async () => {
-    if (!post) return;
+    if (!currentUser || !post) {
+      toast.error('Please sign in to like posts');
+      return;
+    }
 
     try {
-      const newLikes = await postsService.incrementLikes(post.id);
-      setPost({ ...post, likes: newLikes });
+      // Optimistic update
+      setLiked(!liked);
+      setLikes(prev => liked ? prev - 1 : prev + 1);
+
+      // Update in backend
+      await firebasePostsService.toggleLike(post.id, currentUser.id);
+      
+      toast.success(liked ? 'Like removed' : 'Post liked!');
     } catch (error) {
-      console.error('Error liking post:', error);
+      // Revert optimistic update
+      setLiked(liked);
+      setLikes(post.likes);
+      toast.error('Failed to update like');
     }
+  };
+
+  // Handle share
+  const handleShare = async () => {
+    if (!post) return;
+
+    const shareData = {
+      title: post.title,
+      text: post.excerpt,
+      url: window.location.href
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        // Fallback to clipboard
+        await navigator.clipboard.writeText(window.location.href);
+        toast.success('Link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Error sharing:', error);
+      toast.error('Failed to share post');
+    }
+  };
+
+  // Format date
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  };
+
+  // Get reading time
+  const getReadingTime = (content: string) => {
+    const wordsPerMinute = 200;
+    const wordCount = content.trim().split(/\s+/).length;
+    const readingTime = Math.ceil(wordCount / wordsPerMinute);
+    return `${readingTime} min read`;
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gradient-subtle py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="animate-pulse space-y-8">
+            <div className="h-8 bg-low-contrast rounded w-3/4"></div>
+            <div className="h-64 bg-low-contrast rounded"></div>
+            <div className="space-y-4">
+              <div className="h-4 bg-low-contrast rounded w-full"></div>
+              <div className="h-4 bg-low-contrast rounded w-5/6"></div>
+              <div className="h-4 bg-low-contrast rounded w-4/6"></div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
-  if (error || !post) {
+  if (!post) {
     return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center">
-          <h1 className="text-subtitle font-bold text-high-contrast">Post Not Found</h1>
-          <p className="mt-2 text-medium-contrast">The post you're looking for doesn't exist.</p>
-          <Link to="/blog" className="mt-4 inline-flex items-center text-blue-600 hover:text-blue-800">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Blog
+      <div className="min-h-screen bg-gradient-subtle py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-display mb-4 text-high-contrast">Post Not Found</h1>
+          <p className="text-body-lg text-medium-contrast mb-8">
+            The post you're looking for doesn't exist or has been removed.
+          </p>
+          <Link to="/blog">
+            <ModernButton variant="default" intent="primary">
+              Back to Blog
+            </ModernButton>
           </Link>
         </div>
       </div>
@@ -67,102 +178,236 @@ export default function PostDetail() {
   }
 
   return (
-    <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Back button */}
-      <Link 
-        to="/blog" 
-        className="inline-flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 mb-8"
-      >
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Blog
-      </Link>
+    <div className="min-h-screen bg-gradient-subtle">
+      {/* Hero Section */}
+      <div className="relative">
+        {post.imageUrl && (
+          <div className="h-96 overflow-hidden">
+            <img
+              src={post.imageUrl}
+              alt={post.title}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/40"></div>
+          </div>
+        )}
+        
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className={`${post.imageUrl ? 'absolute bottom-8 left-4 right-4' : 'py-8'}`}>
+            {/* Back Button */}
+            <div className="mb-6">
+              <Link
+                to="/blog"
+                className="inline-flex items-center space-x-2 text-medium-contrast hover:text-high-contrast transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Blog</span>
+              </Link>
+            </div>
 
-      {/* Cover Image */}
-      {post.cover_image && (
-        <div className="mb-8">
-          <img
-            src={post.cover_image}
-            alt={post.title}
-            className="w-full h-64 md:h-96 object-cover rounded-lg shadow-lg"
-          />
-        </div>
-      )}
+            {/* Title */}
+            <h1 className={`text-display font-bold mb-4 ${
+              post.imageUrl ? 'text-white' : 'text-high-contrast'
+            }`}>
+              {post.title}
+            </h1>
 
-      {/* Category */}
-      <div className="mb-4">
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-body-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-          {post.category}
-        </span>
-      </div>
-
-      {/* Title */}
-      <h1 className="text-title md:text-4xl font-bold text-high-contrast mb-6">
-        {post.title}
-      </h1>
-
-      {/* Metadata */}
-      <div className="flex flex-wrap items-center gap-6 mb-8 text-body-sm text-low-contrast">
-        <div className="flex items-center">
-          <Calendar className="w-4 h-4 mr-2" />
-          {new Date(post.published_at).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          })}
-        </div>
-        <div className="flex items-center">
-          <Clock className="w-4 h-4 mr-2" />
-          {post.reading_time} min read
-        </div>
-        <div className="flex items-center">
-          <Eye className="w-4 h-4 mr-2" />
-          {post.views || 0} views
-        </div>
-        <button
-          onClick={handleLike}
-          className="flex items-center hover:text-red-500 transition-colors"
-        >
-          <Heart className="w-4 h-4 mr-2" />
-          {post.likes || 0} likes
-        </button>
-      </div>
-
-      {/* Author */}
-      {post.author && (
-        <div className="flex items-center mb-8 pb-8 border-b border-low-contrast">
-          <img
-            src={post.author.avatar_url || '/images/default-avatar.png'}
-            alt={post.author.name}
-            className="w-12 h-12 rounded-full mr-4"
-          />
-          <div>
-            <p className="font-medium text-high-contrast">{post.author.name}</p>
-            <p className="text-body-sm text-low-contrast">Author</p>
+            {/* Metadata */}
+            <div className={`flex flex-wrap items-center space-x-6 text-body-sm ${
+              post.imageUrl ? 'text-white/90' : 'text-medium-contrast'
+            }`}>
+              <div className="flex items-center space-x-2">
+                <User className="w-4 h-4" />
+                <span>{post.author}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Calendar className="w-4 h-4" />
+                <span>{formatDate(post.createdAt)}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Clock className="w-4 h-4" />
+                <span>{getReadingTime(post.content)}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Eye className="w-4 h-4" />
+                <span>{post.views.toLocaleString()} views</span>
+              </div>
+            </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Content */}
-      <div className="prose prose-lg dark:prose-invert max-w-none">
-        <div dangerouslySetInnerHTML={{ __html: post.content }} />
-      </div>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            <ModernCard className="p-8 mb-8">
+              {/* Tags and Categories */}
+              {(post.categories.length > 0 || post.tags.length > 0) && (
+                <div className="flex flex-wrap gap-2 mb-8">
+                  {post.categories.map((category, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-body-sm font-medium"
+                    >
+                      {category}
+                    </span>
+                  ))}
+                  {post.tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full text-body-sm font-medium flex items-center"
+                    >
+                      <Tag className="w-3 h-3 mr-1" />
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
 
-      {/* Tags */}
-      {post.tags && post.tags.length > 0 && (
-        <div className="mt-12 pt-8 border-t border-low-contrast">
-          <h3 className="text-body font-medium text-high-contrast mb-4">Tags</h3>
-          <div className="flex flex-wrap gap-2">
-            {post.tags.map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center px-3 py-1 rounded-full text-body-sm font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-              >
-                #{tag}
-              </span>
-            ))}
+              {/* Post Content */}
+              <div 
+                className="prose prose-lg max-w-none text-high-contrast leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: post.content }}
+              />
+
+              {/* Actions */}
+              <div className="flex items-center justify-between pt-8 border-t border-medium-contrast mt-8">
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={handleLike}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                      liked
+                        ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+                        : 'bg-low-contrast text-medium-contrast hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'
+                    }`}
+                  >
+                    <Heart className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} />
+                    <span>{likes} {likes === 1 ? 'Like' : 'Likes'}</span>
+                  </button>
+                  
+                  <button
+                    onClick={handleShare}
+                    className="flex items-center space-x-2 px-4 py-2 bg-low-contrast text-medium-contrast hover:text-high-contrast rounded-lg transition-colors"
+                  >
+                    <Share2 className="w-5 h-5" />
+                    <span>Share</span>
+                  </button>
+                </div>
+
+                {/* Live Visitor Counter */}
+                <LiveVisitorCounter
+                  variant="compact"
+                  showPresence={true}
+                />
+              </div>
+            </ModernCard>
+
+            {/* Live Comments */}
+            <LiveComments
+              postId={post.id}
+              allowComments={true}
+              allowReplies={true}
+              moderationEnabled={false}
+            />
+          </div>
+
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-8 space-y-6">
+              {/* Live Activity */}
+              <LiveVisitorCounter
+                variant="full"
+                showDetails={true}
+                showPresence={true}
+              />
+
+              {/* Related Posts */}
+              <ModernCard className="p-6">
+                <h3 className="text-subtitle font-bold text-high-contrast mb-4">
+                  Related Posts
+                </h3>
+                <div className="space-y-4">
+                  {/* Placeholder for related posts */}
+                  <div className="text-medium-contrast text-body-sm">
+                    Related posts will be shown here based on categories and tags.
+                  </div>
+                </div>
+              </ModernCard>
+
+              {/* Post Stats */}
+              <ModernCard className="p-6">
+                <h3 className="text-subtitle font-bold text-high-contrast mb-4">
+                  Post Statistics
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-medium-contrast">Views:</span>
+                    <span className="font-medium text-high-contrast">
+                      {post.views.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-medium-contrast">Likes:</span>
+                    <span className="font-medium text-high-contrast">
+                      {likes}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-medium-contrast">Comments:</span>
+                    <span className="font-medium text-high-contrast">
+                      {post.commentCount}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-medium-contrast">Published:</span>
+                    <span className="font-medium text-high-contrast">
+                      {formatDate(post.createdAt).split(',')[0]}
+                    </span>
+                  </div>
+                </div>
+              </ModernCard>
+
+              {/* Share Options */}
+              <ModernCard className="p-6">
+                <h3 className="text-subtitle font-bold text-high-contrast mb-4">
+                  Share This Post
+                </h3>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => {
+                      const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(window.location.href)}`;
+                      window.open(url, '_blank');
+                    }}
+                    className="w-full flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  >
+                    <span>Share on Twitter</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`;
+                      window.open(url, '_blank');
+                    }}
+                    className="w-full flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <span>Share on LinkedIn</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      const url = `https://wa.me/?text=${encodeURIComponent(`${post.title} - ${window.location.href}`)}`;
+                      window.open(url, '_blank');
+                    }}
+                    className="w-full flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                  >
+                    <span>Share on WhatsApp</span>
+                  </button>
+                </div>
+              </ModernCard>
+            </div>
           </div>
         </div>
-      )}
-    </article>
+      </div>
+    </div>
   );
 } 
