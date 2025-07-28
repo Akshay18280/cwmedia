@@ -29,7 +29,7 @@ This document outlines the comprehensive authentication and communication system
 - ⚠️ **Note**: Requires LinkedIn Developer App setup
 
 ### **4. Admin Authentication with Real OTP**
-- ✅ **SMS-based OTP** for admin phone `6264507878`
+- ✅ **SMS-based OTP** for admin phone (configured in environment)
 - ✅ **Twilio Integration** for real SMS sending
 - ✅ **Fallback Test Mode** when SMS service unavailable
 - ✅ **Brute Force Protection** (max 5 attempts)
@@ -232,9 +232,9 @@ VITE_SITE_URL=https://your-domain.com
 
 ### **Admin Authentication Test**
 1. Click "Admin Login" in header
-2. Click "Send OTP to +91 6264507878"
+2. Click "Send OTP to admin phone"
 3. Use test OTP: `123456` (development)
-4. In production: Check phone for real SMS
+4. In production: Check admin phone for real SMS
 
 ### **Newsletter Test**
 1. Scroll to newsletter section on homepage

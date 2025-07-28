@@ -99,23 +99,10 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   private handleReportError = () => {
-    const subject = encodeURIComponent('Error Report - Carelwave Media');
-    const body = encodeURIComponent(`
-Error Details:
-- Error: ${this.state.error?.name || 'Unknown'}
-- Message: ${this.state.error?.message || 'No message'}
-- URL: ${window.location.href}
-- Time: ${new Date().toLocaleString()}
-- User Agent: ${navigator.userAgent}
-
-Component Stack:
-${this.state.errorInfo?.componentStack || 'Not available'}
-
-Error Stack:
-${this.state.error?.stack || 'Not available'}
-    `);
+    const subject = encodeURIComponent('Application Error Report');
+    const body = encodeURIComponent(`Error Details:\n\nError: ${this.state.error?.message}\nStack: ${this.state.error?.stack}\nComponent Stack: ${this.state.errorInfo?.componentStack}\n\nPlease describe what you were doing when this error occurred:\n\n`);
     
-    window.open(`mailto:contact@carelwavemedia.com?subject=${subject}&body=${body}`);
+    window.open(`mailto:contact@carelwave.com?subject=${subject}&body=${body}`);
   };
 
   render() {

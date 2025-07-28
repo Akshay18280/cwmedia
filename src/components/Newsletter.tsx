@@ -28,17 +28,40 @@ export default function Newsletter() {
     setLoading(true);
 
     try {
+      console.log('🔄 Attempting newsletter subscription for:', email);
       const result = await firebaseNewsletterService.subscribe(email, preferences);
+      
+      console.log('📧 Newsletter subscription result:', result);
       
       if (result.success) {
         setSuccess(true);
         setEmail('');
         toast.success(result.message);
       } else {
+        console.error('❌ Newsletter subscription failed:', result);
         toast.error(result.message);
+        
+        // Additional debugging in production
+        if (result.error) {
+          console.error('🐛 Detailed error:', result.error);
+        }
       }
     } catch (error) {
-      console.error('Newsletter subscription error:', error);
+      console.error('💥 Newsletter subscription exception:', error);
+      
+      // More detailed error logging
+      if (error instanceof Error) {
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
+      
+      // Check if it's a Firebase-specific error
+      if (error && typeof error === 'object' && 'code' in error) {
+        console.error('🔥 Firebase error code:', (error as any).code);
+        console.error('🔥 Firebase error message:', (error as any).message);
+      }
+      
       toast.error('Something went wrong. Please try again.');
     } finally {
       setLoading(false);

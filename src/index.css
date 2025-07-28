@@ -2,6 +2,145 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Advanced Theme System with Smooth Transitions */
+:root {
+  /* Accent Color Variables */
+  --accent-blue: #3b82f6;
+  --accent-purple: #8b5cf6;
+  --accent-green: #10b981;
+  --accent-orange: #f59e0b;
+  --accent-pink: #ec4899;
+  
+  --accent-blue-light: #60a5fa;
+  --accent-purple-light: #a78bfa;
+  --accent-green-light: #34d399;
+  --accent-orange-light: #fbbf24;
+  --accent-pink-light: #f472b6;
+  
+  /* Dynamic accent color */
+  --accent-primary: var(--accent-blue);
+  --accent-primary-light: var(--accent-blue-light);
+}
+
+/* Accent color variations */
+[data-accent="blue"] {
+  --accent-primary: var(--accent-blue);
+  --accent-primary-light: var(--accent-blue-light);
+}
+
+[data-accent="purple"] {
+  --accent-primary: var(--accent-purple);
+  --accent-primary-light: var(--accent-purple-light);
+}
+
+[data-accent="green"] {
+  --accent-primary: var(--accent-green);
+  --accent-primary-light: var(--accent-green-light);
+}
+
+[data-accent="orange"] {
+  --accent-primary: var(--accent-orange);
+  --accent-primary-light: var(--accent-orange-light);
+}
+
+[data-accent="pink"] {
+  --accent-primary: var(--accent-pink);
+  --accent-primary-light: var(--accent-pink-light);
+}
+
+/* Smooth theme transitions */
+.theme-transitioning,
+.theme-transitioning *,
+.theme-transitioning *:before,
+.theme-transitioning *:after {
+  transition: 
+    background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    fill 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    stroke 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition-delay: 0s !important;
+}
+
+/* Enhanced theme transition effects */
+.theme-transition-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+    rgba(59, 130, 246, 0.1) 0%, 
+    transparent 50%);
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+
+.theme-transition-overlay.active {
+  opacity: 1;
+}
+
+/* Utility classes for accent colors */
+@layer utilities {
+  .accent-primary {
+    color: var(--accent-primary);
+  }
+  
+  .bg-accent-primary {
+    background-color: var(--accent-primary);
+  }
+  
+  .border-accent-primary {
+    border-color: var(--accent-primary);
+  }
+  
+  .accent-primary-light {
+    color: var(--accent-primary-light);
+  }
+  
+  .bg-accent-primary-light {
+    background-color: var(--accent-primary-light);
+  }
+  
+  .border-accent-primary-light {
+    border-color: var(--accent-primary-light);
+  }
+  
+  /* Hover states for accent colors */
+  .hover\:bg-accent-primary:hover {
+    background-color: var(--accent-primary);
+  }
+  
+  .hover\:border-accent-primary:hover {
+    border-color: var(--accent-primary);
+  }
+  
+  .hover\:accent-primary:hover {
+    color: var(--accent-primary);
+  }
+  
+  /* Ring utilities for focus states */
+  .ring-accent-primary {
+    --tw-ring-color: var(--accent-primary);
+  }
+  
+  .focus\:ring-accent-primary:focus {
+    --tw-ring-color: var(--accent-primary);
+  }
+  
+  /* Gradient utilities with accent colors */
+  .bg-gradient-accent {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-primary-light));
+  }
+  
+  .bg-gradient-accent-reverse {
+    background: linear-gradient(135deg, var(--accent-primary-light), var(--accent-primary));
+  }
+}
+
 /* Performance & Accessibility Improvements */
 @layer base {
   /* Improved focus visibility for accessibility */

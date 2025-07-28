@@ -18,8 +18,8 @@ interface SendResult {
 
 class EmailService {
   private resend: Resend | null = null;
-  private readonly fromEmail = 'Carelwave Media <noreply@carelwavemedia.com>';
-  private readonly replyToEmail = 'contact@carelwavemedia.com';
+  private readonly fromEmail = 'Carelwave Media <noreply@carelwave.com>';
+  private readonly replyToEmail = 'contact@carelwave.com';
 
   constructor() {
     const apiKey = import.meta.env.VITE_RESEND_API_KEY;
@@ -196,11 +196,13 @@ class EmailService {
             
             <hr style="border: none; border-top: 1px solid #e9ecef; margin: 30px 0;">
             
-            <p style="font-size: 12px; color: #6c757d; text-align: center;">
-              You received this email because you subscribed to our newsletter at carelwavemedia.com<br>
-              <a href="${unsubscribeUrl}" style="color: #6c757d;">Unsubscribe</a> | 
-              <a href="${window.location.origin}/contact" style="color: #6c757d;">Contact Us</a>
-            </p>
+            <div style="background: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #e9ecef;">
+              <p style="margin: 0; color: #6c757d; font-size: 12px;">
+                You received this email because you subscribed to our newsletter at carelwave.com<br>
+                <a href="${unsubscribeUrl}" style="color: #6c757d;">Unsubscribe</a> | 
+                <a href="${window.location.origin}/contact" style="color: #6c757d;">Contact Us</a>
+              </p>
+            </div>
           </div>
         </body>
       </html>
@@ -230,7 +232,7 @@ Akshay Verma
 Founder, Carelwave Media
 
 ---
-You received this email because you subscribed to our newsletter at carelwavemedia.com
+You received this email because you subscribed to our newsletter at carelwave.com
 Unsubscribe: ${unsubscribeUrl}
 Contact Us: ${window.location.origin}/contact
     `;
