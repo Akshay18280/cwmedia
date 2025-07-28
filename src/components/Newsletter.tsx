@@ -293,11 +293,6 @@ const Newsletter: React.FC = () => {
       <div className="relative text-center text-white py-16 px-8">
         {/* AI-powered header with dynamic content */}
         <div className="mb-8">
-          <div className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-white text-sm font-medium mb-6 animate-fade-in">
-            <Brain className="w-4 h-4 mr-2" />
-            Smart Content • {userEngagement.deviceType === 'mobile' ? 'Mobile Optimized' : 'Desktop Experience'}
-          </div>
-          
           <h2 className="text-4xl md:text-5xl font-bold mb-4 animate-fade-in delay-200" style={{
             fontWeight: '900',
             lineHeight: '0.9',

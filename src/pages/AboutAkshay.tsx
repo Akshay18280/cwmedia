@@ -3,324 +3,230 @@ import { User, Award, Code, Globe, BookOpen, Coffee, Heart, Users, Target, Zap, 
 import { ModernButton } from '../components/ModernDesignSystem';
 import { useVoiceCommands } from '../hooks/useVoiceCommands';
 
-const AboutAkshay: React.FC = () => {
-  const [isVisible, setIsVisible] = useState(false);
-  const { speak } = useVoiceCommands();
+export default function AboutAkshay() {
+  const { speak, isListening, toggleListening, isSupported } = useVoiceCommands();
+  const [activeSection, setActiveSection] = useState<string>('');
 
   useEffect(() => {
-    setIsVisible(true);
-    // Voice introduction when page loads
-    if ('speechSynthesis' in window) {
-      setTimeout(() => {
-        speak("Welcome to Akshay Verma's professional profile. Learn about his journey in technology and innovation.");
-      }, 1000);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+
+    document.querySelectorAll('[id]').forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
+  const professionalTimeline = [
+    {
+      period: "July 2022 – Present",
+      role: "Software Development Engineer",
+      company: "CSG International",
+      location: "Bangalore, India",
+      type: "Telecom Product Based Company",
+      highlights: [
+        "Proficient in production support, E2E testing, and DevOps activities using Grafana, CloudWatch AWS service",
+        "Automated manual operations increasing team capacity - IAM access key rotations, Sanity testing, CloudWatch log scans",
+        "Enhanced search events logic, rate, revoke & reprocess using metadata as per client requirements",
+        "Contributed and mentored new engineers & interns, providing guidance and code reviews",
+        "Developed Multi BU Infrastructure helping cut costs by more than 50%"
+      ]
+    },
+    {
+      period: "Dec 2021 - July 2022",
+      role: "Software Development Engineer Intern",
+      company: "CSG International",
+      location: "Bangalore, India", 
+      type: "Telecom Product Based Company",
+      highlights: [
+        "Executed feature implementations and resolved bugs for product enhancements",
+        "Designed and developed scalable microservices to handle high-volume events"
+      ]
+    },
+    {
+      period: "March 2021 – May 2021",
+      role: "Python Developer Intern",
+      company: "Rexora Edulabs",
+      location: "Indore, India",
+      type: "EdTech Company",
+      highlights: [
+        "Developed responsive user interface components",
+        "Contributed to website development using Python technologies"
+      ]
     }
-  }, [speak]);
+  ];
+
+  const technicalSkills = {
+    "Languages & Frameworks": ["GoLang", "Python", "JavaScript", "PHP"],
+    "Cloud & DevOps": ["Amazon Web Services", "Terraform", "Kubernetes", "Docker", "CI/CD"],
+    "Databases & Monitoring": ["SQL", "Grafana", "CloudWatch"],
+    "Core Concepts": ["Data Structures", "Microservices", "System Design"],
+    "Development Tools": ["Git", "Jira", "Postman", "VS Studio"]
+  };
+
+  const projects = [
+    {
+      title: "ASCENDONCSG",
+      company: "CSG International",
+      period: "Dec 2021 – Present",
+      technologies: ["GoLang", "AWS", "Terraform", "DevOps"],
+      description: "Scalable microservice handling millions of events",
+      highlights: [
+        "Designing scalable micro service architecture",
+        "Handling Offline Event Rating and E2E Implementation",
+        "Client Interaction and Production Support",
+        "Performance improvements and cost reduction"
+      ]
+    },
+    {
+      title: "Complaint Portal",
+      period: "Jan 2019 – Feb 2019",
+      technologies: ["HTML", "CSS", "JavaScript", "PHP"],
+      description: "Communication platform between students and administration",
+      highlights: [
+        "Anonymous complaint system for students",
+        "Direct communication channel with administration",
+        "Responsive web interface"
+      ]
+    }
+  ];
 
   const achievements = [
     {
-      icon: <Code className="w-6 h-6" />,
-      title: "10+ Years Experience",
-      description: "Senior software engineer with expertise in full-stack development",
-      color: "text-blue-600 dark:text-blue-400"
+      title: "Team Spotlight on Excellence",
+      organization: "CSG International",
+      period: "Q3 2023",
+      type: "Employee Experience Award",
+      location: "Bangalore, India"
     },
     {
-      icon: <Globe className="w-6 h-6" />,
-      title: "Global Impact",
-      description: "Built systems serving millions of users across multiple continents",
-      color: "text-green-600 dark:text-green-400"
+      title: "Chairperson",
+      organization: "Computer Society of India SVVV-SB",
+      period: "Jun. 2021 – Jun. 2022",
+      type: "Leadership Role",
+      location: "Indore, India"
     },
     {
-      icon: <Award className="w-6 h-6" />,
-      title: "Industry Recognition",
-      description: "Featured speaker at international tech conferences and summits",
-      color: "text-purple-600 dark:text-purple-400"
+      title: "2nd Prize (State-Level)",
+      organization: "Science Project Competition",
+      period: "Jan. 2018",
+      type: "Academic Achievement",
+      location: "Indore, India"
     },
     {
-      icon: <Users className="w-6 h-6" />,
-      title: "Team Leadership",
-      description: "Led engineering teams of 15+ developers across multiple projects",
-      color: "text-orange-600 dark:text-orange-400"
-    },
-    {
-      icon: <BookOpen className="w-6 h-6" />,
-      title: "Thought Leadership",
-      description: "Published 50+ technical articles and open-source contributions",
-      color: "text-indigo-600 dark:text-indigo-400"
-    },
-    {
-      icon: <Target className="w-6 h-6" />,
-      title: "Innovation Focus",
-      description: "Specializing in AI, cloud architecture, and scalable system design",
-      color: "text-red-600 dark:text-red-400"
+      title: "Gold Medal (Stage-1)",
+      organization: "National Mathematics Olympiad", 
+      period: "Jun. 2018",
+      type: "Academic Excellence",
+      location: "India"
     }
   ];
-
-  const skills = [
-    { category: "Languages", items: ["TypeScript", "Python", "Java", "Go", "Rust", "C++"] },
-    { category: "Frontend", items: ["React", "Next.js", "Vue.js", "Angular", "Svelte", "React Native"] },
-    { category: "Backend", items: ["Node.js", "Django", "Spring Boot", "FastAPI", "Express.js", "GraphQL"] },
-    { category: "Cloud", items: ["AWS", "Google Cloud", "Azure", "Kubernetes", "Docker", "Terraform"] },
-    { category: "Databases", items: ["PostgreSQL", "MongoDB", "Redis", "Elasticsearch", "Firebase", "DynamoDB"] },
-    { category: "AI/ML", items: ["TensorFlow", "PyTorch", "Scikit-learn", "OpenAI GPT", "Computer Vision", "NLP"] }
-  ];
-
-  const journey = [
-    {
-      year: "2024-Present",
-      title: "Senior Technology Architect",
-      company: "Carelwave Media",
-      description: "Leading innovative technology solutions and building next-generation platforms with AI integration.",
-      achievements: ["Built voice-controlled portfolio platform", "Implemented advanced security systems", "Created comprehensive testing frameworks"]
-    },
-    {
-      year: "2022-2024",
-      title: "Principal Software Engineer",
-      company: "Tech Innovation Corp",
-      description: "Architected and scaled cloud-native applications serving millions of users globally.",
-      achievements: ["Reduced system latency by 75%", "Led team of 15 engineers", "Implemented microservices architecture"]
-    },
-    {
-      year: "2020-2022",
-      title: "Senior Full-Stack Developer",
-      company: "Digital Solutions Inc",
-      description: "Developed enterprise-grade applications with focus on performance and scalability.",
-      achievements: ["Built real-time analytics platform", "Mentored junior developers", "Established coding standards"]
-    },
-    {
-      year: "2018-2020",
-      title: "Software Engineer",
-      company: "Startup Innovations",
-      description: "Full-stack development in fast-paced startup environment with cutting-edge technologies.",
-      achievements: ["Developed MVP from scratch", "Implemented CI/CD pipeline", "Built mobile applications"]
-    }
-  ];
-
-  const personalInfo = {
-    location: "San Francisco, CA",
-    email: "akshay@carelwavemedia.com",
-    phone: "+1 (555) 123-4567",
-    linkedin: "linkedin.com/in/akshay-verma-tech",
-    github: "github.com/akshayverma",
-    twitter: "@akshayverma_dev"
-  };
 
   const interests = [
-    { icon: <Coffee className="w-5 h-5" />, text: "Coffee Connoisseur" },
-    { icon: <BookOpen className="w-5 h-5" />, text: "Tech Blogger" },
-    { icon: <Heart className="w-5 h-5" />, text: "Open Source Contributor" },
-    { icon: <Users className="w-5 h-5" />, text: "Community Building" },
-    { icon: <Zap className="w-5 h-5" />, text: "Innovation Enthusiast" },
-    { icon: <Globe className="w-5 h-5" />, text: "Digital Nomad" }
+    { icon: Code, title: "System Architecture", description: "Designing scalable microservices" },
+    { icon: Globe, title: "Cloud Technologies", description: "AWS, DevOps, and Infrastructure" },
+    { icon: Users, title: "Team Leadership", description: "Mentoring and guiding developers" },
+    { icon: Target, title: "Performance Optimization", description: "Cost reduction and efficiency" },
+    { icon: BookOpen, title: "Continuous Learning", description: "Staying updated with tech trends" },
+    { icon: Heart, title: "Problem Solving", description: "Finding innovative solutions" }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 transition-all duration-500">
-      {/* Hero Section */}
-      <section className="relative pt-20 pb-16 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-flow opacity-5"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className={`transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-            <div className="text-center mb-16">
-              <div className="relative inline-block mb-8">
-                <div className="w-48 h-48 mx-auto rounded-full overflow-hidden border-4 border-white shadow-2xl bg-gradient-flow">
-                  <img 
-                    src="/images/akshay.png" 
-                    alt="Akshay Verma"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = `data:image/svg+xml;base64,${btoa(`
-                        <svg width="192" height="192" xmlns="http://www.w3.org/2000/svg">
-                          <rect width="192" height="192" fill="#667eea"/>
-                          <text x="96" y="120" font-family="Arial" font-size="72" fill="white" text-anchor="middle">AV</text>
-                        </svg>
-                      `)}`;
-                    }}
-                  />
-                </div>
-                <div className="absolute -bottom-2 -right-2 bg-green-500 w-8 h-8 rounded-full border-4 border-white flex items-center justify-center">
-                  <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-                </div>
-              </div>
-              
-              <h1 className="text-5xl md:text-7xl font-bold text-gradient-flow mb-6">
-                Akshay Verma
-              </h1>
-              
-              <div className="flex flex-wrap justify-center gap-4 mb-8">
-                <span className="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium">
-                  Technology Architect
-                </span>
-                <span className="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 rounded-full text-sm font-medium">
-                  Innovation Leader
-                </span>
-                <span className="px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded-full text-sm font-medium">
-                  Full-Stack Expert
-                </span>
-              </div>
-              
-              <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-4xl mx-auto leading-relaxed">
-                Passionate technology architect with 10+ years of experience building scalable, 
-                innovative solutions that impact millions of users worldwide. Specializing in AI integration, 
-                cloud architecture, and cutting-edge web technologies.
-              </p>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gradient-subtle py-20">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-20">
+          <h1 className="text-display mb-6 text-gradient-flow">
+            About Akshay Verma
+          </h1>
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-4">
+            Software Development Engineer with expertise in GoLang, AWS, and scalable microservices architecture.
+          </p>
+          <p className="text-lg text-gray-500 dark:text-gray-500 max-w-2xl mx-auto">
+            Passionate about building efficient solutions, mentoring teams, and driving technological innovation.
+          </p>
+          {isSupported && (
+            <ModernButton
+              variant="glass"
+              intent="secondary"
+              size="md"
+              icon={isListening ? User : User}
+              iconPosition="left"
+              onClick={toggleListening}
+              className="mt-6"
+            >
+              {isListening ? 'Listening...' : 'Voice Commands'}
+            </ModernButton>
+          )}
         </div>
-      </section>
 
-      {/* Contact Information */}
-      <section className="py-8 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap justify-center gap-6 text-gray-600 dark:text-gray-300">
-            <div className="flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-blue-600" />
-              <span>{personalInfo.location}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Mail className="w-5 h-5 text-green-600" />
-              <a href={`mailto:${personalInfo.email}`} className="hover:text-blue-600 transition-colors">
-                {personalInfo.email}
-              </a>
-            </div>
-            <div className="flex items-center gap-2">
-              <Phone className="w-5 h-5 text-purple-600" />
-              <a href={`tel:${personalInfo.phone}`} className="hover:text-blue-600 transition-colors">
-                {personalInfo.phone}
-              </a>
-            </div>
-            <div className="flex items-center gap-4">
-              <a href={`https://${personalInfo.linkedin}`} className="text-blue-600 hover:text-blue-800 transition-colors">
-                <Linkedin className="w-5 h-5" />
-              </a>
-              <a href={`https://${personalInfo.github}`} className="text-gray-600 hover:text-gray-800 transition-colors">
-                <Github className="w-5 h-5" />
-              </a>
-              <a href={`https://twitter.com/${personalInfo.twitter.replace('@', '')}`} className="text-blue-400 hover:text-blue-600 transition-colors">
-                <Twitter className="w-5 h-5" />
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Achievements Grid */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Key Achievements
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              A track record of delivering exceptional results and driving innovation across the technology landscape.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {achievements.map((achievement, index) => (
-              <div 
+        {/* Professional Timeline */}
+        <section id="experience" className="mb-20">
+          <h2 className="text-section-title mb-12 text-center">Professional Experience</h2>
+          <div className="space-y-8">
+            {professionalTimeline.map((item, index) => (
+              <div
                 key={index}
-                className={`bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 border-l-4 border-gradient-flow ${
-                  isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
-                }`}
-                style={{ transitionDelay: `${index * 100}ms` }}
+                className="relative bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700"
               >
-                <div className={`${achievement.color} mb-4`}>
-                  {achievement.icon}
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between mb-6">
+                  <div className="lg:flex-1">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                      {item.role}
+                    </h3>
+                    <p className="text-lg text-gradient-flow font-semibold mb-1">
+                      {item.company}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                      {item.type}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-500 flex items-center">
+                      <MapPin className="w-4 h-4 mr-1" />
+                      {item.location}
+                    </p>
+                  </div>
+                  <div className="mt-4 lg:mt-0">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-flow text-white">
+                      {item.period}
+                    </span>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
-                  {achievement.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                  {achievement.description}
-                </p>
+                <ul className="space-y-2">
+                  {item.highlights.map((highlight, idx) => (
+                    <li key={idx} className="flex items-start">
+                      <Star className="w-4 h-4 text-yellow-500 mt-1 mr-3 flex-shrink-0" />
+                      <span className="text-gray-700 dark:text-gray-300">{highlight}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Professional Journey */}
-      <section className="py-20 bg-gray-50 dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Professional Journey
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              A decade of growth, innovation, and leadership in the technology industry.
-            </p>
-          </div>
-          
-          <div className="relative">
-            <div className="absolute left-1/2 transform -translate-x-1/2 w-1 h-full bg-gradient-flow rounded-full"></div>
-            
-            <div className="space-y-12">
-              {journey.map((position, index) => (
-                <div 
-                  key={index}
-                  className={`relative flex items-center ${index % 2 === 0 ? 'justify-start' : 'justify-end'}`}
-                >
-                  <div className={`w-full max-w-md ${index % 2 === 0 ? 'pr-8' : 'pl-8'}`}>
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-                      <div className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2">
-                        {position.year}
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
-                        {position.title}
-                      </h3>
-                      <div className="text-purple-600 dark:text-purple-400 font-medium mb-3">
-                        {position.company}
-                      </div>
-                      <p className="text-gray-600 dark:text-gray-300 mb-4">
-                        {position.description}
-                      </p>
-                      <div className="space-y-2">
-                        {position.achievements.map((achievement, i) => (
-                          <div key={i} className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                            <Star className="w-3 h-3 text-yellow-500" />
-                            {achievement}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-blue-600 rounded-full border-4 border-white dark:border-gray-800"></div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Skills & Expertise */}
-      <section className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Skills & Expertise
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Mastery across the full technology stack with focus on cutting-edge innovations.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {skills.map((skillGroup, index) => (
-              <div 
+        {/* Skills Matrix */}
+        <section id="skills" className="mb-20">
+          <h2 className="text-section-title mb-12 text-center">Technical Expertise</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Object.entries(technicalSkills).map(([category, skills], index) => (
+              <div
                 key={index}
-                className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300"
+                className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700"
               >
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                  {skillGroup.category}
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                  <Code className="w-5 h-5 mr-2 text-gradient-flow" />
+                  {category}
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {skillGroup.items.map((skill, i) => (
-                    <span 
-                      key={i}
-                      className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors cursor-default"
+                  {skills.map((skill, idx) => (
+                    <span
+                      key={idx}
+                      className="px-3 py-1 bg-gradient-flow-subtle text-white text-sm rounded-full font-medium"
                     >
                       {skill}
                     </span>
@@ -329,88 +235,166 @@ const AboutAkshay: React.FC = () => {
               </div>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Personal Interests */}
-      <section className="py-20 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-              Beyond Code
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              When not architecting the future of technology, I enjoy exploring life's other passions.
-            </p>
-          </div>
-          
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
-            {interests.map((interest, index) => (
-              <div 
+        {/* Projects */}
+        <section id="projects" className="mb-20">
+          <h2 className="text-section-title mb-12 text-center">Key Projects</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {projects.map((project, index) => (
+              <div
                 key={index}
-                className="flex items-center gap-2 bg-white dark:bg-gray-800 px-4 py-3 rounded-full shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+                className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700"
               >
-                <div className="text-blue-600 dark:text-blue-400">
-                  {interest.icon}
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                    {project.title}
+                  </h3>
+                  {project.company && (
+                    <p className="text-gradient-flow font-semibold mb-1">{project.company}</p>
+                  )}
+                  <p className="text-sm text-gray-500 dark:text-gray-500 mb-3">{project.period}</p>
+                  <p className="text-gray-700 dark:text-gray-300 mb-4">{project.description}</p>
                 </div>
-                <span className="text-gray-700 dark:text-gray-300 font-medium">
-                  {interest.text}
-                </span>
+                
+                <div className="mb-4">
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {project.technologies.map((tech, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-lg font-medium"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <ul className="space-y-2">
+                  {project.highlights.map((highlight, idx) => (
+                    <li key={idx} className="flex items-start">
+                      <Zap className="w-4 h-4 text-blue-500 mt-1 mr-3 flex-shrink-0" />
+                      <span className="text-gray-700 dark:text-gray-300 text-sm">{highlight}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>
-          
-          <div className="text-center">
-            <p className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-4xl mx-auto">
-              "Technology is not just my profession—it's my passion. I believe in building solutions that not only solve problems 
-              but inspire and empower others to create a better tomorrow. Every line of code is an opportunity to make a positive impact."
-            </p>
-            <div className="text-2xl font-bold text-gradient-flow">— Akshay Verma</div>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Call to Action */}
-      <section className="py-20 bg-gradient-flow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Let's Build Something Amazing Together
-          </h2>
-          <p className="text-xl text-white/90 mb-8 max-w-3xl mx-auto">
-            Whether you're looking for technical leadership, innovative solutions, or just want to discuss the latest in technology, 
-            I'm always excited to connect with fellow innovators and visionaries.
-          </p>
-          
-          <div className="flex flex-wrap justify-center gap-4">
-            <ModernButton
-              variant="glass"
-              size="lg"
-              onClick={() => window.location.href = '/contact'}
-              className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-            >
-              Get In Touch
-            </ModernButton>
-            <ModernButton
-              variant="glass"
-              size="lg"
-              onClick={() => window.location.href = '/blog'}
-              className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-            >
-              Read My Blog
-            </ModernButton>
-            <ModernButton
-              variant="glass"
-              size="lg"
-              onClick={() => window.open(personalInfo.linkedin, '_blank')}
-              className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-            >
-              Connect on LinkedIn
-            </ModernButton>
+        {/* Achievements */}
+        <section id="achievements" className="mb-20">
+          <h2 className="text-section-title mb-12 text-center">Achievements & Recognition</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {achievements.map((achievement, index) => (
+              <div
+                key={index}
+                className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700"
+              >
+                <div className="flex items-start">
+                  <Award className="w-8 h-8 text-yellow-500 mt-1 mr-4 flex-shrink-0" />
+                  <div className="flex-1">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+                      {achievement.title}
+                    </h3>
+                    <p className="text-gradient-flow font-semibold mb-1">
+                      {achievement.organization}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                      {achievement.type}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-500 dark:text-gray-500">
+                        {achievement.period}
+                      </span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                        {achievement.location}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
-      </section>
+        </section>
+
+        {/* Education */}
+        <section id="education" className="mb-20">
+          <h2 className="text-section-title mb-12 text-center">Education</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+            <div className="flex items-start">
+              <BookOpen className="w-8 h-8 text-blue-500 mt-1 mr-4 flex-shrink-0" />
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                  Bachelor of Technology in Computer Science Engineering
+                </h3>
+                <p className="text-lg text-gradient-flow font-semibold mb-1">
+                  Shri Vaishnav Vidyapeeth Vishwavidyalaya University
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600 dark:text-gray-400 flex items-center">
+                    <MapPin className="w-4 h-4 mr-1" />
+                    Indore, MP
+                  </span>
+                  <span className="text-sm font-medium text-gray-500 dark:text-gray-500">
+                    2018 - 2022
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Contact & Socials */}
+        <section id="contact" className="mb-20">
+          <h2 className="text-section-title mb-12 text-center">Connect With Me</h2>
+          <div className="bg-gradient-flow rounded-xl p-8 text-white text-center">
+            <p className="text-xl mb-8">Let's build something amazing together!</p>
+            <div className="flex justify-center space-x-6">
+              <a
+                href="https://linkedin.com/in/akshay-verma-024aa0152/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-2 bg-white/20 hover:bg-white/30 px-6 py-3 rounded-lg transition-all duration-300"
+              >
+                <Linkedin className="w-5 h-5" />
+                <span className="font-medium">LinkedIn</span>
+              </a>
+              <a
+                href="https://github.com/Akshay18280"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-2 bg-white/20 hover:bg-white/30 px-6 py-3 rounded-lg transition-all duration-300"
+              >
+                <Github className="w-5 h-5" />
+                <span className="font-medium">GitHub</span>
+              </a>
+            </div>
+          </div>
+        </section>
+
+        {/* Personal Interests */}
+        <section id="interests" className="mb-20">
+          <h2 className="text-section-title mb-12 text-center">Interests & Passions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {interests.map((interest, index) => (
+              <div
+                key={index}
+                className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700 text-center"
+              >
+                <interest.icon className="w-12 h-12 text-gradient-flow mx-auto mb-4" />
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+                  {interest.title}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  {interest.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
     </div>
   );
-};
-
-export default AboutAkshay; 
+} 

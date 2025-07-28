@@ -164,15 +164,6 @@ export default function Home() {
         />
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          {/* AI-Powered Personalized Greeting */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center px-4 py-2 bg-gradient-flow-subtle text-white rounded-full text-sm font-medium mb-4">
-              <Brain className="w-4 h-4 mr-2" />
-              {userBehavior.deviceType === 'mobile' ? 'Mobile Experience' : 'Desktop Experience'} • 
-              {userBehavior.engagementLevel === 'high' ? ' Engaged Reader' : ' Welcome Back'}
-            </div>
-          </div>
-
           {/* Voice Command Visualization */}
           {isListening && (
             <div className="fixed top-20 right-4 z-50 p-4 bg-gradient-flow rounded-xl text-white shadow-lg">
@@ -305,7 +296,7 @@ export default function Home() {
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[1, 2, 3].map((i) => (
-                <ModernCard key={i} variant="neumorphic" padding="lg" className="animate-pulse">
+                <ModernCard key={i} className="animate-pulse bg-neumorphic p-6">
                   <div className="h-48 bg-low-contrast rounded-lg mb-4" />
                   <div className="h-6 bg-low-contrast rounded mb-2" />
                   <div className="h-4 bg-low-contrast rounded w-3/4" />
@@ -317,10 +308,8 @@ export default function Home() {
               {featuredPosts.map((post, index) => (
                 <ModernCard 
                   key={post.id} 
-                  variant="default" 
-                  padding="lg" 
+                  className="group p-6 hover:shadow-xl transition-all duration-300"
                   hover
-                  className="group"
                 >
                   <div className="relative mb-4 overflow-hidden rounded-lg">
                     <img
