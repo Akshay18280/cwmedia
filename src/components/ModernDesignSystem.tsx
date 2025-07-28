@@ -1,28 +1,64 @@
+/**
+ * @fileoverview Modern Design System components for Carelwave Media
+ * Provides reusable Button and Card components with multiple design variants
+ * Supports flowing gradients, holographic effects, neumorphism, glass morphism, and brutalist styles
+ * @version 2.0.0
+ * @author Carelwave Media Development Team
+ * @created 2025-01-15
+ * @updated 2025-01-15
+ */
+
 import React, { forwardRef } from 'react';
 import { LucideIcon } from 'lucide-react';
 import { useMicroInteraction } from '../hooks/useAdvancedAnimations';
 
-// 2025 Design System Components
-// Based on: Neumorphism 2.0, Glass Morphism, Bold Typography, Micro-interactions
+/**
+ * Design variant options for components
+ */
+type DesignVariant = 'default' | 'neumorphic' | 'glass' | 'brutalist' | 'minimal';
 
-export interface BaseComponentProps {
-  variant?: 'default' | 'neumorphic' | 'glass' | 'brutalist' | 'minimal';
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
-  intent?: 'primary' | 'secondary' | 'accent' | 'success' | 'warning' | 'error' | 'ghost';
-  isInteractive?: boolean;
-  className?: string;
-  children?: React.ReactNode;
-}
+/**
+ * Component intent/purpose options
+ */
+type ComponentIntent = 'primary' | 'secondary' | 'accent' | 'success' | 'warning' | 'error' | 'ghost';
 
-// Modern Button Component - 2025 Standards
-export interface ModernButtonProps extends BaseComponentProps {
-  onClick?: () => void;
-  disabled?: boolean;
-  loading?: boolean;
+/**
+ * Size options for components
+ */
+type ComponentSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+
+/**
+ * Icon position options for buttons
+ */
+type IconPosition = 'left' | 'right';
+
+/**
+ * Props for the ModernButton component
+ * @interface ModernButtonProps
+ */
+interface ModernButtonProps {
+  /** Visual design variant */
+  variant?: DesignVariant;
+  /** Button intent/purpose */
+  intent?: ComponentIntent;
+  /** Button size */
+  size?: ComponentSize;
+  /** Icon component to display */
   icon?: LucideIcon;
-  iconPosition?: 'left' | 'right' | 'only';
+  /** Position of the icon relative to text */
+  iconPosition?: IconPosition;
+  /** Whether the button is disabled */
+  disabled?: boolean;
+  /** Whether to show loading state */
+  loading?: boolean;
+  /** URL for link buttons */
   href?: string;
-  type?: 'button' | 'submit' | 'reset';
+  /** Click event handler */
+  onClick?: () => void;
+  /** Additional CSS classes */
+  className?: string;
+  /** Button content */
+  children?: React.ReactNode;
 }
 
 export const ModernButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, ModernButtonProps>(
