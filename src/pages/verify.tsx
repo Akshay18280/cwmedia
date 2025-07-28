@@ -1,38 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { CheckCircle, AlertCircle, Phone, ArrowLeft } from 'lucide-react';
+import { CheckCircle, Phone, AlertCircle, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-import { phoneAuthService } from '../services/firebase/phone-auth.service';
+import { unifiedAuthService } from '../services/firebase/unified-auth.service';
 
 export default function Verify() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [phoneNumber, setPhoneNumber] = useState('');
   const [countdown, setCountdown] = useState(0);
-  const [verificationSuccess, setVerificationSuccess] = useState(false);
+  const [verified, setVerified] = useState(false);
 
+  // Get phone number from URL params or localStorage
   useEffect(() => {
-    // Get phone number from URL params or localStorage
-    const urlPhone = searchParams.get('phone');
-    const storedPhone = localStorage.getItem('pendingPhoneAuth');
+    const phoneFromUrl = searchParams.get('phone');
+    const phoneFromStorage = localStorage.getItem('pendingPhoneAuth');
+    const phone = phoneFromUrl || phoneFromStorage || '';
     
-    if (urlPhone) {
-      setPhoneNumber(urlPhone);
-    } else if (storedPhone) {
-      setPhoneNumber(storedPhone);
-    } else {
-      // No phone number found, redirect to login
-      navigate('/login');
+    if (!phone) {
+      toast.error('No phone verification session found');
+      navigate('/');
       return;
     }
-
-    // Start countdown timer
-    setCountdown(60);
+    
+    setPhoneNumber(phone);
   }, [searchParams, navigate]);
 
-  // Countdown timer effect
+  // Countdown timer for resend OTP
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
@@ -49,20 +45,18 @@ export default function Verify() {
     setLoading(true);
 
     try {
-      const result = await phoneAuthService.verifyOTP(otpCode);
+      const result = await unifiedAuthService.verifyPhoneOTP(otpCode);
       
       if (result.success && result.user) {
-        setVerificationSuccess(true);
-        toast.success(result.message);
+        setVerified(true);
         
-        // Store user info and redirect
-        localStorage.setItem('currentUser', JSON.stringify(result.user));
-        
-        // Redirect after showing success state
-        setTimeout(() => {
-          const redirectTo = searchParams.get('redirect') || '/';
-          navigate(redirectTo);
-        }, 2000);
+        if (result.user.role === 'admin') {
+          toast.success('Admin access verified! Redirecting to dashboard...');
+          setTimeout(() => navigate('/admin/dashboard'), 2000);
+        } else {
+          toast.success('Phone verified successfully! Welcome!');
+          setTimeout(() => navigate('/'), 2000);
+        }
       } else {
         toast.error(result.message);
       }
@@ -75,17 +69,17 @@ export default function Verify() {
   };
 
   const handleResendOTP = async () => {
-    if (countdown > 0 || !phoneNumber) return;
+    if (countdown > 0) return;
 
     setLoading(true);
     setCountdown(60);
 
     try {
-      const result = await phoneAuthService.resendOTP(phoneNumber, 'recaptcha-container');
+      const result = await unifiedAuthService.sendPhoneOTP(phoneNumber.replace('+91', ''));
       
       if (result.success) {
         toast.success('OTP sent again!');
-        setOtpCode(''); // Clear previous OTP
+        setOtpCode('');
       } else {
         toast.error(result.message);
         setCountdown(0);
@@ -100,14 +94,17 @@ export default function Verify() {
   };
 
   const formatPhoneNumber = (phone: string) => {
-    if (phone.startsWith('+91')) {
-      const number = phone.replace('+91', '');
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.length === 12 && cleaned.startsWith('91')) {
+      const number = cleaned.slice(2);
       return `+91 ${number.slice(0, 5)} ${number.slice(5)}`;
+    } else if (cleaned.length === 10) {
+      return `+91 ${cleaned.slice(0, 5)} ${cleaned.slice(5)}`;
     }
     return phone;
   };
 
-  if (verificationSuccess) {
+  if (verified) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
         <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full text-center shadow-2xl">
@@ -116,15 +113,15 @@ export default function Verify() {
           </div>
           
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            Verification Successful! 🎉
+            🎉 Verification Successful!
           </h1>
           
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            Your phone number has been verified successfully. Redirecting you to your account...
+            Your phone number has been verified successfully. Redirecting you now...
           </p>
-          
-          <div className="animate-pulse flex justify-center">
-            <div className="w-8 h-8 bg-blue-600 rounded-full"></div>
+
+          <div className="animate-pulse">
+            <div className="w-8 h-8 bg-blue-600 rounded-full mx-auto"></div>
           </div>
         </div>
       </div>
@@ -134,23 +131,33 @@ export default function Verify() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
       <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl">
+        
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
             <Phone className="w-8 h-8 text-blue-600 dark:text-blue-400" />
           </div>
           
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Verify Your Phone
+            📱 Verify Your Phone
           </h1>
           
           <p className="text-gray-600 dark:text-gray-400">
-            We've sent a 6-digit code to
+            Enter the 6-digit code sent to
           </p>
-          <p className="text-gray-900 dark:text-white font-medium">
+          <p className="text-blue-600 dark:text-blue-400 font-medium">
             {formatPhoneNumber(phoneNumber)}
           </p>
         </div>
+
+        {/* Back button */}
+        <button
+          onClick={() => navigate('/')}
+          className="flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors mb-6"
+        >
+          <ArrowLeft className="w-4 h-4 mr-1" />
+          Back to Home
+        </button>
 
         {/* OTP Input */}
         <div className="space-y-6">
@@ -164,17 +171,18 @@ export default function Verify() {
               value={otpCode}
               onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               placeholder="000000"
-              className="w-full px-4 py-3 text-center text-2xl font-mono border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              className="w-full px-4 py-3 text-center text-2xl font-mono border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
               maxLength={6}
               disabled={loading}
               autoComplete="one-time-code"
+              autoFocus
             />
           </div>
 
           <button
             onClick={handleVerifyOTP}
             disabled={loading || otpCode.length !== 6}
-            className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-medium rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
           >
             {loading ? (
               <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-3"></div>
@@ -184,34 +192,30 @@ export default function Verify() {
             {loading ? 'Verifying...' : 'Verify Phone'}
           </button>
 
-          {/* Resend OTP */}
           <div className="text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
               Didn't receive the code?
             </p>
             <button
               onClick={handleResendOTP}
               disabled={countdown > 0 || loading}
-              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
               {countdown > 0 ? `Resend OTP in ${countdown}s` : 'Resend OTP'}
             </button>
           </div>
-
-          {/* Back to login */}
-          <div className="text-center pt-4 border-t border-gray-200 dark:border-gray-700">
-            <button
-              onClick={() => navigate('/login')}
-              className="flex items-center justify-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors mx-auto"
-            >
-              <ArrowLeft className="w-4 h-4 mr-1" />
-              Back to Login
-            </button>
-          </div>
         </div>
 
-        {/* reCAPTCHA container */}
-        <div id="recaptcha-container" className="hidden"></div>
+        {/* Info */}
+        <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <div className="flex items-start">
+            <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" />
+            <div className="text-sm text-blue-800 dark:text-blue-200">
+              <p className="font-medium mb-1">Having trouble?</p>
+              <p>Make sure your phone has network coverage and can receive SMS messages.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

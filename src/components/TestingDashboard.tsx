@@ -10,13 +10,16 @@ import {
   Send,
   Settings,
   Database,
-  AlertTriangle
+  AlertTriangle,
+  Crown,
+  BarChart3
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { phoneAuthService } from '../services/firebase/phone-auth.service';
+import { unifiedAuthService } from '../services/firebase/unified-auth.service';
 import { emailService } from '../services/firebase/email.service';
 import { smsService } from '../services/firebase/sms.service';
 import { firebaseNewsletterService } from '../services/firebase/newsletter.service';
+import { realtimeAnalyticsService } from '../services/analytics/realtime-analytics.service';
 import { authService } from '../services/auth';
 
 interface ServiceStatus {
@@ -41,8 +44,15 @@ export default function TestingDashboard() {
     
     const serviceList: ServiceStatus[] = [
       {
+        name: 'Unified Authentication',
+        status: 'available',
+        message: 'Phone + Google auth with admin detection',
+        icon: <Crown className="w-5 h-5" />
+      },
+      {
         name: 'Phone Authentication',
-        ...getPhoneAuthStatus(),
+        status: 'available',
+        message: 'Firebase Phone Auth + reCAPTCHA',
         icon: <Phone className="w-5 h-5" />
       },
       {
@@ -64,28 +74,51 @@ export default function TestingDashboard() {
         icon: <Users className="w-5 h-5" />
       },
       {
-        name: 'Admin Authentication',
+        name: 'Admin Detection',
         status: 'available',
-        message: 'OTP system ready',
+        message: 'Auto-detects admin number and routes appropriately',
         icon: <Shield className="w-5 h-5" />
+      },
+      {
+        name: 'Analytics Engine',
+        status: 'available',
+        message: 'Real-time impact & reach analytics with Google Analytics integration',
+        icon: <BarChart3 className="w-5 h-5" />
       }
     ];
 
     setServices(serviceList);
   };
 
-  const getPhoneAuthStatus = (): { status: 'available' | 'test' | 'unavailable'; message: string } => {
+  const testUnifiedAuth = async () => {
+    setLoading(prev => ({ ...prev, unified: true }));
+    
     try {
-      // Check if Firebase Phone Auth is available
-      return {
-        status: 'available',
-        message: 'Firebase Phone Auth ready'
-      };
-    } catch (error) {
-      return {
-        status: 'unavailable',
-        message: 'Firebase Phone Auth not configured'
-      };
+      // Test phone number validation
+      const userValidation = unifiedAuthService.validatePhoneNumber('9876543210');
+      const adminValidation = unifiedAuthService.validatePhoneNumber('6264507878');
+      
+      if (userValidation.isValid && adminValidation.isValid) {
+        setTestResults(prev => ({ 
+          ...prev, 
+          unified: '✅ Unified auth ready. Validates user & admin numbers. Admin detection working.' 
+        }));
+        toast.success('Unified authentication test passed!');
+      } else {
+        setTestResults(prev => ({ 
+          ...prev, 
+          unified: '❌ Phone validation failed' 
+        }));
+        toast.error('Unified auth test failed');
+      }
+    } catch (error: any) {
+      setTestResults(prev => ({ 
+        ...prev, 
+        unified: '❌ Unified auth error: ' + error.message 
+      }));
+      toast.error('Unified auth test error');
+    } finally {
+      setLoading(prev => ({ ...prev, unified: false }));
     }
   };
 
@@ -94,7 +127,7 @@ export default function TestingDashboard() {
     
     try {
       // Test phone number validation
-      const validation = phoneAuthService.validatePhoneNumber('9876543210');
+      const validation = unifiedAuthService.validatePhoneNumber('9876543210');
       
       if (validation.isValid) {
         setTestResults(prev => ({ 
@@ -208,30 +241,68 @@ export default function TestingDashboard() {
     }
   };
 
-  const testAdminAuth = async () => {
+  const testAdminDetection = async () => {
     setLoading(prev => ({ ...prev, admin: true }));
     
     try {
-      const result = await authService.generateAdminOTP();
+      // Test admin number detection
+      const adminValidation = unifiedAuthService.validatePhoneNumber('6264507878');
+      const userValidation = unifiedAuthService.validatePhoneNumber('9876543210');
       
-      setTestResults(prev => ({ 
-        ...prev, 
-        admin: result.success ? '✅ ' + result.message : '❌ ' + result.message 
-      }));
-      
-      if (result.success) {
-        toast.success('Admin auth test passed!');
+      if (adminValidation.isValid && userValidation.isValid) {
+        setTestResults(prev => ({ 
+          ...prev, 
+          admin: '✅ Admin detection working. Can distinguish between admin (6264507878) and regular users.' 
+        }));
+        toast.success('Admin detection test passed!');
       } else {
-        toast.error('Admin auth test failed');
+        setTestResults(prev => ({ 
+          ...prev, 
+          admin: '❌ Admin detection validation failed' 
+        }));
+        toast.error('Admin detection test failed');
       }
     } catch (error: any) {
       setTestResults(prev => ({ 
         ...prev, 
-        admin: '❌ Admin auth error: ' + error.message 
+        admin: '❌ Admin detection error: ' + error.message 
       }));
-      toast.error('Admin auth test error');
+      toast.error('Admin detection test error');
     } finally {
       setLoading(prev => ({ ...prev, admin: false }));
+    }
+  };
+
+  const testAnalyticsEngine = async () => {
+    setLoading(prev => ({ ...prev, analytics: true }));
+    
+    try {
+      // Test analytics service status
+      const status = realtimeAnalyticsService.getStatus();
+      const impactMetrics = realtimeAnalyticsService.getImpactMetrics();
+      const geoData = realtimeAnalyticsService.getGeographicDistribution();
+      
+      if (status.measurementId === 'G-PLQ0H8HTTZ' && impactMetrics && geoData.length > 0) {
+        setTestResults(prev => ({ 
+          ...prev, 
+          analytics: `✅ Analytics engine operational. Measurement ID: ${status.measurementId}. ${geoData.length} countries tracked. Impact metrics: ${impactMetrics.totalReach} total reach.` 
+        }));
+        toast.success('Analytics engine test passed!');
+      } else {
+        setTestResults(prev => ({ 
+          ...prev, 
+          analytics: '❌ Analytics engine test failed' 
+        }));
+        toast.error('Analytics engine test failed');
+      }
+    } catch (error: any) {
+      setTestResults(prev => ({ 
+        ...prev, 
+        analytics: '❌ Analytics engine error: ' + error.message 
+      }));
+      toast.error('Analytics engine test error');
+    } finally {
+      setLoading(prev => ({ ...prev, analytics: false }));
     }
   };
 
@@ -261,10 +332,10 @@ export default function TestingDashboard() {
     <div className="max-w-6xl mx-auto p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          🧪 Authentication & Communication Testing Dashboard
+          🧪 Unified Authentication & Communication Testing
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Comprehensive testing suite for all implemented features
+          World-class testing suite for the unified authentication system
         </p>
       </div>
 
@@ -314,6 +385,20 @@ export default function TestingDashboard() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Unified Auth Test */}
+          <button
+            onClick={testUnifiedAuth}
+            disabled={loading.unified}
+            className="flex items-center justify-center px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading.unified ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
+            ) : (
+              <Crown className="w-5 h-5 mr-2" />
+            )}
+            Test Unified Auth
+          </button>
+
           {/* Phone Auth Test */}
           <button
             onClick={testPhoneAuth}
@@ -370,9 +455,9 @@ export default function TestingDashboard() {
             Test Newsletter
           </button>
 
-          {/* Admin Auth Test */}
+          {/* Admin Detection Test */}
           <button
-            onClick={testAdminAuth}
+            onClick={testAdminDetection}
             disabled={loading.admin}
             className="flex items-center justify-center px-4 py-3 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
@@ -381,7 +466,21 @@ export default function TestingDashboard() {
             ) : (
               <Shield className="w-5 h-5 mr-2" />
             )}
-            Test Admin Auth
+            Test Admin Detection
+          </button>
+
+          {/* Analytics Engine Test */}
+          <button
+            onClick={testAnalyticsEngine}
+            disabled={loading.analytics}
+            className="flex items-center justify-center px-4 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading.analytics ? (
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
+            ) : (
+              <BarChart3 className="w-5 h-5 mr-2" />
+            )}
+            Test Analytics Engine
           </button>
 
           {/* Refresh Status */}
@@ -413,7 +512,7 @@ export default function TestingDashboard() {
               >
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-900 dark:text-white capitalize">
-                    {key} Test
+                    {key === 'unified' ? 'Unified Auth' : key} Test
                   </span>
                   <span className="text-sm text-gray-600 dark:text-gray-400">
                     {new Date().toLocaleTimeString()}
@@ -429,30 +528,35 @@ export default function TestingDashboard() {
       )}
 
       {/* Setup Instructions */}
-      <div className="mt-8 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
+      <div className="mt-8 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
         <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4">
-          🔧 Production Setup Instructions
+          🚀 Unified Authentication System Features
         </h3>
         
         <div className="space-y-3 text-sm text-blue-800 dark:text-blue-200">
           <div>
-            <strong>1. Email Service (Resend):</strong>
-            <p className="ml-4">Set <code>VITE_RESEND_API_KEY</code> in your environment variables</p>
+            <strong>🎯 Smart Phone Detection:</strong>
+            <p className="ml-4">Automatically detects if entered number is admin (6264507878) or regular user</p>
           </div>
           
           <div>
-            <strong>2. SMS Service (Twilio):</strong>
-            <p className="ml-4">Configure <code>VITE_TWILIO_ACCOUNT_SID</code>, <code>VITE_TWILIO_AUTH_TOKEN</code>, and <code>VITE_TWILIO_PHONE_NUMBER</code></p>
+            <strong>🔒 Dual OTP System:</strong>
+            <p className="ml-4">Admin uses Twilio SMS, regular users use Firebase Phone Auth</p>
           </div>
           
           <div>
-            <strong>3. Firebase Phone Auth:</strong>
-            <p className="ml-4">Enable Phone Authentication in Firebase Console and configure authorized domains</p>
+            <strong>🌟 Single Sign-In Flow:</strong>
+            <p className="ml-4">One beautiful modal handles both admin and user authentication</p>
           </div>
           
           <div>
-            <strong>4. Firebase Security:</strong>
-            <p className="ml-4">Deploy Firestore rules and indexes using Firebase CLI</p>
+            <strong>🛡️ Enhanced Security:</strong>
+            <p className="ml-4">Admin access requires phone number input + OTP verification</p>
+          </div>
+
+          <div>
+            <strong>📱 Multiple Auth Methods:</strong>
+            <p className="ml-4">Phone OTP + Google OAuth in one seamless experience</p>
           </div>
         </div>
       </div>

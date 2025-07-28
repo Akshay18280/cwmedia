@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, TrendingUp, Users, Globe, Zap, Calendar, Eye, Heart } from 'lucide-react';
 import { firebasePostsService } from '../services/firebase/posts.service';
 import { firebaseStatsService } from '../services/firebase/stats.service';
+import Newsletter from '../components/Newsletter';
+import ImpactReachDashboard from '../components/ImpactReachDashboard';
 import type { Post } from '../types';
 import type { BlogStats } from '../services/firebase/stats.service';
 
@@ -316,6 +318,14 @@ export default function Home() {
             </Link>
           </div>
         </div>
+      </section>
+
+      {/* Impact & Reach Dashboard */}
+      <ImpactReachDashboard />
+
+      {/* Newsletter Section */}
+      <section id="newsletter">
+        <Newsletter />
       </section>
 
       {/* CTA Section */}
