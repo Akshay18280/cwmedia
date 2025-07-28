@@ -1,7 +1,10 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": "vite",
   "rewrites": [
     {
-      "source": "/((?!api|_next/static|_next/image|favicon.ico|manifest.json|sw.js|offline.html|robots.txt|sitemap.xml|images/.*|icons/.*|screenshots/.*).*))",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
@@ -33,7 +36,7 @@
       ]
     },
     {
-      "source": "/(.*\\.(png|jpg|jpeg|gif|webp|svg|ico))",
+      "source": "/assets/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -41,10 +44,5 @@
         }
       ]
     }
-  ],
-  "functions": {
-    "app/api/**": {
-      "runtime": "nodejs18.x"
-    }
-  }
+  ]
 }
