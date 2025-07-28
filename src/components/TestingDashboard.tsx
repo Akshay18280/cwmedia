@@ -379,7 +379,7 @@ export default function TestingDashboard() {
       {/* Test Controls */}
       <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg mb-8">
         <div className="flex items-center mb-6">
-          <Settings className="w-6 h-6 text-blue-600 dark:text-blue-400 mr-3" />
+          <Settings className="w-6 h-6 text-accent-primary dark:text-accent-primary-light mr-3" />
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
             Feature Testing
           </h2>
@@ -404,7 +404,7 @@ export default function TestingDashboard() {
           <button
             onClick={testPhoneAuth}
             disabled={loading.phone}
-            className="flex items-center justify-center px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center px-4 py-3 bg-accent-primary text-white font-medium rounded-lg hover:bg-accent-primary-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading.phone ? (
               <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
@@ -432,7 +432,7 @@ export default function TestingDashboard() {
           <button
             onClick={testSMSService}
             disabled={loading.sms}
-            className="flex items-center justify-center px-4 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center px-4 py-3 bg-accent-primary text-white font-medium rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading.sms ? (
               <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
@@ -530,11 +530,11 @@ export default function TestingDashboard() {
 
       {/* Setup Instructions */}
       <div className="mt-8 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4">
+        <h3 className="text-lg font-semibold text-blue-900 dark:text-white/80 mb-4">
           🚀 Unified Authentication System Features
         </h3>
         
-        <div className="space-y-3 text-sm text-blue-800 dark:text-blue-200">
+        <div className="space-y-3 text-sm text-accent-primary dark:text-white/70">
           <div>
             <strong>🎯 Smart Phone Detection:</strong>
             <p className="ml-4">Automatically detects if entered number is admin (6264507878) or regular user</p>

@@ -50,7 +50,7 @@ export default function About() {
   return (
     <main className="font-sans bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-700 text-white">
+      <section className="relative overflow-hidden bg-gradient-accent text-white">
         <div className="absolute inset-0 bg-black opacity-10"></div>
         <div className="relative max-w-6xl mx-auto px-6 py-20">
           <div className="flex flex-col lg:flex-row items-center gap-12">
@@ -59,10 +59,10 @@ export default function About() {
                 <h1 className="text-5xl lg:text-6xl font-bold tracking-tight">
                   Hi, I'm <span className="text-yellow-300">Akshay</span>
                 </h1>
-                <p className="text-xl lg:text-2xl font-light text-blue-100 max-w-2xl">
+                <p className="text-xl lg:text-2xl font-light text-white/80 max-w-2xl">
                   Building scalable systems that power millions of users across the globe
                 </p>
-                <p className="text-lg text-blue-200 max-w-2xl">
+                <p className="text-lg text-white/70 max-w-2xl">
                   Software Development Engineer at CSG International, specializing in high-performance microservices and cloud infrastructure
                 </p>
               </div>
@@ -116,8 +116,8 @@ export default function About() {
         <h2 className="text-4xl font-bold text-center mb-16 text-gray-900 dark:text-white">My Journey</h2>
         <div className="grid md:grid-cols-3 gap-8">
           <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mb-6">
-              <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <div className="w-12 h-12 bg-accent-primary/10 dark:bg-accent-primary/20 rounded-lg flex items-center justify-center mb-6">
+              <Users className="w-6 h-6 text-accent-primary dark:text-accent-primary-light" />
             </div>
             <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">The Beginning</h3>
             <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
@@ -135,7 +135,7 @@ export default function About() {
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
             <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center mb-6">
-              <Trophy className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+              <Trophy className="w-6 h-6 text-accent-primary dark:text-accent-primary-light" />
             </div>
             <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">The Impact</h3>
             <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
@@ -154,11 +154,11 @@ export default function About() {
               const IconComponent = skill.icon;
               return (
                 <div key={index} className="text-center group">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-accent rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <IconComponent className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">{skill.name}</h3>
-                  <span className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium">
+                  <span className="inline-block px-3 py-1 bg-accent-primary/10 dark:bg-accent-primary/20 text-accent-primary dark:text-white/70 rounded-full text-sm font-medium">
                     {skill.level}
                   </span>
                 </div>
@@ -174,7 +174,7 @@ export default function About() {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {achievements.map((achievement, index) => (
             <div key={index} className="text-center bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <div className="text-3xl lg:text-4xl font-bold text-blue-600 dark:text-blue-400 mb-3">
+              <div className="text-3xl lg:text-4xl font-bold text-accent-primary dark:text-accent-primary-light mb-3">
                 {achievement.metric}
               </div>
               <div className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
@@ -202,7 +202,7 @@ export default function About() {
           
           {isLoadingReviews ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-primary mx-auto mb-4"></div>
               <p className="text-gray-600 dark:text-gray-400">Loading reviews...</p>
             </div>
           ) : reviews.length > 0 ? (
@@ -213,8 +213,8 @@ export default function About() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MessageSquare className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+              <div className="w-16 h-16 bg-accent-primary/10 dark:bg-accent-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageSquare className="w-8 h-8 text-accent-primary dark:text-accent-primary-light" />
               </div>
               <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
                 No Reviews Yet
@@ -228,7 +228,7 @@ export default function About() {
           <div className="text-center">
             <button 
               onClick={() => setShowReviewForm(true)}
-              className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center px-6 py-3 bg-accent-primary text-white font-medium rounded-lg hover:bg-accent-primary-light transition-colors"
             >
               <MessageSquare className="w-5 h-5 mr-2" />
               Write a Review
@@ -241,16 +241,16 @@ export default function About() {
       </section>
 
       {/* Call to Action */}
-      <section className="bg-gradient-to-r from-blue-600 to-purple-700 py-20 text-white text-center">
+      <section className="bg-gradient-accent py-20 text-white text-center">
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="text-4xl font-bold mb-6">Let's Build Something Amazing</h2>
-          <p className="text-xl mb-8 text-blue-100">
+          <p className="text-xl mb-8 text-white/80">
             Ready to collaborate on your next project or discuss exciting opportunities in scalable systems architecture.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
               href="mailto:akshayvermajan28@gmail.com"
-              className="inline-flex items-center justify-center px-8 py-4 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transform hover:scale-105 transition-all duration-200"
+              className="inline-flex items-center justify-center px-8 py-4 bg-white text-accent-primary font-semibold rounded-lg hover:bg-gray-100 transform hover:scale-105 transition-all duration-200"
             >
               <Mail className="w-5 h-5 mr-2" />
               Contact Me
@@ -259,7 +259,7 @@ export default function About() {
               href="https://linkedin.com/in/akshay-verma-024aa0152/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center px-8 py-4 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-blue-600 transform hover:scale-105 transition-all duration-200"
+              className="inline-flex items-center justify-center px-8 py-4 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-accent-primary transform hover:scale-105 transition-all duration-200"
             >
               <Linkedin className="w-5 h-5 mr-2" />
               Let's Connect

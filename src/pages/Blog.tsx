@@ -147,7 +147,7 @@ export default function Blog() {
               placeholder="Search articles by title, content, or tags..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              className="w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
             />
           </div>
 
@@ -159,7 +159,7 @@ export default function Blog() {
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="pl-10 pr-8 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white text-sm"
+                className="pl-10 pr-8 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-transparent text-gray-900 dark:text-white text-sm"
               >
                 <option value="all">All Categories</option>
                 {getCategories().map(category => (
@@ -175,7 +175,7 @@ export default function Blog() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'newest' | 'oldest' | 'popular')}
-                className="pl-4 pr-8 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 dark:text-white text-sm"
+                className="pl-4 pr-8 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-transparent text-gray-900 dark:text-white text-sm"
               >
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
@@ -223,13 +223,13 @@ export default function Blog() {
                         {formatDate(post.published_at)}
                       </time>
                     </div>
-                    <span className="bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 px-2 py-1 rounded-full text-xs font-medium">
+                    <span className="bg-accent-primary/10 dark:bg-accent-primary/20/20 text-accent-primary dark:text-accent-primary-light px-2 py-1 rounded-full text-xs font-medium">
                       {post.category}
                     </span>
                   </div>
                   
                   {/* Title */}
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3 group-hover:text-accent-primary dark:group-hover:text-accent-primary-light transition-colors">
                     <Link to={`/blog/${post.id}`} className="hover:underline">
                       {post.title}
                     </Link>
@@ -298,7 +298,7 @@ export default function Blog() {
                 setSelectedCategory('all');
                 setSortBy('newest');
               }}
-              className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+              className="inline-flex items-center px-4 py-2 bg-accent-primary hover:bg-accent-primary-light text-white font-medium rounded-lg transition-colors"
             >
               Clear Filters
             </button>

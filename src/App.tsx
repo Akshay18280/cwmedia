@@ -18,6 +18,7 @@ import NotFound from './components/NotFound';
 import PhoneAuthDebug from './components/PhoneAuthDebug';
 import AuthDebug from './components/AuthDebug';
 import ThemeShowcase from './pages/ThemeShowcase';
+import AccentTest from './pages/AccentTest';
 
 function App() {
   return (
@@ -46,6 +47,7 @@ function App() {
               <Route path="/phone-auth-debug" element={<PhoneAuthDebug />} />
               <Route path="/auth-debug" element={<AuthDebug />} />
               <Route path="/theme-showcase" element={<ThemeShowcase />} />
+              <Route path="/accent-test" element={<AccentTest />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>

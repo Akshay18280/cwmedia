@@ -1,60 +1,46 @@
 import React, { useState } from 'react';
 import { 
   Mail, 
-  MapPin, 
-  Clock, 
+  MessageSquare, 
   Send, 
-  CheckCircle, 
-  AlertCircle,
-  MessageSquare,
-  Calendar,
+  CheckCircle,
+  ArrowRight,
+  Sparkles,
   Globe,
-  Linkedin,
-  Github,
-  Twitter,
-  Zap,
-  Heart,
-  Users,
-  Target,
-  Award,
-  ChevronRight
+  Clock
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { emailService } from '../services/firebase/email.service';
 
-interface ContactForm {
+interface ContactFormData {
   name: string;
   email: string;
-  company: string;
+  company?: string;
   subject: string;
   message: string;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  category: 'general' | 'business' | 'technical' | 'partnership' | 'media';
 }
 
 export default function Contact() {
-  const [formData, setFormData] = useState<ContactForm>({
+  const [formData, setFormData] = useState<ContactFormData>({
     name: '',
     email: '',
     company: '',
     subject: '',
-    message: '',
-    priority: 'medium',
-    category: 'general'
+    message: ''
   });
-  
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validation
     if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
       toast.error('Please fill in all required fields');
       return;
@@ -70,504 +56,286 @@ export default function Contact() {
     setLoading(true);
 
     try {
-      // Send contact form email (you can implement this in your email service)
+      // Unified contact email to contact@carelwave.com
+      const emailText = `Name: ${formData.name}\nEmail: ${formData.email}${formData.company ? `\nCompany: ${formData.company}` : ''}\n\nMessage:\n${formData.message}`;
+      const emailHtml = `
+        <h2>New Contact Form Submission</h2>
+        <p><strong>Name:</strong> ${formData.name}</p>
+        <p><strong>Email:</strong> ${formData.email}</p>
+        ${formData.company ? `<p><strong>Company:</strong> ${formData.company}</p>` : ''}
+        <h3>Message:</h3>
+        <p>${formData.message.replace(/\n/g, '<br>')}</p>
+      `;
+
       const emailData = {
-        from: formData.name,
-        email: formData.email,
-        subject: formData.subject,
-        message: formData.message,
         to: 'contact@carelwave.com',
-        company: formData.company
+        subject: `Contact Form: ${formData.subject || 'General Inquiry'}`,
+        html: emailHtml,
+        text: emailText
       };
 
       const result = await emailService.sendCustomEmail(emailData);
-
+      
       if (result.success) {
         setSubmitted(true);
         toast.success('Message sent successfully! We\'ll get back to you soon.');
-        
-        // Reset form after delay
-        setTimeout(() => {
-          setSubmitted(false);
-          setFormData({
-            name: '',
-            email: '',
-            company: '',
-            subject: '',
-            message: '',
-            priority: 'medium',
-            category: 'general'
-          });
-        }, 5000);
+        setFormData({
+          name: '',
+          email: '',
+          company: '',
+          subject: '',
+          message: ''
+        });
       } else {
-        toast.error('Failed to send message. Please try again or contact us directly.');
+        toast.error('Failed to send message. Please try again.');
       }
     } catch (error) {
       console.error('Contact form error:', error);
-      toast.error('An error occurred. Please try again later.');
+      toast.error('Something went wrong. Please try again later.');
     } finally {
       setLoading(false);
     }
   };
 
-  const contactMethods = [
-    {
-      icon: <Mail className="w-6 h-6" />,
-      title: 'Email',
-      value: 'contact@carelwave.com',
-      description: 'Send us an email anytime',
-      action: 'mailto:contact@carelwave.com',
-      color: 'text-blue-600 dark:text-blue-400'
-    },
-    {
-      icon: <Mail className="w-6 h-6" />,
-      title: 'Support Email',
-      value: 'support@carelwave.com',
-      description: 'Technical support and assistance',
-      action: 'mailto:support@carelwave.com',
-      color: 'text-purple-600 dark:text-purple-400'
-    },
-    {
-      icon: <MapPin className="w-6 h-6" />,
-      title: 'Location',
-      value: 'India',
-      description: 'Remote-first organization',
-      action: '',
-      color: 'text-orange-600 dark:text-orange-400'
-    }
-  ];
-
-  const socialLinks = [
-    {
-      icon: <Linkedin className="w-5 h-5" />,
-      name: 'LinkedIn',
-      url: 'https://linkedin.com/in/akshayverma',
-      color: 'hover:text-blue-600'
-    },
-    {
-      icon: <Github className="w-5 h-5" />,
-      name: 'GitHub',
-      url: 'https://github.com/akshayverma',
-      color: 'hover:text-gray-900 dark:hover:text-white'
-    },
-    {
-      icon: <Twitter className="w-5 h-5" />,
-      name: 'Twitter',
-      url: 'https://twitter.com/akshayverma',
-      color: 'hover:text-blue-400'
-    }
-  ];
-
-  const categories = [
-    { value: 'general', label: 'General Inquiry' },
-    { value: 'business', label: 'Business Partnership' },
-    { value: 'technical', label: 'Technical Support' },
-    { value: 'partnership', label: 'Partnership Opportunity' },
-    { value: 'media', label: 'Media & Press' }
-  ];
-
-  const priorities = [
-    { value: 'low', label: 'Low Priority', color: 'text-gray-600' },
-    { value: 'medium', label: 'Medium Priority', color: 'text-blue-600' },
-    { value: 'high', label: 'High Priority', color: 'text-orange-600' },
-    { value: 'urgent', label: 'Urgent', color: 'text-red-600' }
-  ];
-
-  const faqs = [
-    {
-      question: "What's your typical response time?",
-      answer: "We aim to respond to all inquiries within 24 hours during business days. Urgent matters are prioritized and typically receive responses within 2-4 hours."
-    },
-    {
-      question: "Do you offer consulting services?",
-      answer: "Yes! We provide technical consulting for system design, cloud architecture, and development best practices. Contact us to discuss your specific needs."
-    },
-    {
-      question: "Can you help with technical interviews?",
-      answer: "Absolutely! We offer mock interviews, technical mentoring, and career guidance for software engineers at all levels."
-    },
-    {
-      question: "Are you available for speaking engagements?",
-      answer: "Yes, we're available for conferences, workshops, and corporate training sessions on topics like system design, cloud architecture, and engineering leadership."
-    }
-  ];
-
   if (submitted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 max-w-md w-full text-center shadow-2xl border border-green-200 dark:border-green-800">
-          <div className="w-20 h-20 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
-          </div>
-          
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            🎉 Message Sent!
-          </h1>
-          
-          <p className="text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
-            Thank you for reaching out! Your message has been successfully delivered. 
-            We'll get back to you as soon as possible.
-          </p>
-
-          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-6">
-            <p className="text-green-800 dark:text-green-200 text-sm">
-              Expected response time: <strong>Within 24 hours</strong>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl p-12 shadow-xl border border-gray-200 dark:border-gray-700">
+            <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+              Message Sent Successfully! 🎉
+            </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-400 mb-8">
+              Thank you for reaching out. We'll get back to you within 24 hours.
             </p>
+            <button
+              onClick={() => setSubmitted(false)}
+              className="inline-flex items-center px-8 py-3 bg-accent-primary text-white font-medium rounded-lg hover:bg-accent-primary-light transition-colors"
+            >
+              Send Another Message
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </button>
           </div>
-
-          <button
-            onClick={() => setSubmitted(false)}
-            className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
-          >
-            Send Another Message
-          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       {/* Hero Section */}
-      <section className="relative py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10"></div>
+      <section className="relative py-20 lg:py-32 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-accent opacity-10" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400 text-sm font-medium mb-8">
-            <MessageSquare className="w-4 h-4 mr-2" />
-            Let's Connect & Collaborate
+          <div className="flex items-center justify-center mb-6">
+            <Sparkles className="w-8 h-8 text-accent-primary mr-3" />
+            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white">
+              Let's Build Something Amazing
+            </h1>
           </div>
-          
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-            Get in <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Touch</span>
-          </h1>
-          
-          <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-3xl mx-auto leading-relaxed">
-            Have a question, project idea, or just want to say hello? We'd love to hear from you. 
-            Let's discuss how we can help bring your vision to life.
+          <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+            Ready to discuss your next project? We'd love to hear from you and explore how we can bring your ideas to life.
           </p>
 
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
-            {[
-              { icon: <Users className="w-4 h-4" />, text: '500+ Happy Clients' },
-              { icon: <Award className="w-4 h-4" />, text: '4.9/5 Rating' },
-              { icon: <Zap className="w-4 h-4" />, text: '24h Response' },
-              { icon: <Heart className="w-4 h-4" />, text: '100% Confidential' }
-            ].map((item, index) => (
-              <div key={index} className="flex items-center px-4 py-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-full border border-gray-200 dark:border-gray-700">
-                <span className="text-blue-600 dark:text-blue-400 mr-2">{item.icon}</span>
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{item.text}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Methods */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-            {contactMethods.map((method, index) => (
-              <a
-                key={index}
-                href={method.action}
-                target={method.action.startsWith('http') ? '_blank' : undefined}
-                rel={method.action.startsWith('http') ? 'noopener noreferrer' : undefined}
-                className="group bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+          {/* Contact Info Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-6 border border-gray-200 dark:border-gray-700 transform hover:scale-105 transition-all duration-200">
+              <Mail className="w-8 h-8 text-accent-primary mx-auto mb-4" />
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Email Us</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">General inquiries and project discussions</p>
+              <a 
+                href="mailto:contact@carelwave.com"
+                className="text-accent-primary hover:text-accent-primary-light transition-colors font-medium"
               >
-                <div className={`inline-flex p-3 rounded-xl bg-gray-100 dark:bg-gray-700 ${method.color} group-hover:scale-110 transition-transform duration-300 mb-4`}>
-                  {method.icon}
-                </div>
-                
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  {method.title}
-                </h3>
-                
-                <p className="text-gray-900 dark:text-white font-medium mb-1">
-                  {method.value}
-                </p>
-                
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {method.description}
-                </p>
-
-                <div className="mt-4 flex items-center text-blue-600 dark:text-blue-400 text-sm font-medium">
-                  <span>Connect now</span>
-                  <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-200" />
-                </div>
+                contact@carelwave.com
               </a>
-            ))}
+            </div>
+
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-6 border border-gray-200 dark:border-gray-700 transform hover:scale-105 transition-all duration-200">
+              <Clock className="w-8 h-8 text-accent-primary mx-auto mb-4" />
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Response Time</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">We respond to all inquiries promptly</p>
+              <span className="text-accent-primary font-medium">Within 24 hours</span>
+            </div>
+
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl p-6 border border-gray-200 dark:border-gray-700 transform hover:scale-105 transition-all duration-200">
+              <Globe className="w-8 h-8 text-accent-primary mx-auto mb-4" />
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Global Reach</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Working with clients worldwide</p>
+              <span className="text-accent-primary font-medium">Remote-first</span>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Contact Form & Info */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            
-            {/* Contact Form */}
-            <div className="lg:col-span-2">
-              <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl border border-gray-200 dark:border-gray-700">
-                <div className="mb-8">
-                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-                    Send us a Message
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Fill out the form below and we'll get back to you as soon as possible.
-                  </p>
-                </div>
+      {/* Contact Form Section */}
+      <section className="py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 md:p-12 shadow-xl border border-gray-200 dark:border-gray-700">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                Start the Conversation
+              </h2>
+              <p className="text-lg text-gray-600 dark:text-gray-400">
+                Tell us about your project and we'll get back to you with ideas and solutions.
+              </p>
+            </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Full Name *
-                      </label>
-                      <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
-                        placeholder="John Doe"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Email Address *
-                      </label>
-                      <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
-                        placeholder="john@example.com"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="company" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Company/Organization
-                      </label>
-                      <input
-                        type="text"
-                        id="company"
-                        name="company"
-                        value={formData.company}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
-                        placeholder="Your Company"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="category" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Category
-                      </label>
-                      <select
-                        id="category"
-                        name="category"
-                        value={formData.category}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
-                      >
-                        {categories.map(cat => (
-                          <option key={cat.value} value={cat.value}>{cat.label}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Subject
-                      </label>
-                      <input
-                        type="text"
-                        id="subject"
-                        name="subject"
-                        value={formData.subject}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
-                        placeholder="What's this about?"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="priority" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Priority Level
-                      </label>
-                      <select
-                        id="priority"
-                        name="priority"
-                        value={formData.priority}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
-                      >
-                        {priorities.map(priority => (
-                          <option key={priority.value} value={priority.value} className={priority.color}>
-                            {priority.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Message *
-                    </label>
-                    <textarea
-                      id="message"
-                      name="message"
-                      value={formData.message}
-                      onChange={handleInputChange}
-                      rows={6}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all resize-none"
-                      placeholder="Tell us more about your inquiry..."
-                      required
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
                     disabled={loading}
-                    className="w-full flex items-center justify-center px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
-                  >
-                    {loading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-3"></div>
-                        Sending Message...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-5 h-5 mr-3" />
-                        Send Message
-                      </>
-                    )}
-                  </button>
-                </form>
-              </div>
-            </div>
-
-            {/* Sidebar Info */}
-            <div className="space-y-8">
-              
-              {/* Business Hours */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center mb-4">
-                  <Clock className="w-6 h-6 text-blue-600 dark:text-blue-400 mr-3" />
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Business Hours
-                  </h3>
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition-colors text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    placeholder="John Doe"
+                  />
                 </div>
-                
-                <div className="space-y-3">
-                  {[
-                    { day: 'Monday - Friday', hours: '8:00 AM - 5:00 PM IST' },
-                    { day: 'Saturday', hours: '10:00 AM - 2:00 PM IST' },
-                    { day: 'Sunday', hours: 'Emergency only' }
-                  ].map((schedule, index) => (
-                    <div key={index} className="flex justify-between items-center">
-                      <span className="text-gray-600 dark:text-gray-400">{schedule.day}</span>
-                      <span className="text-gray-900 dark:text-white font-medium">{schedule.hours}</span>
-                    </div>
-                  ))}
+
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Email Address *
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    disabled={loading}
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition-colors text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    placeholder="john@example.com"
+                  />
                 </div>
               </div>
 
-              {/* Social Links */}
-              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center mb-4">
-                  <Globe className="w-6 h-6 text-blue-600 dark:text-blue-400 mr-3" />
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Follow Us
-                  </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="company" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Company (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    id="company"
+                    name="company"
+                    value={formData.company}
+                    onChange={handleChange}
+                    disabled={loading}
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition-colors text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    placeholder="Your Company"
+                  />
                 </div>
-                
-                <div className="flex space-x-4">
-                  {socialLinks.map((social, index) => (
-                    <a
-                      key={index}
-                      href={social.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`flex items-center justify-center w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-xl text-gray-600 dark:text-gray-400 ${social.color} transition-all duration-200 hover:scale-110`}
-                      title={social.name}
-                    >
-                      {social.icon}
-                    </a>
-                  ))}
+
+                <div>
+                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Subject *
+                  </label>
+                  <select
+                    id="subject"
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleChange}
+                    required
+                    disabled={loading}
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition-colors text-gray-900 dark:text-white"
+                  >
+                    <option value="">Select a topic</option>
+                    <option value="Project Inquiry">Project Inquiry</option>
+                    <option value="Collaboration">Collaboration</option>
+                    <option value="Technical Consultation">Technical Consultation</option>
+                    <option value="General Question">General Question</option>
+                    <option value="Other">Other</option>
+                  </select>
                 </div>
               </div>
 
-              {/* Quick Response */}
-              <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl p-6 border border-blue-200 dark:border-blue-800">
-                <div className="flex items-center mb-3">
-                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mr-3">
-                    <Mail className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white">
-                    Email Response
-                  </h3>
-                </div>
-                
-                <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
-                  Need a response? Send us an email and we'll get back to you promptly. 
-                  We're committed to providing comprehensive support through our email channels.
-                </p>
-                
-                <div className="flex space-x-3 mt-4">
-                  <a
-                    href="mailto:contact@carelwave.com"
-                    className="flex-1 flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                  >
-                    <Mail className="w-4 h-4 mr-2" />
-                    Contact Us
-                  </a>
-                  <a
-                    href="mailto:support@carelwave.com"
-                    className="flex-1 flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
-                  >
-                    <Mail className="w-4 h-4 mr-2" />
-                    Support
-                  </a>
-                </div>
+              <div>
+                <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Message *
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  rows={6}
+                  value={formData.message}
+                  onChange={handleChange}
+                  required
+                  disabled={loading}
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition-colors text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 resize-none"
+                  placeholder="Tell us about your project, timeline, budget, or any specific requirements..."
+                />
               </div>
-            </div>
+
+              <div className="text-center">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="inline-flex items-center px-8 py-4 bg-gradient-accent text-white font-semibold rounded-lg hover:opacity-90 transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  {loading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
+                      Sending Message...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5 mr-2" />
+                      Send Message
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </section>
 
       {/* FAQ Section */}
-      <section className="py-16 bg-white/50 dark:bg-gray-800/50">
+      <section className="py-20 bg-white/50 dark:bg-gray-800/50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
               Frequently Asked Questions
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              Quick answers to common questions about our services and process.
+            <p className="text-lg text-gray-600 dark:text-gray-400">
+              Quick answers to common questions about our services and collaboration process.
             </p>
           </div>
 
           <div className="space-y-6">
-            {faqs.map((faq, index) => (
-              <div
-                key={index}
-                className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700"
-              >
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+            {[
+              {
+                question: "What types of projects do you work on?",
+                answer: "We specialize in modern web applications, progressive web apps, e-commerce solutions, and custom software development. Our expertise includes React, TypeScript, Node.js, and cloud architecture."
+              },
+              {
+                question: "How do you approach new projects?",
+                answer: "We start with a discovery phase to understand your goals, target audience, and technical requirements. Then we create a detailed project plan with milestones, timelines, and deliverables."
+              },
+              {
+                question: "Do you provide ongoing support and maintenance?",
+                answer: "Yes, we offer comprehensive support packages including bug fixes, security updates, performance optimization, and feature enhancements to keep your application running smoothly."
+              },
+              {
+                question: "What's your typical project timeline?",
+                answer: "Project timelines vary based on complexity and scope. Simple websites take 2-4 weeks, while complex applications can take 2-6 months. We'll provide a detailed timeline during our initial consultation."
+              }
+            ].map((faq, index) => (
+              <div key={index} className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                  <MessageSquare className="w-5 h-5 text-accent-primary mr-3" />
                   {faq.question}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
@@ -576,39 +344,18 @@ export default function Contact() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* CTA Section */}
-      <section className="py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-12 text-white">
-            <h2 className="text-3xl font-bold mb-4">
-              Ready to Start Your Project?
-            </h2>
-            <p className="text-xl mb-8 opacity-90">
-              Let's turn your ideas into reality. Get in touch today for a free consultation.
+          <div className="text-center mt-12">
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Have more questions? We're here to help!
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  document.querySelector('form')?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="inline-flex items-center px-8 py-4 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <MessageSquare className="w-5 h-5 mr-2" />
-                Send Message
-              </a>
-              <a
-                href="mailto:contact@carelwave.com"
-                className="inline-flex items-center px-8 py-4 border-2 border-white text-white hover:bg-white hover:text-blue-600 font-semibold rounded-lg transition-colors"
-              >
-                <Mail className="w-5 h-5 mr-2" />
-                Email Us
-              </a>
-            </div>
+            <a
+              href="mailto:contact@carelwave.com"
+              className="inline-flex items-center px-6 py-3 bg-accent-primary text-white font-medium rounded-lg hover:bg-accent-primary-light transition-colors"
+            >
+              <Mail className="w-5 h-5 mr-2" />
+              Email Us
+            </a>
           </div>
         </div>
       </section>

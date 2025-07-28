@@ -79,7 +79,7 @@ const NotFound: React.FC = () => {
       title: 'Go Home',
       path: '/',
       icon: <Home className="w-5 h-5" />,
-      color: 'bg-blue-600 hover:bg-blue-700 text-white',
+      color: 'bg-accent-primary hover:bg-accent-primary-light text-white',
       description: 'Return to the homepage'
     },
     {
@@ -93,7 +93,7 @@ const NotFound: React.FC = () => {
       title: 'Contact Us',
       path: '/contact',
       icon: <Mail className="w-5 h-5" />,
-      color: 'bg-purple-600 hover:bg-purple-700 text-white',
+      color: 'bg-accent-primary hover:bg-purple-700 text-white',
       description: 'Get in touch for collaboration'
     }
   ];
@@ -117,7 +117,7 @@ const NotFound: React.FC = () => {
             <div className="text-9xl font-bold text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text animate-bounce-gentle">
               404
             </div>
-            <div className="absolute inset-0 text-9xl font-bold text-blue-200 dark:text-blue-800 -z-10 transform translate-x-2 translate-y-2">
+            <div className="absolute inset-0 text-9xl font-bold text-white/70 dark:text-accent-primary -z-10 transform translate-x-2 translate-y-2">
               404
             </div>
           </div>
@@ -145,14 +145,14 @@ const NotFound: React.FC = () => {
 
           {/* Auto-redirect Notice */}
           {countdown > 0 && !isRedirecting && (
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-8 max-w-md mx-auto">
-              <div className="flex items-center justify-center text-blue-800 dark:text-blue-200 mb-2">
+            <div className="bg-accent-primary/5 dark:bg-accent-primary/20/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 mb-8 max-w-md mx-auto">
+              <div className="flex items-center justify-center text-accent-primary dark:text-white/70 mb-2">
                 <Clock className="w-5 h-5 mr-2" />
                 <span className="font-medium">Auto-redirecting in {countdown} seconds</span>
               </div>
               <button
                 onClick={handleStopRedirect}
-                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                className="text-sm text-accent-primary dark:text-accent-primary-light hover:text-accent-primary dark:hover:accent-primary-light transition-colors"
               >
                 Cancel redirect
               </button>
@@ -171,12 +171,12 @@ const NotFound: React.FC = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search for articles, topics..."
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white bg-white shadow-lg"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-transparent dark:bg-gray-700 dark:text-white bg-white shadow-lg"
                 />
               </div>
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 px-4 py-1.5 bg-accent-primary text-white rounded-md hover:bg-accent-primary-light transition-colors text-sm font-medium"
               >
                 Search
               </button>
@@ -219,19 +219,19 @@ const NotFound: React.FC = () => {
                 className="flex items-start p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 border border-transparent hover:border-gray-200 dark:hover:border-gray-600 group"
               >
                 <div className="flex-shrink-0 mr-4 mt-1">
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-200">
+                  <div className="p-2 bg-accent-primary/10 dark:bg-accent-primary/20/30 rounded-lg text-accent-primary dark:text-accent-primary-light group-hover:scale-110 transition-transform duration-200">
                     {page.icon}
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-accent-primary dark:group-hover:text-accent-primary-light transition-colors">
                     {page.title}
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     {page.description}
                   </p>
                 </div>
-                <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-all duration-200" />
+                <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-accent-primary dark:group-hover:text-accent-primary-light opacity-0 group-hover:opacity-100 transition-all duration-200" />
               </Link>
             ))}
           </div>
@@ -269,7 +269,7 @@ const NotFound: React.FC = () => {
             🚀 Still can't find what you're looking for?{' '}
             <Link 
               to="/contact" 
-              className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+              className="text-accent-primary dark:text-accent-primary-light hover:underline font-medium"
             >
               Contact us
             </Link>
