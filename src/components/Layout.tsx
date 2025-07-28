@@ -13,7 +13,8 @@ import {
   LogIn,
   Shield
 } from 'lucide-react';
-import AuthModal from './AuthModal';
+import UnifiedAuthModal from './UnifiedAuthModal';
+import type { AuthUser } from '../services/firebase/unified-auth.service';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -24,7 +25,6 @@ export default function Layout({ children }: LayoutProps) {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authModalView, setAuthModalView] = useState<'user' | 'admin'>('user');
   const location = useLocation();
 
   // Initialize theme
@@ -71,17 +71,16 @@ export default function Layout({ children }: LayoutProps) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const openAuthModal = (view: 'user' | 'admin' = 'user') => {
-    setAuthModalView(view);
+  const openAuthModal = () => {
     setShowAuthModal(true);
   };
 
-  const handleAuthSuccess = (user: any) => {
+  const handleAuthSuccess = (user: AuthUser) => {
     console.log('User authenticated:', user);
     setShowAuthModal(false);
     
     // Redirect based on user role
-    if (user.role === 'admin') {
+    if (user.role === 'admin' && user.adminAccess) {
       window.location.href = '/admin/dashboard';
     } else {
       // For regular users, they can now submit reviews
@@ -163,21 +162,14 @@ export default function Layout({ children }: LayoutProps) {
                 {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
 
-              {/* Auth buttons */}
+              {/* Unified Auth button */}
               <div className="hidden md:flex items-center space-x-2">
                 <button
-                  onClick={() => openAuthModal('user')}
-                  className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200"
+                  onClick={openAuthModal}
+                  className="flex items-center px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 rounded-lg transition-all duration-200 transform hover:scale-105"
                 >
                   <LogIn className="w-4 h-4 mr-2" />
-                  Login
-                </button>
-                <button
-                  onClick={() => openAuthModal('admin')}
-                  className="flex items-center px-4 py-2 text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors duration-200"
-                >
-                  <Shield className="w-4 h-4 mr-2" />
-                  Admin
+                  Sign In
                 </button>
               </div>
 
@@ -219,21 +211,14 @@ export default function Layout({ children }: LayoutProps) {
                 );
               })}
 
-              {/* Mobile auth buttons */}
-              <div className="pt-4 space-y-2 border-t border-gray-200 dark:border-gray-700">
+              {/* Mobile auth button */}
+              <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
-                  onClick={() => openAuthModal('user')}
-                  className="w-full flex items-center px-4 py-3 text-left text-base font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200"
+                  onClick={openAuthModal}
+                  className="w-full flex items-center px-4 py-3 text-left text-base font-medium bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 rounded-lg transition-all duration-200"
                 >
                   <LogIn className="w-5 h-5 mr-3" />
-                  User Login
-                </button>
-                <button
-                  onClick={() => openAuthModal('admin')}
-                  className="w-full flex items-center px-4 py-3 text-left text-base font-medium bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors duration-200"
-                >
-                  <Shield className="w-5 h-5 mr-3" />
-                  Admin Login
+                  Sign In
                 </button>
               </div>
             </div>
@@ -312,10 +297,10 @@ export default function Layout({ children }: LayoutProps) {
               <ul className="space-y-2">
                 <li>
                   <button
-                    onClick={() => openAuthModal('user')}
+                    onClick={openAuthModal}
                     className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
                   >
-                    Login / Sign Up
+                    Sign In
                   </button>
                 </li>
                 <li>
@@ -340,12 +325,11 @@ export default function Layout({ children }: LayoutProps) {
         </div>
       </footer>
 
-      {/* Auth Modal */}
-      <AuthModal
+      {/* Unified Auth Modal */}
+      <UnifiedAuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        onLoginSuccess={handleAuthSuccess}
-        defaultView={authModalView}
+        onSuccess={handleAuthSuccess}
       />
     </div>
   );

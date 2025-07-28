@@ -1,55 +1,75 @@
 {
-  "name": "Carelwave Media - Akshay Verma's Technical Blog",
-  "short_name": "Carelwave Media",
-  "description": "Software Development Engineer specializing in Golang, AWS, and scalable microservices. Technical insights and professional portfolio.",
+  "name": "Carelwave Media - Tech Innovation Hub",
+  "short_name": "Carelwave",
+  "description": "Leading platform for system design, cloud architecture, and software engineering insights from industry expert Akshay Verma.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#2563eb",
+  "background_color": "#1f2937",
+  "theme_color": "#3b82f6",
   "orientation": "portrait-primary",
   "scope": "/",
-  "lang": "en",
+  "lang": "en-US",
   "dir": "ltr",
-  "categories": ["technology", "blog", "portfolio", "software"],
+  "categories": ["technology", "education", "productivity", "engineering"],
   "icons": [
     {
-      "src": "/favicon.png",
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/apple-touch-icon.png",
-      "sizes": "512x512",
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
       "type": "image/png",
-      "purpose": "any"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/screenshot-wide.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Carelwave Media homepage showing technical blog content"
+      "purpose": "any maskable"
     },
     {
-      "src": "/screenshot-narrow.png",
-      "sizes": "720x1280",
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
       "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Mobile view of Carelwave Media technical blog"
+      "purpose": "any maskable"
     }
   ],
   "shortcuts": [
     {
       "name": "Latest Articles",
       "short_name": "Blog",
-      "description": "Read the latest technical articles",
+      "description": "Read the latest tech insights and tutorials",
       "url": "/blog",
       "icons": [
         {
-          "src": "/favicon.png",
+          "src": "/icons/blog-shortcut.png",
           "sizes": "96x96"
         }
       ]
@@ -57,16 +77,84 @@
     {
       "name": "About Akshay",
       "short_name": "About",
-      "description": "Learn more about Akshay Verma",
+      "description": "Learn about Akshay Verma's expertise and experience",
       "url": "/about",
       "icons": [
         {
-          "src": "/favicon.png",
+          "src": "/icons/about-shortcut.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Contact",
+      "short_name": "Contact",
+      "description": "Get in touch for collaboration opportunities",
+      "url": "/contact",
+      "icons": [
+        {
+          "src": "/icons/contact-shortcut.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Newsletter",
+      "short_name": "Newsletter",
+      "description": "Subscribe to exclusive tech insights",
+      "url": "/#newsletter",
+      "icons": [
+        {
+          "src": "/icons/newsletter-shortcut.png",
           "sizes": "96x96"
         }
       ]
     }
   ],
-  "related_applications": [],
-  "prefer_related_applications": false
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "file_handlers": [
+    {
+      "action": "/blog",
+      "accept": {
+        "text/markdown": [".md"],
+        "text/plain": [".txt"]
+      }
+    }
+  ],
+  "protocol_handlers": [
+    {
+      "protocol": "mailto",
+      "url": "/contact?email=%s"
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop-home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Carelwave Media Home Page"
+    },
+    {
+      "src": "/screenshots/mobile-blog.png",
+      "sizes": "375x812",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile Blog Experience"
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": []
 } 

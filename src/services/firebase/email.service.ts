@@ -1,500 +1,378 @@
 import { Resend } from 'resend';
 
-// Email service configuration
-const RESEND_API_KEY = import.meta.env.VITE_RESEND_API_KEY || 'your-resend-api-key';
-const FROM_EMAIL = 'noreply@carelwavemedia.com';
-const FROM_NAME = 'Carelwave Media';
+interface EmailOptions {
+  to: string | string[];
+  subject: string;
+  html: string;
+  text: string;
+  from?: string;
+  replyTo?: string;
+}
+
+interface SendResult {
+  success: boolean;
+  message: string;
+  id?: string;
+  error?: string;
+}
 
 class EmailService {
   private resend: Resend | null = null;
-  private isTestMode: boolean = false;
+  private readonly fromEmail = 'Carelwave Media <noreply@carelwavemedia.com>';
+  private readonly replyToEmail = 'contact@carelwavemedia.com';
 
   constructor() {
-    if (RESEND_API_KEY && RESEND_API_KEY !== 'your-resend-api-key') {
-      this.resend = new Resend(RESEND_API_KEY);
-    } else {
-      this.isTestMode = true;
-      console.warn('⚠️ Email Service in TEST MODE - Set VITE_RESEND_API_KEY for production');
+    const apiKey = import.meta.env.VITE_RESEND_API_KEY;
+    if (apiKey && apiKey !== 'your-resend-api-key') {
+      this.resend = new Resend(apiKey);
     }
   }
 
-  // Send welcome email to new newsletter subscriber
-  async sendWelcomeEmail(email: string, unsubscribeToken?: string): Promise<{
-    success: boolean;
-    message: string;
-    error?: string;
-  }> {
-    if (this.isTestMode) {
-      console.log(`📧 TEST MODE - Welcome email would be sent to: ${email}`);
+  async sendWelcomeEmail(email: string, unsubscribeToken: string): Promise<SendResult> {
+    const subject = 'Welcome to Carelwave Media Newsletter! 🎉';
+    const unsubscribeUrl = `${window.location.origin}/unsubscribe?token=${unsubscribeToken}`;
+    
+    const html = this.getWelcomeEmailHTML(email, unsubscribeUrl);
+    const text = this.getWelcomeEmailText(email, unsubscribeUrl);
+
+    return this.sendEmail({
+      to: email,
+      subject,
+      html,
+      text
+    });
+  }
+
+  async sendNewsletterEmail(email: string, subject: string, content: string, unsubscribeToken: string): Promise<SendResult> {
+    const unsubscribeUrl = `${window.location.origin}/unsubscribe?token=${unsubscribeToken}`;
+    
+    const html = this.getNewsletterEmailHTML(subject, content, unsubscribeUrl);
+    const text = this.getNewsletterEmailText(subject, content, unsubscribeUrl);
+
+    return this.sendEmail({
+      to: email,
+      subject: `[Carelwave Media] ${subject}`,
+      html,
+      text
+    });
+  }
+
+  async sendNewPostNotification(email: string, postTitle: string, postExcerpt: string, postUrl: string, unsubscribeToken: string): Promise<SendResult> {
+    const subject = `New Post: ${postTitle}`;
+    const unsubscribeUrl = `${window.location.origin}/unsubscribe?token=${unsubscribeToken}`;
+    
+    const html = this.getNewPostEmailHTML(postTitle, postExcerpt, postUrl, unsubscribeUrl);
+    const text = this.getNewPostEmailText(postTitle, postExcerpt, postUrl, unsubscribeUrl);
+
+    return this.sendEmail({
+      to: email,
+      subject,
+      html,
+      text
+    });
+  }
+
+  async sendCustomEmail(options: EmailOptions): Promise<SendResult> {
+    return this.sendEmail({
+      ...options,
+      from: options.from || this.fromEmail,
+      replyTo: options.replyTo || this.replyToEmail
+    });
+  }
+
+  async sendBulkEmails(emails: { email: string; unsubscribeToken: string }[], subject: string, content: string): Promise<SendResult[]> {
+    const results: SendResult[] = [];
+    
+    // Send emails in batches to avoid rate limits
+    const batchSize = 10;
+    
+    for (let i = 0; i < emails.length; i += batchSize) {
+      const batch = emails.slice(i, i + batchSize);
+      const batchPromises = batch.map(({ email, unsubscribeToken }) => 
+        this.sendNewsletterEmail(email, subject, content, unsubscribeToken)
+      );
+      
+      const batchResults = await Promise.all(batchPromises);
+      results.push(...batchResults);
+      
+      // Add delay between batches
+      if (i + batchSize < emails.length) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    
+    return results;
+  }
+
+  private async sendEmail(options: EmailOptions): Promise<SendResult> {
+    if (!this.resend) {
+      console.log('📧 Email Service (Test Mode):', {
+        to: options.to,
+        subject: options.subject,
+        from: options.from || this.fromEmail
+      });
+      
       return {
         success: true,
-        message: 'Welcome email sent (test mode)'
+        message: 'Email sent successfully (test mode)',
+        id: 'test-' + Date.now()
       };
     }
 
     try {
-      if (!this.resend) {
-        throw new Error('Email service not initialized');
-      }
-
-      const unsubscribeUrl = unsubscribeToken 
-        ? `${window.location.origin}/unsubscribe?token=${unsubscribeToken}`
-        : `${window.location.origin}/unsubscribe`;
-
-      const htmlContent = this.getWelcomeEmailTemplate(unsubscribeUrl);
-      const textContent = this.getWelcomeEmailText(unsubscribeUrl);
-
-      const result = await this.resend.emails.send({
-        from: `${FROM_NAME} <${FROM_EMAIL}>`,
-        to: [email],
-        subject: '🎉 Welcome to Carelwave Media Newsletter!',
-        html: htmlContent,
-        text: textContent,
-        headers: {
-          'List-Unsubscribe': `<${unsubscribeUrl}>`,
-          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-        },
+      const response = await this.resend.emails.send({
+        from: options.from || this.fromEmail,
+        to: Array.isArray(options.to) ? options.to : [options.to],
+        subject: options.subject,
+        html: options.html,
+        text: options.text,
+        reply_to: options.replyTo || this.replyToEmail
       });
 
-      if (result.error) {
-        throw new Error(result.error.message);
+      if (response.error) {
+        console.error('Resend API error:', response.error);
+        return {
+          success: false,
+          message: 'Failed to send email: ' + response.error.message,
+          error: response.error.message
+        };
       }
 
       return {
         success: true,
-        message: 'Welcome email sent successfully'
+        message: 'Email sent successfully',
+        id: response.data?.id
       };
     } catch (error: any) {
-      console.error('Welcome email error:', error);
+      console.error('Email service error:', error);
       return {
         success: false,
-        message: 'Failed to send welcome email',
+        message: 'Failed to send email: ' + error.message,
         error: error.message
       };
     }
   }
 
-  // Send newsletter to subscribers
-  async sendNewsletterEmail(
-    email: string, 
-    subject: string, 
-    content: string, 
-    unsubscribeToken?: string
-  ): Promise<{
-    success: boolean;
-    message: string;
-    error?: string;
-  }> {
-    if (this.isTestMode) {
-      console.log(`📧 TEST MODE - Newsletter email would be sent to: ${email}`);
-      console.log(`📧 Subject: ${subject}`);
-      return {
-        success: true,
-        message: 'Newsletter email sent (test mode)'
-      };
-    }
-
-    try {
-      if (!this.resend) {
-        throw new Error('Email service not initialized');
-      }
-
-      const unsubscribeUrl = unsubscribeToken 
-        ? `${window.location.origin}/unsubscribe?token=${unsubscribeToken}`
-        : `${window.location.origin}/unsubscribe`;
-
-      const htmlContent = this.getNewsletterTemplate(content, unsubscribeUrl);
-      const textContent = this.getNewsletterText(content, unsubscribeUrl);
-
-      const result = await this.resend.emails.send({
-        from: `${FROM_NAME} <${FROM_EMAIL}>`,
-        to: [email],
-        subject: subject,
-        html: htmlContent,
-        text: textContent,
-        headers: {
-          'List-Unsubscribe': `<${unsubscribeUrl}>`,
-          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-        },
-      });
-
-      if (result.error) {
-        throw new Error(result.error.message);
-      }
-
-      return {
-        success: true,
-        message: 'Newsletter email sent successfully'
-      };
-    } catch (error: any) {
-      console.error('Newsletter email error:', error);
-      return {
-        success: false,
-        message: 'Failed to send newsletter email',
-        error: error.message
-      };
-    }
-  }
-
-  // Send new blog post notification
-  async sendNewPostNotification(
-    email: string,
-    postTitle: string,
-    postExcerpt: string,
-    postUrl: string,
-    unsubscribeToken?: string
-  ): Promise<{
-    success: boolean;
-    message: string;
-    error?: string;
-  }> {
-    if (this.isTestMode) {
-      console.log(`📧 TEST MODE - New post notification would be sent to: ${email}`);
-      console.log(`📧 Post: ${postTitle}`);
-      return {
-        success: true,
-        message: 'New post notification sent (test mode)'
-      };
-    }
-
-    try {
-      if (!this.resend) {
-        throw new Error('Email service not initialized');
-      }
-
-      const unsubscribeUrl = unsubscribeToken 
-        ? `${window.location.origin}/unsubscribe?token=${unsubscribeToken}`
-        : `${window.location.origin}/unsubscribe`;
-
-      const htmlContent = this.getNewPostTemplate(postTitle, postExcerpt, postUrl, unsubscribeUrl);
-      const textContent = this.getNewPostText(postTitle, postExcerpt, postUrl, unsubscribeUrl);
-
-      const result = await this.resend.emails.send({
-        from: `${FROM_NAME} <${FROM_EMAIL}>`,
-        to: [email],
-        subject: `📝 New Post: ${postTitle}`,
-        html: htmlContent,
-        text: textContent,
-        headers: {
-          'List-Unsubscribe': `<${unsubscribeUrl}>`,
-          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-        },
-      });
-
-      if (result.error) {
-        throw new Error(result.error.message);
-      }
-
-      return {
-        success: true,
-        message: 'New post notification sent successfully'
-      };
-    } catch (error: any) {
-      console.error('New post notification error:', error);
-      return {
-        success: false,
-        message: 'Failed to send new post notification',
-        error: error.message
-      };
-    }
-  }
-
-  // Send bulk emails to subscribers
-  async sendBulkEmails(
-    emails: Array<{ email: string; unsubscribeToken?: string }>,
-    subject: string,
-    content: string
-  ): Promise<{
-    success: boolean;
-    message: string;
-    sent: number;
-    failed: number;
-    errors?: string[];
-  }> {
-    const results = {
-      sent: 0,
-      failed: 0,
-      errors: [] as string[]
-    };
-
-    for (const subscriber of emails) {
-      try {
-        const result = await this.sendNewsletterEmail(
-          subscriber.email, 
-          subject, 
-          content, 
-          subscriber.unsubscribeToken
-        );
-        
-        if (result.success) {
-          results.sent++;
-        } else {
-          results.failed++;
-          results.errors.push(`${subscriber.email}: ${result.message}`);
-        }
-
-        // Add delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 100));
-      } catch (error: any) {
-        results.failed++;
-        results.errors.push(`${subscriber.email}: ${error.message}`);
-      }
-    }
-
-    return {
-      success: results.sent > 0,
-      message: `Sent to ${results.sent} subscribers, ${results.failed} failed`,
-      sent: results.sent,
-      failed: results.failed,
-      errors: results.errors.length > 0 ? results.errors : undefined
-    };
-  }
-
-  // Welcome email HTML template
-  private getWelcomeEmailTemplate(unsubscribeUrl: string): string {
+  private getWelcomeEmailHTML(email: string, unsubscribeUrl: string): string {
     return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Carelwave Media</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #ffffff; padding: 40px 20px; border-radius: 0 0 8px 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .button { display: inline-block; background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
-        .footer { text-align: center; margin-top: 20px; font-size: 14px; color: #666; }
-        .unsubscribe { font-size: 12px; color: #999; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🎉 Welcome to Carelwave Media!</h1>
-            <p>Thank you for subscribing to our newsletter</p>
-        </div>
-        <div class="content">
-            <h2>Hello there! 👋</h2>
-            <p>We're thrilled to have you join our community of tech enthusiasts, developers, and innovators!</p>
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Welcome to Carelwave Media</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">Welcome to Carelwave Media! 🎉</h1>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e9ecef;">
+            <h2 style="color: #2c3e50; margin-top: 0;">Thank you for subscribing!</h2>
             
-            <p>Here's what you can expect from us:</p>
-            <ul>
-                <li>🚀 <strong>Latest Tech Insights</strong> - Deep dives into cutting-edge technologies</li>
-                <li>💡 <strong>Engineering Best Practices</strong> - Real-world solutions and patterns</li>
-                <li>📈 <strong>Industry Trends</strong> - What's shaping the future of technology</li>
-                <li>🔧 <strong>Practical Tutorials</strong> - Hands-on guides and code examples</li>
-            </ul>
+            <p>Hi there! 👋</p>
             
-            <p>You'll receive our newsletters with valuable content, and we promise to respect your inbox - no spam, just quality content!</p>
+            <p>Welcome to the Carelwave Media community! You've successfully subscribed to our newsletter and you're now part of an exclusive group of tech enthusiasts and industry professionals.</p>
             
-            <a href="${window.location.origin}/blog" class="button">Explore Our Blog 📚</a>
+            <div style="background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea; margin: 20px 0;">
+              <h3 style="margin-top: 0; color: #2c3e50;">What to expect:</h3>
+              <ul style="margin: 0; padding-left: 20px;">
+                <li>🚀 Latest insights on system design and cloud architecture</li>
+                <li>💡 Best practices and industry tips</li>
+                <li>📚 Exclusive content and tutorials</li>
+                <li>🎯 Curated resources for developers</li>
+              </ul>
+            </div>
             
-            <p>Thank you for being part of our journey!</p>
+            <p>We respect your inbox and promise to only send valuable content. No spam, ever!</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${window.location.origin}/blog" style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">Explore Our Blog 📖</a>
+            </div>
+            
             <p>Best regards,<br>
             <strong>Akshay Verma</strong><br>
             Founder, Carelwave Media</p>
-        </div>
-        <div class="footer">
-            <p class="unsubscribe">
-                Don't want to receive these emails? 
-                <a href="${unsubscribeUrl}">Unsubscribe here</a>
+            
+            <hr style="border: none; border-top: 1px solid #e9ecef; margin: 30px 0;">
+            
+            <p style="font-size: 12px; color: #6c757d; text-align: center;">
+              You received this email because you subscribed to our newsletter at carelwavemedia.com<br>
+              <a href="${unsubscribeUrl}" style="color: #6c757d;">Unsubscribe</a> | 
+              <a href="${window.location.origin}/contact" style="color: #6c757d;">Contact Us</a>
             </p>
-        </div>
-    </div>
-</body>
-</html>`;
+          </div>
+        </body>
+      </html>
+    `;
   }
 
-  // Welcome email plain text template
-  private getWelcomeEmailText(unsubscribeUrl: string): string {
+  private getWelcomeEmailText(email: string, unsubscribeUrl: string): string {
     return `
-Welcome to Carelwave Media!
+Welcome to Carelwave Media! 🎉
 
-Hello there!
+Hi there! 👋
 
-We're thrilled to have you join our community of tech enthusiasts, developers, and innovators!
+Welcome to the Carelwave Media community! You've successfully subscribed to our newsletter and you're now part of an exclusive group of tech enthusiasts and industry professionals.
 
-Here's what you can expect from us:
-• Latest Tech Insights - Deep dives into cutting-edge technologies
-• Engineering Best Practices - Real-world solutions and patterns  
-• Industry Trends - What's shaping the future of technology
-• Practical Tutorials - Hands-on guides and code examples
+What to expect:
+• 🚀 Latest insights on system design and cloud architecture
+• 💡 Best practices and industry tips
+• 📚 Exclusive content and tutorials
+• 🎯 Curated resources for developers
 
-You'll receive our newsletters with valuable content, and we promise to respect your inbox - no spam, just quality content!
+We respect your inbox and promise to only send valuable content. No spam, ever!
 
 Explore our blog: ${window.location.origin}/blog
-
-Thank you for being part of our journey!
 
 Best regards,
 Akshay Verma
 Founder, Carelwave Media
 
 ---
-Don't want to receive these emails? Unsubscribe here: ${unsubscribeUrl}
-`;
+You received this email because you subscribed to our newsletter at carelwavemedia.com
+Unsubscribe: ${unsubscribeUrl}
+Contact Us: ${window.location.origin}/contact
+    `;
   }
 
-  // Newsletter HTML template
-  private getNewsletterTemplate(content: string, unsubscribeUrl: string): string {
+  private getNewsletterEmailHTML(subject: string, content: string, unsubscribeUrl: string): string {
     return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carelwave Media Newsletter</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #ffffff; padding: 40px 20px; border-radius: 0 0 8px 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .footer { text-align: center; margin-top: 20px; font-size: 14px; color: #666; }
-        .unsubscribe { font-size: 12px; color: #999; }
-        h1, h2, h3 { color: #333; }
-        a { color: #667eea; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>📧 Carelwave Media Newsletter</h1>
-        </div>
-        <div class="content">
-            ${content}
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>${subject} - Carelwave Media</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 24px;">Carelwave Media Newsletter</h1>
+            <p style="color: #e8f2ff; margin: 10px 0 0 0; opacity: 0.9;">${subject}</p>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e9ecef;">
+            <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+              ${content}
+            </div>
             
-            <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-            <p>Best regards,<br>
-            <strong>Akshay Verma</strong><br>
-            Carelwave Media</p>
-        </div>
-        <div class="footer">
-            <p class="unsubscribe">
-                Don't want to receive these emails? 
-                <a href="${unsubscribeUrl}">Unsubscribe here</a>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${window.location.origin}/blog" style="background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold;">Read More on Our Blog</a>
+            </div>
+            
+            <hr style="border: none; border-top: 1px solid #e9ecef; margin: 30px 0;">
+            
+            <p style="font-size: 12px; color: #6c757d; text-align: center;">
+              <a href="${unsubscribeUrl}" style="color: #6c757d;">Unsubscribe</a> | 
+              <a href="${window.location.origin}/contact" style="color: #6c757d;">Contact Us</a>
             </p>
-        </div>
-    </div>
-</body>
-</html>`;
+          </div>
+        </body>
+      </html>
+    `;
   }
 
-  // Newsletter plain text template
-  private getNewsletterText(content: string, unsubscribeUrl: string): string {
-    // Strip HTML tags and convert to plain text
-    const plainContent = content.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-    
+  private getNewsletterEmailText(subject: string, content: string, unsubscribeUrl: string): string {
     return `
 Carelwave Media Newsletter
+${subject}
 
-${plainContent}
+${content.replace(/<[^>]*>/g, '')}
 
-Best regards,
-Akshay Verma
-Carelwave Media
+Read more on our blog: ${window.location.origin}/blog
 
 ---
-Don't want to receive these emails? Unsubscribe here: ${unsubscribeUrl}
-`;
+Unsubscribe: ${unsubscribeUrl}
+Contact Us: ${window.location.origin}/contact
+    `;
   }
 
-  // New post notification HTML template
-  private getNewPostTemplate(title: string, excerpt: string, postUrl: string, unsubscribeUrl: string): string {
+  private getNewPostEmailHTML(postTitle: string, postExcerpt: string, postUrl: string, unsubscribeUrl: string): string {
     return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Post: ${title}</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px 20px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: #ffffff; padding: 40px 20px; border-radius: 0 0 8px 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .button { display: inline-block; background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
-        .footer { text-align: center; margin-top: 20px; font-size: 14px; color: #666; }
-        .unsubscribe { font-size: 12px; color: #999; }
-        .post-title { color: #333; margin-bottom: 10px; }
-        .post-excerpt { color: #666; font-style: italic; margin-bottom: 20px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>📝 New Post Published!</h1>
-        </div>
-        <div class="content">
-            <h2 class="post-title">${title}</h2>
-            <p class="post-excerpt">${excerpt}</p>
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>New Post: ${postTitle}</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; text-align: center; border-radius: 10px 10px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 24px;">📝 New Post Published!</h1>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; border: 1px solid #e9ecef;">
+            <h2 style="color: #2c3e50; margin-top: 0;">${postTitle}</h2>
             
-            <p>We've just published a new blog post that we think you'll find interesting!</p>
+            <p style="color: #6c757d; font-size: 16px; line-height: 1.5;">${postExcerpt}</p>
             
-            <a href="${postUrl}" class="button">Read Full Article 📖</a>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${postUrl}" style="background: #667eea; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold; font-size: 16px;">Read Full Article 📖</a>
+            </div>
             
-            <p>Thank you for being a valued subscriber!</p>
+            <div style="background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #28a745; margin: 20px 0;">
+              <p style="margin: 0; color: #2c3e50;">
+                <strong>💡 Tip:</strong> Share this article with your team and colleagues who might find it valuable!
+              </p>
+            </div>
+            
+            <p>Thank you for being part of our community!</p>
             
             <p>Best regards,<br>
             <strong>Akshay Verma</strong><br>
             Carelwave Media</p>
-        </div>
-        <div class="footer">
-            <p class="unsubscribe">
-                Don't want to receive these emails? 
-                <a href="${unsubscribeUrl}">Unsubscribe here</a>
+            
+            <hr style="border: none; border-top: 1px solid #e9ecef; margin: 30px 0;">
+            
+            <p style="font-size: 12px; color: #6c757d; text-align: center;">
+              <a href="${unsubscribeUrl}" style="color: #6c757d;">Unsubscribe</a> | 
+              <a href="${window.location.origin}/contact" style="color: #6c757d;">Contact Us</a>
             </p>
-        </div>
-    </div>
-</body>
-</html>`;
+          </div>
+        </body>
+      </html>
+    `;
   }
 
-  // New post notification plain text template
-  private getNewPostText(title: string, excerpt: string, postUrl: string, unsubscribeUrl: string): string {
+  private getNewPostEmailText(postTitle: string, postExcerpt: string, postUrl: string, unsubscribeUrl: string): string {
     return `
-New Post Published!
+📝 New Post Published!
 
-${title}
+${postTitle}
 
-${excerpt}
-
-We've just published a new blog post that we think you'll find interesting!
+${postExcerpt}
 
 Read the full article: ${postUrl}
 
-Thank you for being a valued subscriber!
+💡 Tip: Share this article with your team and colleagues who might find it valuable!
+
+Thank you for being part of our community!
 
 Best regards,
 Akshay Verma
 Carelwave Media
 
 ---
-Don't want to receive these emails? Unsubscribe here: ${unsubscribeUrl}
-`;
+Unsubscribe: ${unsubscribeUrl}
+Contact Us: ${window.location.origin}/contact
+    `;
   }
 
-  // Check if email service is available
-  isAvailable(): boolean {
-    return !this.isTestMode && this.resend !== null;
-  }
-
-  // Get service status
+  // Utility methods
   getStatus(): { available: boolean; mode: string; message: string } {
-    if (this.isTestMode) {
-      return {
-        available: false,
-        mode: 'test',
-        message: 'Running in test mode - set VITE_RESEND_API_KEY for production'
-      };
-    }
-
+    const hasApiKey = !!this.resend;
+    
     return {
-      available: true,
-      mode: 'production',
-      message: 'Email service ready'
+      available: hasApiKey,
+      mode: hasApiKey ? 'production' : 'test',
+      message: hasApiKey 
+        ? 'Resend API configured and ready'
+        : 'Running in test mode (set VITE_RESEND_API_KEY for production)'
     };
+  }
+
+  isAvailable(): boolean {
+    return !!this.resend;
   }
 }
 
