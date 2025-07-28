@@ -12,7 +12,7 @@ export default function About() {
             About Carelwave Media
           </h1>
           <p className="text-body-lg text-medium-contrast max-w-3xl mx-auto">
-            Building the future of technology content with innovation, passion, and dedication to excellence.
+            AI-powered content creation that delivers measurable business growth through performance-driven strategies and cutting-edge automation.
           </p>
         </div>
 

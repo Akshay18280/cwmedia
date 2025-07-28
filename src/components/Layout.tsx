@@ -3,6 +3,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Search, User, LogOut, Settings, Sun, Moon, Mic, MicOff } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../contexts/AuthContext';
+import UserMenu from './UserMenu';
 import { useVoiceCommands } from '../hooks/useVoiceCommands';
 import { SearchBar } from './search/SearchBar';
 import { LiveNotifications } from './realtime/LiveNotifications';
@@ -13,7 +14,7 @@ export default function Layout() {
   const [showMobileSearch, setShowMobileSearch] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { currentUser, logout } = useAuth();
+  const { user: currentUser, signOut } = useAuth();
   const { isListening, toggleListening, isSupported } = useVoiceCommands();
   
   const menuRef = useRef<HTMLDivElement>(null);
@@ -50,7 +51,7 @@ export default function Layout() {
 
   const handleLogout = async () => {
     try {
-      await logout();
+      await signOut();
       navigate('/');
     } catch (error) {
       console.error('Logout error:', error);
@@ -141,32 +142,7 @@ export default function Layout() {
 
               {/* User Menu */}
               {currentUser ? (
-                <div className="relative group">
-                  <button className="flex items-center space-x-2 p-2 text-medium-contrast hover:text-high-contrast transition-colors rounded-lg">
-                    <User className="w-5 h-5" />
-                    <span className="text-body-sm font-medium">{currentUser.name}</span>
-                  </button>
-                  <div className="absolute right-0 mt-2 w-48 bg-medium-contrast border border-medium-contrast rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                    <div className="py-1">
-                      {currentUser.role === 'admin' && (
-                        <Link
-                          to="/admin"
-                          className="flex items-center px-4 py-2 text-body-sm text-medium-contrast hover:bg-low-contrast hover:text-high-contrast transition-colors"
-                        >
-                          <Settings className="w-4 h-4 mr-2" />
-                          Admin Dashboard
-                        </Link>
-                      )}
-                      <button
-                        onClick={handleLogout}
-                        className="flex items-center w-full px-4 py-2 text-body-sm text-medium-contrast hover:bg-low-contrast hover:text-high-contrast transition-colors"
-                      >
-                        <LogOut className="w-4 h-4 mr-2" />
-                        Sign Out
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                <UserMenu />
               ) : (
                 <Link
                   to="/login"
@@ -267,7 +243,7 @@ export default function Layout() {
                     <div className="px-3 py-2 text-body-sm text-medium-contrast border-t border-low-contrast">
                       Signed in as {currentUser.name}
                     </div>
-                    {currentUser.role === 'admin' && (
+                                          {currentUser.isAdmin && (
                       <Link
                         to="/admin"
                         className="flex items-center px-3 py-2 text-body font-medium text-medium-contrast hover:text-high-contrast hover:bg-low-contrast rounded-lg transition-colors"
@@ -315,7 +291,7 @@ export default function Layout() {
                 <span className="text-body-lg font-bold text-gradient-flow">Carelwave Media</span>
               </Link>
               <p className="text-body text-medium-contrast mb-4 max-w-md">
-                Building the future of technology through innovative solutions and cutting-edge insights.
+                AI-powered content solutions that boost your rankings, drive conversions, and scale your business growth on autopilot.
               </p>
               <div className="flex items-center space-x-4">
                 <Link to="/search" className="text-low-contrast hover:text-medium-contrast transition-colors">
