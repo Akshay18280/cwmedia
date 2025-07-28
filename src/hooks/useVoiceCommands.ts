@@ -39,6 +39,8 @@ export const useVoiceCommands = (): VoiceCommandsHook => {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const microphoneRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const animationFrameRef = useRef<number>();
+  const lastProcessedCommandRef = useRef<string>('');
+  const commandTimeoutRef = useRef<NodeJS.Timeout>();
   
   const navigate = useNavigate();
 
@@ -49,10 +51,10 @@ export const useVoiceCommands = (): VoiceCommandsHook => {
       setIsSupported(true);
       
       const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
+      recognition.continuous = false; // Changed to false to prevent continuous processing
+      recognition.interimResults = false; // Changed to false to only get final results
       recognition.lang = 'en-US';
-      recognition.maxAlternatives = 3;
+      recognition.maxAlternatives = 1; // Reduced to 1 for clarity
       
       recognitionRef.current = recognition;
       
@@ -69,6 +71,14 @@ export const useVoiceCommands = (): VoiceCommandsHook => {
           audioContextRef.current.close();
           audioContextRef.current = null;
         }
+        // Auto restart if still supposed to be listening (for continuous mode)
+        if (isListening) {
+          setTimeout(() => {
+            if (recognitionRef.current && isListening) {
+              recognitionRef.current.start();
+            }
+          }, 100);
+        }
       };
       
       recognition.onerror = (event: any) => {
@@ -82,17 +92,28 @@ export const useVoiceCommands = (): VoiceCommandsHook => {
       };
       
       recognition.onresult = (event: any) => {
+        // Only process final results to prevent double execution
         const results = Array.from(event.results);
-        const transcript = results
-          .map((result: any) => result[0].transcript)
-          .join('')
-          .toLowerCase()
-          .trim();
+        const finalResult = results[results.length - 1] as any;
         
-        if (transcript) {
-          console.log('🎤 Heard:', transcript);
-          setLastCommand(transcript);
-          processVoiceCommand(transcript);
+        if (finalResult && finalResult.isFinal) {
+          const transcript = finalResult[0].transcript.toLowerCase().trim();
+          
+          if (transcript && transcript !== lastProcessedCommandRef.current) {
+            console.log('🎤 Final transcript:', transcript);
+            setLastCommand(transcript);
+            lastProcessedCommandRef.current = transcript;
+            
+            // Clear any existing timeout
+            if (commandTimeoutRef.current) {
+              clearTimeout(commandTimeoutRef.current);
+            }
+            
+            // Process command with debouncing
+            commandTimeoutRef.current = setTimeout(() => {
+              processVoiceCommand(transcript);
+            }, 100);
+          }
         }
       };
     } else {
@@ -306,38 +327,51 @@ export const useVoiceCommands = (): VoiceCommandsHook => {
     }
   }, []);
 
-  // Start listening
+  // Start listening function
   const startListening = useCallback(() => {
-    if (!isSupported) {
-      toast.error('Voice commands not supported in this browser');
-      return;
-    }
-    
-    if (recognitionRef.current && !isListening) {
+    if (recognitionRef.current && isSupported) {
       try {
+        // Reset command tracking
+        lastProcessedCommandRef.current = '';
+        if (commandTimeoutRef.current) {
+          clearTimeout(commandTimeoutRef.current);
+        }
+        
         recognitionRef.current.start();
         setupAudioVisualization();
       } catch (error) {
-        console.error('🎤 Failed to start recognition:', error);
-        toast.error('Failed to start voice recognition');
+        console.error('🎤 Error starting recognition:', error);
+        setIsListening(false);
       }
     }
-  }, [isSupported, isListening]);
+  }, [isSupported]);
 
-  // Stop listening
+  // Stop listening function
   const stopListening = useCallback(() => {
-    if (recognitionRef.current && isListening) {
+    if (recognitionRef.current) {
       recognitionRef.current.stop();
-      setIsListening(false);
-      setAmplitude(0);
-      
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
     }
-  }, [isListening]);
+    
+    // Clear command tracking
+    lastProcessedCommandRef.current = '';
+    if (commandTimeoutRef.current) {
+      clearTimeout(commandTimeoutRef.current);
+    }
+    
+    setIsListening(false);
+    setAmplitude(0);
+    
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
+    
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+  }, []);
 
-  // Toggle listening
+  // Toggle listening function
   const toggleListening = useCallback(() => {
     if (isListening) {
       stopListening();
