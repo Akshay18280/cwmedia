@@ -1,9 +1,20 @@
+/**
+ * @fileoverview Main stylesheet for Carelwave Media website
+ * Implements 2025 design system with flowing gradients and holographic effects
+ * @version 2.0.0
+ * @author Carelwave Media Development Team
+ * @created 2025-01-15
+ * @updated 2025-01-15
+ */
+
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
 
-/* === 2025 DESIGN SYSTEM: FLOWING GRADIENTS + HOLOGRAPHIC EFFECTS === */
-/* Revolutionary Dynamic Color System - Option A Implementation */
+/* ========================================
+   2025 DESIGN SYSTEM: FLOWING GRADIENTS + HOLOGRAPHIC EFFECTS
+   Revolutionary Dynamic Color System - Option A Implementation
+   ======================================== */
 
 :root {
   /* Base Color System */
@@ -20,8 +31,10 @@
   --color-gray-800: 31 41 55;
   --color-gray-900: 17 24 39;
 
-  /* === FLOWING GRADIENT SYSTEM === */
-  /* Base gradient colors for each theme */
+  /* ========================================
+     FLOWING GRADIENT SYSTEM
+     Base gradient colors for each theme
+     ======================================== */
   --gradient-blue-start: #3b82f6;
   --gradient-blue-mid: #60a5fa;
   --gradient-blue-end: #93c5fd;
@@ -42,8 +55,10 @@
   --gradient-pink-mid: #f472b6;
   --gradient-pink-end: #f9a8d4;
 
-  /* === HOLOGRAPHIC SYSTEM === */
-  /* Holographic base hues */
+  /* ========================================
+     HOLOGRAPHIC SYSTEM
+     Holographic base hues for color shifting effects
+     ======================================== */
   --holo-blue-hue: 220;
   --holo-purple-hue: 280;
   --holo-green-hue: 160;

@@ -129,58 +129,40 @@ export default function Blog() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Technical Blog
+          <h1 className="text-display mb-4 text-gradient-flow">
+            Technology Insights & Innovation
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-            In-depth articles on system design, cloud architecture, software engineering best practices, and emerging technologies.
+          <p className="text-xl text-gray-600 dark:text-gray-400 mb-8 max-w-2xl mx-auto">
+            Discover cutting-edge technology trends, tutorials, and insights that shape the future.
           </p>
-        </div>
-
-        {/* Search and Filters */}
-        <div className="mb-8 space-y-4">
-          {/* Search Bar */}
-          <div className="relative max-w-2xl mx-auto">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Search articles by title, content, or tags..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-transparent text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-            />
-          </div>
-
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {/* Category Filter */}
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="pl-10 pr-8 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-transparent text-gray-900 dark:text-white text-sm"
-              >
-                <option value="all">All Categories</option>
-                {getCategories().map(category => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
+          
+          {/* Search and Filters */}
+          <div className="max-w-2xl mx-auto">
+            <div className="relative mb-6">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search articles..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="input-modern pl-10 pr-4 py-3 w-full text-lg border-gradient-accent focus:ring-gradient-accent"
+              />
             </div>
-
-            {/* Sort Filter */}
-            <div className="relative">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'newest' | 'oldest' | 'popular')}
-                className="pl-4 pr-8 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-transparent text-gray-900 dark:text-white text-sm"
-              >
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="popular">Most Popular</option>
-              </select>
+            
+            <div className="flex flex-wrap gap-2 justify-center">
+              {['All', 'AI/ML', 'Web Development', 'Mobile', 'DevOps', 'Data Science'].map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category === 'All' ? '' : category)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                    (category === 'All' && !selectedCategory) || selectedCategory === category
+                      ? 'bg-gradient-flow text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gradient-flow-subtle hover:text-white dark:bg-gray-800 dark:text-gray-300'
+                  }`}
+                >
+                  {category}
+                </button>
+              ))}
             </div>
           </div>
         </div>
