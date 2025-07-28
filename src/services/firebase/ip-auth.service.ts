@@ -20,17 +20,23 @@ interface AdminUser {
   ipAddress: string;
 }
 
+// Import Firebase auth for signing in
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../../lib/firebase';
+
 class IPAuthService {
   private config: IPAuthConfig = {
     // Default allowed IPs - can be configured via environment variables
     allowedIPs: [
-      '127.0.0.1',      // localhost
-      '::1',            // localhost IPv6
-      '192.168.1.0/24', // Local network range (example)
+      '192.168.0.100',  // Only allowed admin IP
       // Add more IPs as needed
     ],
     enabled: true
   };
+
+  // Admin credentials for Firebase sign-in
+  private readonly ADMIN_EMAIL = 'admin@carelwavemedia.com';
+  private readonly ADMIN_PASSWORD = process.env.VITE_ADMIN_AUTO_PASSWORD || 'your-admin-password';
 
   constructor() {
     this.loadConfig();
@@ -180,26 +186,60 @@ class IPAuthService {
       };
     }
 
-    // Create admin user object for IP-based authentication
-    const adminUser: AdminUser = {
-      id: `admin_ip_${ipCheck.userIP.replace(/\./g, '_')}`,
-      email: 'admin@carelwavemedia.com',
-      name: 'Admin (IP Authenticated)',
-      isAdmin: true,
-      provider: 'ip',
-      verified: true,
-      ipAddress: ipCheck.userIP
-    };
+    try {
+      // **CRITICAL FIX**: Actually sign into Firebase as admin
+      // This ensures Firestore security rules recognize the user as authenticated admin
+      const userCredential = await signInWithEmailAndPassword(
+        auth, 
+        this.ADMIN_EMAIL, 
+        this.ADMIN_PASSWORD
+      );
 
-    // Store authentication in localStorage for session persistence
-    localStorage.setItem('ipAuthUser', JSON.stringify(adminUser));
-    localStorage.setItem('ipAuthTimestamp', Date.now().toString());
+      // Create admin user object for IP-based authentication
+      const adminUser: AdminUser = {
+        id: userCredential.user.uid, // Use Firebase UID
+        email: this.ADMIN_EMAIL,
+        name: 'Admin (IP Authenticated)',
+        isAdmin: true,
+        provider: 'ip',
+        verified: true,
+        ipAddress: ipCheck.userIP
+      };
 
-    return {
-      success: true,
-      user: adminUser,
-      message: `Admin access granted via IP authentication (${ipCheck.userIP})`
-    };
+      // Store authentication in localStorage for session persistence
+      localStorage.setItem('ipAuthUser', JSON.stringify(adminUser));
+      localStorage.setItem('ipAuthTimestamp', Date.now().toString());
+
+      return {
+        success: true,
+        user: adminUser,
+        message: `Admin access granted via IP authentication (${ipCheck.userIP}). Firebase authentication completed.`
+      };
+
+    } catch (firebaseError: any) {
+      console.error('Firebase authentication failed for IP user:', firebaseError);
+      
+      // If Firebase auth fails, still allow local-only authentication
+      // but warn that Firestore operations may fail
+      const adminUser: AdminUser = {
+        id: `admin_ip_${ipCheck.userIP.replace(/\./g, '_')}`,
+        email: 'admin@carelwavemedia.com',
+        name: 'Admin (IP Authenticated - Local Only)',
+        isAdmin: true,
+        provider: 'ip',
+        verified: true,
+        ipAddress: ipCheck.userIP
+      };
+
+      localStorage.setItem('ipAuthUser', JSON.stringify(adminUser));
+      localStorage.setItem('ipAuthTimestamp', Date.now().toString());
+
+      return {
+        success: true,
+        user: adminUser,
+        message: `IP authentication granted (${ipCheck.userIP}), but Firebase auth failed. Some admin operations may not work. Error: ${firebaseError.message}`
+      };
+    }
   }
 
   isIPAuthenticated(): AdminUser | null {
