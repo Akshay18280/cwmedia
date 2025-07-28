@@ -1,331 +1,364 @@
-// SMS Service using Twilio for real OTP functionality
-import { doc, setDoc, getDoc, updateDoc, Timestamp } from 'firebase/firestore';
+/**
+ * @fileoverview SMS Service for OTP verification
+ * Handles sending OTP messages via multiple providers with fallbacks
+ * @version 2.0.0
+ * @author Carelwave Media Development Team
+ * @created 2025-01-15
+ * @updated 2025-01-15
+ */
+
+import { doc, setDoc, getDoc, deleteDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
-// Twilio configuration (replace with your actual credentials)
-const TWILIO_ACCOUNT_SID = import.meta.env.VITE_TWILIO_ACCOUNT_SID || 'your-twilio-account-sid';
-const TWILIO_AUTH_TOKEN = import.meta.env.VITE_TWILIO_AUTH_TOKEN || 'your-twilio-auth-token';
-const TWILIO_PHONE_NUMBER = import.meta.env.VITE_TWILIO_PHONE_NUMBER || '+1234567890';
+interface OTPRecord {
+  phoneNumber: string;
+  otp: string;
+  expiresAt: Timestamp;
+  attempts: number;
+  createdAt: Timestamp;
+  provider: string;
+  status: 'pending' | 'verified' | 'expired';
+}
+
+interface SMSProvider {
+  name: string;
+  sendSMS: (phoneNumber: string, message: string) => Promise<boolean>;
+  isAvailable: () => boolean;
+}
 
 class SMSService {
-  private isTestMode: boolean = false;
-  private otpCollection = 'admin_verification';
+  private readonly OTP_EXPIRY_MINUTES = 10;
+  private readonly MAX_ATTEMPTS = 3;
+  private readonly otpCollection = 'otp_verifications';
 
-  constructor() {
-    // Enable test mode if Twilio credentials are not set
-    if (!TWILIO_ACCOUNT_SID || 
-        !TWILIO_AUTH_TOKEN || 
-        TWILIO_ACCOUNT_SID === 'your-twilio-account-sid' ||
-        TWILIO_AUTH_TOKEN === 'your-twilio-auth-token') {
-      this.isTestMode = true;
-      console.warn('⚠️ SMS Service in TEST MODE - Set Twilio credentials for production');
+  // SMS Provider configurations
+  private providers: SMSProvider[] = [
+    {
+      name: 'Twilio',
+      sendSMS: this.sendViaTwilio.bind(this),
+      isAvailable: () => !!process.env.TWILIO_ACCOUNT_SID
+    },
+    {
+      name: 'Firebase SMS',
+      sendSMS: this.sendViaFirebase.bind(this),
+      isAvailable: () => true // Always available as fallback
+    },
+    {
+      name: 'Mock SMS (Development)',
+      sendSMS: this.sendViaMock.bind(this),
+      isAvailable: () => process.env.NODE_ENV === 'development'
     }
-  }
+  ];
 
-  // Generate random 6-digit OTP
+  // Generate 6-digit OTP
   private generateOTP(): string {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
-  // Format phone number for international format
+  // Format phone number
   private formatPhoneNumber(phoneNumber: string): string {
-    // Remove all non-numeric characters
-    let cleaned = phoneNumber.replace(/\D/g, '');
+    // Remove all non-digit characters
+    const digits = phoneNumber.replace(/\D/g, '');
     
-    // Add country code if missing (assuming India +91)
-    if (!cleaned.startsWith('91') && cleaned.length === 10) {
-      cleaned = '91' + cleaned;
+    // Add country code if missing
+    if (digits.length === 10) {
+      return '+1' + digits; // Default to US
+    } else if (digits.length === 11 && digits.startsWith('1')) {
+      return '+' + digits;
+    } else if (digits.length > 10 && !digits.startsWith('+')) {
+      return '+' + digits;
     }
     
-    // Add + prefix
-    return '+' + cleaned;
+    return digits.startsWith('+') ? digits : '+' + digits;
   }
 
-  // Send real SMS using Twilio
-  private async sendTwilioSMS(to: string, message: string): Promise<boolean> {
+  // Send OTP via Twilio
+  private async sendViaTwilio(phoneNumber: string, message: string): Promise<boolean> {
     try {
-      // Twilio REST API endpoint
-      const url = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
-      
-      // Prepare form data
-      const formData = new URLSearchParams();
-      formData.append('From', TWILIO_PHONE_NUMBER);
-      formData.append('To', to);
-      formData.append('Body', message);
+      const accountSid = process.env.TWILIO_ACCOUNT_SID;
+      const authToken = process.env.TWILIO_AUTH_TOKEN;
+      const fromNumber = process.env.TWILIO_PHONE_NUMBER;
 
-      // Basic Auth header
-      const auth = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Basic ${auth}`,
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const error = await response.text();
-        console.error('Twilio SMS error:', error);
+      if (!accountSid || !authToken || !fromNumber) {
+        console.warn('Twilio credentials not configured');
         return false;
       }
 
-      const result = await response.json();
-      console.log('SMS sent successfully:', result.sid);
-      return true;
+      const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`, {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Basic ' + btoa(`${accountSid}:${authToken}`),
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({
+          From: fromNumber,
+          To: phoneNumber,
+          Body: message
+        })
+      });
+
+      if (response.ok) {
+        console.log('✅ SMS sent via Twilio');
+        return true;
+      } else {
+        const error = await response.text();
+        console.error('❌ Twilio SMS failed:', error);
+        return false;
+      }
     } catch (error) {
-      console.error('Error sending SMS via Twilio:', error);
+      console.error('❌ Twilio SMS error:', error);
       return false;
     }
   }
 
-  // Generate and store admin OTP
-  async generateAdminOTP(phoneNumber: string = '6264507878'): Promise<{
-    success: boolean;
-    message: string;
-    error?: string;
-  }> {
+  // Send OTP via Firebase Cloud Functions
+  private async sendViaFirebase(phoneNumber: string, message: string): Promise<boolean> {
     try {
-      console.log('🔄 Generating admin OTP for phone:', phoneNumber);
-      
-      const formattedPhone = this.formatPhoneNumber(phoneNumber);
-      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-      
-      console.log('📝 Storing OTP in Firestore...');
-      
-      // Store OTP in Firestore
-      await setDoc(doc(db, this.otpCollection, phoneNumber), {
-        phoneNumber: formattedPhone,
-        otpCode,
-        expiresAt: Timestamp.fromDate(expiresAt),
-        createdAt: Timestamp.now(),
-        verified: false,
-        attempts: 0
+      const response = await fetch('/api/send-sms', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          phoneNumber,
+          message,
+          provider: 'firebase'
+        })
       });
 
-      console.log('✅ OTP stored successfully in Firestore');
-
-      // Try to send SMS
-      const smsContent = `Your Carelwave Media admin OTP: ${otpCode}. Valid for 10 minutes.`;
-      
-      if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN) {
-        console.log('📱 TEST MODE - SMS to', formattedPhone + ':', smsContent);
-        return {
-          success: true,
-          message: `OTP sent! Check console for test code. Phone: ${formattedPhone}`
-        };
-      }
-
-      console.log('📤 Sending real SMS via Twilio...');
-      const smsSent = await this.sendTwilioSMS(formattedPhone, smsContent);
-      
-      if (smsSent) {
-        console.log('✅ SMS sent successfully via Twilio');
-        return {
-          success: true,
-          message: 'OTP sent successfully to your phone!'
-        };
+      if (response.ok) {
+        console.log('✅ SMS sent via Firebase');
+        return true;
       } else {
-        console.log('📱 FALLBACK - SMS to', formattedPhone + ':', smsContent);
+        console.error('❌ Firebase SMS failed');
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ Firebase SMS error:', error);
+      return false;
+    }
+  }
+
+  // Mock SMS for development
+  private async sendViaMock(phoneNumber: string, message: string): Promise<boolean> {
+    console.log('📱 MOCK SMS to', phoneNumber);
+    console.log('📝 Message:', message);
+    
+    // Show OTP in console for development
+    const otpMatch = message.match(/(\d{6})/);
+    if (otpMatch) {
+      console.log('🔢 DEVELOPMENT OTP:', otpMatch[1]);
+      
+      // Show in browser notification for easy access
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('Development OTP', {
+          body: `Your OTP is: ${otpMatch[1]}`,
+          icon: '/favicon.ico'
+        });
+      }
+      
+      // Store in localStorage for easy retrieval
+      localStorage.setItem('dev_otp', otpMatch[1]);
+      localStorage.setItem('dev_otp_phone', phoneNumber);
+    }
+    
+    return true;
+  }
+
+  // Send OTP with provider fallback
+  async sendOTP(phoneNumber: string, isAdmin: boolean = false): Promise<{
+    success: boolean;
+    message: string;
+    otpId?: string;
+  }> {
+    try {
+      const formattedPhone = this.formatPhoneNumber(phoneNumber);
+      console.log('📱 Sending OTP to:', formattedPhone);
+
+      // Check if phone number already has a pending OTP
+      const existingOTPDoc = await getDoc(doc(db, this.otpCollection, formattedPhone));
+      if (existingOTPDoc.exists()) {
+        const existingOTP = existingOTPDoc.data() as OTPRecord;
+        if (existingOTP.expiresAt.toDate() > new Date()) {
+          return {
+            success: false,
+            message: 'OTP already sent. Please wait before requesting a new one.'
+          };
+        }
+      }
+
+      // Generate new OTP
+      const otp = this.generateOTP();
+      const expiresAt = new Date();
+      expiresAt.setMinutes(expiresAt.getMinutes() + this.OTP_EXPIRY_MINUTES);
+
+      // Create message
+      const message = isAdmin 
+        ? `🚀 Your Carelwave Media admin access code is: ${otp}. Valid for ${this.OTP_EXPIRY_MINUTES} minutes. Never share this code!`
+        : `🌊 Your Carelwave Media verification code is: ${otp}. Valid for ${this.OTP_EXPIRY_MINUTES} minutes.`;
+
+      // Try providers in order until one succeeds
+      let smsSuccess = false;
+      let usedProvider = '';
+
+      for (const provider of this.providers) {
+        if (provider.isAvailable()) {
+          console.log(`📡 Trying provider: ${provider.name}`);
+          smsSuccess = await provider.sendSMS(formattedPhone, message);
+          
+          if (smsSuccess) {
+            usedProvider = provider.name;
+            break;
+          }
+        }
+      }
+
+      if (!smsSuccess) {
         return {
-          success: true,
-          message: 'OTP generated successfully (check console for test mode)'
+          success: false,
+          message: 'Failed to send SMS. Please try again later.'
         };
       }
-    } catch (error: any) {
-      console.error('❌ Error generating admin OTP:', error);
-      console.error('❌ Error code:', error.code);
-      console.error('❌ Error message:', error.message);
+
+      // Store OTP record in Firestore
+      const otpRecord: OTPRecord = {
+        phoneNumber: formattedPhone,
+        otp: otp,
+        expiresAt: Timestamp.fromDate(expiresAt),
+        attempts: 0,
+        createdAt: Timestamp.now(),
+        provider: usedProvider,
+        status: 'pending'
+      };
+
+      await setDoc(doc(db, this.otpCollection, formattedPhone), otpRecord);
+
+      console.log(`✅ OTP sent successfully via ${usedProvider}`);
+      
+      return {
+        success: true,
+        message: `Verification code sent to ${formattedPhone} via ${usedProvider}`,
+        otpId: formattedPhone
+      };
+
+    } catch (error) {
+      console.error('❌ Send OTP error:', error);
       return {
         success: false,
-        message: 'Failed to generate OTP',
-        error: error.message
+        message: 'Failed to send verification code. Please try again.'
       };
     }
   }
 
-  // Verify admin OTP
-  async verifyAdminOTP(enteredOTP: string, phoneNumber: string = '6264507878'): Promise<{
+  // Verify OTP
+  async verifyOTP(phoneNumber: string, enteredOTP: string): Promise<{
     success: boolean;
     message: string;
-    error?: string;
   }> {
     try {
-      const otpDocRef = doc(db, this.otpCollection, phoneNumber);
-      const otpDoc = await getDoc(otpDocRef);
+      const formattedPhone = this.formatPhoneNumber(phoneNumber);
+      console.log('🔍 Verifying OTP for:', formattedPhone);
 
+      const otpDoc = await getDoc(doc(db, this.otpCollection, formattedPhone));
+      
       if (!otpDoc.exists()) {
         return {
           success: false,
-          message: 'OTP not found. Please generate a new OTP.'
+          message: 'No verification request found. Please request a new OTP.'
         };
       }
 
-      const otpData = otpDoc.data();
-      const now = new Date();
-      const expiresAt = otpData.expiresAt.toDate();
+      const otpRecord = otpDoc.data() as OTPRecord;
 
-      // Check expiration
-      if (now > expiresAt) {
+      // Check if OTP is expired
+      if (otpRecord.expiresAt.toDate() < new Date()) {
+        await deleteDoc(doc(db, this.otpCollection, formattedPhone));
         return {
           success: false,
-          message: 'OTP has expired. Please generate a new OTP.'
+          message: 'Verification code has expired. Please request a new one.'
         };
       }
 
-      // Increment attempts
-      const attempts = (otpData.attempts || 0) + 1;
-      await updateDoc(otpDocRef, { attempts });
-
-      // Check max attempts (prevent brute force)
-      if (attempts > 5) {
+      // Check attempts
+      if (otpRecord.attempts >= this.MAX_ATTEMPTS) {
+        await deleteDoc(doc(db, this.otpCollection, formattedPhone));
         return {
           success: false,
-          message: 'Too many failed attempts. Please generate a new OTP.'
+          message: 'Too many attempts. Please request a new verification code.'
         };
       }
 
       // Verify OTP
-      if (otpData.otpCode !== enteredOTP) {
-        return {
-          success: false,
-          message: `Invalid OTP. ${6 - attempts} attempts remaining.`
-        };
-      }
-
-      // Mark as verified
-      await updateDoc(otpDocRef, {
-        verified: true,
-        verifiedAt: Timestamp.now()
-      });
-
-      return {
-        success: true,
-        message: 'Admin verified successfully!'
-      };
-    } catch (error: any) {
-      console.error('OTP verification error:', error);
-      return {
-        success: false,
-        message: 'Verification failed',
-        error: error.message
-      };
-    }
-  }
-
-  // Check if OTP is still valid
-  async isOTPValid(phoneNumber: string = '6264507878'): Promise<boolean> {
-    try {
-      const otpDoc = await getDoc(doc(db, this.otpCollection, phoneNumber));
-      
-      if (!otpDoc.exists()) {
-        return false;
-      }
-
-      const otpData = otpDoc.data();
-      const now = new Date();
-      const expiresAt = otpData.expiresAt.toDate();
-
-      return now <= expiresAt && !otpData.verified;
-    } catch (error) {
-      console.error('Error checking OTP validity:', error);
-      return false;
-    }
-  }
-
-  // Get remaining OTP time
-  async getRemainingTime(phoneNumber: string = '6264507878'): Promise<number> {
-    try {
-      const otpDoc = await getDoc(doc(db, this.otpCollection, phoneNumber));
-      
-      if (!otpDoc.exists()) {
-        return 0;
-      }
-
-      const otpData = otpDoc.data();
-      const now = new Date();
-      const expiresAt = otpData.expiresAt.toDate();
-      
-      const remainingMs = expiresAt.getTime() - now.getTime();
-      return Math.max(0, Math.floor(remainingMs / 1000)); // Return seconds
-    } catch (error) {
-      console.error('Error getting remaining time:', error);
-      return 0;
-    }
-  }
-
-  // Cleanup expired OTPs
-  async cleanupExpiredOTPs(): Promise<void> {
-    try {
-      // In a real implementation, you'd query for expired OTPs and delete them
-      // For now, we'll just log this action
-      console.log('Cleaning up expired OTPs...');
-    } catch (error) {
-      console.error('Error cleaning up expired OTPs:', error);
-    }
-  }
-
-  // Get service status
-  getStatus(): { available: boolean; mode: string; message: string } {
-    if (this.isTestMode) {
-      return {
-        available: false,
-        mode: 'test',
-        message: 'Running in test mode - set Twilio credentials for production'
-      };
-    }
-
-    return {
-      available: true,
-      mode: 'production',
-      message: 'SMS service ready with Twilio'
-    };
-  }
-
-  // Check if service is available
-  isAvailable(): boolean {
-    return !this.isTestMode;
-  }
-
-  // Send custom SMS (for other use cases)
-  async sendCustomSMS(to: string, message: string): Promise<{
-    success: boolean;
-    message: string;
-    error?: string;
-  }> {
-    try {
-      const formattedPhone = this.formatPhoneNumber(to);
-
-      if (this.isTestMode) {
-        console.log(`📱 TEST MODE - SMS to ${formattedPhone}: ${message}`);
+      if (otpRecord.otp === enteredOTP.trim()) {
+        // OTP is correct
+        await deleteDoc(doc(db, this.otpCollection, formattedPhone));
+        console.log('✅ OTP verified successfully');
+        
         return {
           success: true,
-          message: 'SMS sent (test mode)'
-        };
-      }
-
-      const sent = await this.sendTwilioSMS(formattedPhone, message);
-      
-      if (sent) {
-        return {
-          success: true,
-          message: 'SMS sent successfully'
+          message: 'Phone number verified successfully!'
         };
       } else {
+        // Increment attempts
+        await setDoc(doc(db, this.otpCollection, formattedPhone), {
+          ...otpRecord,
+          attempts: otpRecord.attempts + 1
+        });
+
         return {
           success: false,
-          message: 'Failed to send SMS'
+          message: `Invalid verification code. ${this.MAX_ATTEMPTS - otpRecord.attempts - 1} attempts remaining.`
         };
       }
-    } catch (error: any) {
-      console.error('Custom SMS error:', error);
+
+    } catch (error) {
+      console.error('❌ Verify OTP error:', error);
       return {
         success: false,
-        message: 'Failed to send SMS',
-        error: error.message
+        message: 'Verification failed. Please try again.'
       };
+    }
+  }
+
+  // Admin-specific OTP verification
+  async verifyAdminOTP(enteredOTP: string, phoneNumber: string): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    // For development, check localStorage first
+    if (process.env.NODE_ENV === 'development') {
+      const devOTP = localStorage.getItem('dev_otp');
+      const devPhone = localStorage.getItem('dev_otp_phone');
+      
+      if (devOTP === enteredOTP && devPhone === phoneNumber) {
+        localStorage.removeItem('dev_otp');
+        localStorage.removeItem('dev_otp_phone');
+        return {
+          success: true,
+          message: 'Admin verification successful (development mode)'
+        };
+      }
+    }
+
+    // Use regular verification for production
+    return this.verifyOTP(phoneNumber, enteredOTP);
+  }
+
+  // Cleanup expired OTPs (call this periodically)
+  async cleanupExpiredOTPs(): Promise<void> {
+    try {
+      console.log('🧹 Cleaning up expired OTPs...');
+      // This would typically be done via a Cloud Function
+      // For now, we rely on individual verification checks
+    } catch (error) {
+      console.error('❌ Cleanup error:', error);
+    }
+  }
+
+  // Request notification permission for development
+  async requestNotificationPermission(): Promise<void> {
+    if ('Notification' in window && Notification.permission === 'default') {
+      await Notification.requestPermission();
     }
   }
 }

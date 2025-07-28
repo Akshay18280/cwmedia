@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
+import { AuthProvider } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import About from './pages/About';
@@ -23,36 +24,38 @@ import AccentTest from './pages/AccentTest';
 function App() {
   return (
     <ErrorBoundary>
-      <Router>
-        <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200">
-          <Toaster
-            position="top-right"
-            richColors
-            closeButton
-            duration={4000}
-          />
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/blog/:id" element={<PostDetail />} />
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
-              <Route path="/verify" element={<Verify />} />
-              <Route path="/unsubscribe" element={<Unsubscribe />} />
-              <Route path="/testing" element={<TestingDashboard />} />
-              <Route path="/analytics-setup" element={<AnalyticsSetupGuide />} />
-              <Route path="/phone-auth-debug" element={<PhoneAuthDebug />} />
-              <Route path="/auth-debug" element={<AuthDebug />} />
-              <Route path="/theme-showcase" element={<ThemeShowcase />} />
-              <Route path="/accent-test" element={<AccentTest />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Layout>
-        </div>
-      </Router>
+      <AuthProvider>
+        <Router>
+          <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200">
+            <Toaster
+              position="top-right"
+              richColors
+              closeButton
+              duration={4000}
+            />
+            <Layout>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/blog/:id" element={<PostDetail />} />
+                <Route path="/admin/login" element={<AdminLogin />} />
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                <Route path="/verify" element={<Verify />} />
+                <Route path="/unsubscribe" element={<Unsubscribe />} />
+                <Route path="/testing" element={<TestingDashboard />} />
+                <Route path="/analytics-setup" element={<AnalyticsSetupGuide />} />
+                <Route path="/phone-auth-debug" element={<PhoneAuthDebug />} />
+                <Route path="/auth-debug" element={<AuthDebug />} />
+                <Route path="/theme-showcase" element={<ThemeShowcase />} />
+                <Route path="/accent-test" element={<AccentTest />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Layout>
+          </div>
+        </Router>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }

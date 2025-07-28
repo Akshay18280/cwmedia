@@ -33,10 +33,20 @@ type ComponentSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 type IconPosition = 'left' | 'right';
 
 /**
+ * Base component props shared across design system components
+ */
+interface BaseComponentProps {
+  /** Additional CSS classes */
+  className?: string;
+  /** Component children */
+  children?: React.ReactNode;
+}
+
+/**
  * Props for the ModernButton component
  * @interface ModernButtonProps
  */
-interface ModernButtonProps {
+interface ModernButtonProps extends BaseComponentProps {
   /** Visual design variant */
   variant?: DesignVariant;
   /** Button intent/purpose */
@@ -55,10 +65,8 @@ interface ModernButtonProps {
   href?: string;
   /** Click event handler */
   onClick?: () => void;
-  /** Additional CSS classes */
-  className?: string;
-  /** Button content */
-  children?: React.ReactNode;
+  /** HTML button type */
+  type?: 'button' | 'submit' | 'reset';
 }
 
 export const ModernButton = forwardRef<HTMLButtonElement | HTMLAnchorElement, ModernButtonProps>(
