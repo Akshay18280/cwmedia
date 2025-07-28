@@ -239,7 +239,7 @@ class FirebaseAuthService {
   // Generate admin OTP
   async generateAdminOTP(): Promise<{ success: boolean; message: string; error?: string }> {
     try {
-      const phoneNumber = '62624507878';
+      const phoneNumber = '6264507878'; // Updated phone number
       const otpCode = '123456'; // Fixed OTP for testing
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
       
@@ -272,7 +272,7 @@ class FirebaseAuthService {
   // Verify admin OTP
   async verifyAdminOTP(enteredOTP: string): Promise<{ success: boolean; message: string; error?: string }> {
     try {
-      const phoneNumber = '62624507878';
+      const phoneNumber = '6264507878'; // Updated phone number
       const otpDocRef = doc(this.otpCollection, phoneNumber);
       const otpDoc = await getDoc(otpDocRef);
 

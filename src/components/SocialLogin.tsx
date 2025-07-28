@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { User, Building2, Linkedin, Mail, Shield, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Linkedin, Mail, Phone, Shield, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { authService } from '../services/auth';
+import PhoneAuthModal from './PhoneAuthModal';
 
 interface SocialLoginProps {
-  onLoginSuccess?: (user: { role?: string; phone?: string }) => void;
-  onClose?: () => void;
+  onLoginSuccess?: (user: any) => void;
+  onClose: () => void;
   showAdminLogin?: boolean;
 }
 
@@ -14,6 +15,7 @@ export default function SocialLogin({ onLoginSuccess, onClose, showAdminLogin = 
   const [adminOtpSent, setAdminOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState('');
   const [adminVerified, setAdminVerified] = useState(false);
+  const [showPhoneAuth, setShowPhoneAuth] = useState(false);
 
   const handleLinkedInLogin = async () => {
     setLoading('linkedin');
@@ -49,6 +51,18 @@ export default function SocialLogin({ onLoginSuccess, onClose, showAdminLogin = 
     }
   };
 
+  const handlePhoneLogin = () => {
+    setShowPhoneAuth(true);
+  };
+
+  const handlePhoneAuthSuccess = (user: any) => {
+    toast.success('Phone verification successful!');
+    setShowPhoneAuth(false);
+    if (onLoginSuccess) {
+      onLoginSuccess(user);
+    }
+  };
+
   const handleAdminOTP = async () => {
     setLoading('admin-otp');
     try {
@@ -80,7 +94,7 @@ export default function SocialLogin({ onLoginSuccess, onClose, showAdminLogin = 
         setAdminVerified(true);
         toast.success(result.message);
         if (onLoginSuccess) {
-          onLoginSuccess({ role: 'admin', phone: '62624507878' });
+          onLoginSuccess({ role: 'admin', phone: '6264507878' });
         }
       } else {
         toast.error(result.message);
@@ -120,78 +134,65 @@ export default function SocialLogin({ onLoginSuccess, onClose, showAdminLogin = 
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-auto shadow-2xl">
-      <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
-          <User className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+    <>
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-auto">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            {showAdminLogin ? 'Admin Login' : 'Welcome Back!'}
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300">
+            {showAdminLogin ? 'Secure admin access' : 'Choose your preferred login method'}
+          </p>
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          {showAdminLogin ? 'Admin Login' : 'Sign In to Continue'}
-        </h2>
-        <p className="text-gray-600 dark:text-gray-300">
-          {showAdminLogin 
-            ? 'Verify your identity to access admin features'
-            : 'Connect with your professional profile to submit reviews'
-          }
-        </p>
-      </div>
 
-      <div className="space-y-4">
         {!showAdminLogin && (
-          <>
-            {/* LinkedIn Login */}
-            <button
-              onClick={handleLinkedInLogin}
-              disabled={loading === 'linkedin'}
-              className="w-full flex items-center justify-center px-4 py-3 border-2 border-blue-600 text-blue-600 font-medium rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading === 'linkedin' ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-600 border-t-transparent mr-3"></div>
-              ) : (
-                <Linkedin className="w-5 h-5 mr-3" />
-              )}
-              Continue with LinkedIn
-            </button>
-
+          <div className="space-y-4 mb-6">
             {/* Google Login */}
             <button
               onClick={handleGoogleLogin}
               disabled={loading === 'google'}
-              className="w-full flex items-center justify-center px-4 py-3 border-2 border-red-500 text-red-500 font-medium rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading === 'google' ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-red-500 border-t-transparent mr-3"></div>
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-400 border-t-transparent mr-3"></div>
               ) : (
-                <Mail className="w-5 h-5 mr-3" />
+                <Mail className="w-5 h-5 mr-3 text-red-500" />
               )}
-              Continue with Google
+              <span className="text-gray-700 dark:text-gray-300">
+                {loading === 'google' ? 'Connecting...' : 'Continue with Google'}
+              </span>
             </button>
 
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">Professional profiles only</span>
-              </div>
-            </div>
+            {/* Phone Login */}
+            <button
+              onClick={handlePhoneLogin}
+              disabled={loading === 'phone'}
+              className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading === 'phone' ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-400 border-t-transparent mr-3"></div>
+              ) : (
+                <Phone className="w-5 h-5 mr-3 text-green-500" />
+              )}
+              <span className="text-gray-700 dark:text-gray-300">
+                {loading === 'phone' ? 'Connecting...' : 'Continue with Phone'}
+              </span>
+            </button>
 
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-              <div className="flex">
-                <Building2 className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-3 mt-0.5" />
-                <div className="text-sm">
-                  <p className="text-blue-800 dark:text-blue-200 font-medium mb-1">
-                    Why we need your professional profile:
-                  </p>
-                  <ul className="text-blue-700 dark:text-blue-300 space-y-1">
-                    <li>• Verify your company and position</li>
-                    <li>• Ensure authentic reviews</li>
-                    <li>• Display credible testimonials</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </>
+            {/* LinkedIn Login */}
+            <button
+              onClick={handleLinkedInLogin}
+              disabled={loading === 'linkedin'}
+              className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading === 'linkedin' ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-3"></div>
+              ) : (
+                <Linkedin className="w-5 h-5 mr-3" />
+              )}
+              {loading === 'linkedin' ? 'Connecting...' : 'Continue with LinkedIn'}
+            </button>
+          </div>
         )}
 
         {showAdminLogin && (
@@ -207,7 +208,7 @@ export default function SocialLogin({ onLoginSuccess, onClose, showAdminLogin = 
                 ) : (
                   <Shield className="w-5 h-5 mr-3" />
                 )}
-                Send OTP to +91 62624507878
+                Send OTP to +91 6264507878
               </button>
             ) : (
               <div className="space-y-4">
@@ -250,16 +251,32 @@ export default function SocialLogin({ onLoginSuccess, onClose, showAdminLogin = 
             )}
           </div>
         )}
-      </div>
 
-      {onClose && (
+        {!showAdminLogin && (
+          <div className="text-center">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              By continuing, you agree to our Terms of Service and Privacy Policy
+            </p>
+          </div>
+        )}
+
+        {/* Close button */}
         <button
           onClick={onClose}
-          className="mt-6 w-full text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
         >
-          Cancel
+          ✕
         </button>
-      )}
-    </div>
+      </div>
+
+      {/* Phone Auth Modal */}
+      <PhoneAuthModal
+        isOpen={showPhoneAuth}
+        onClose={() => setShowPhoneAuth(false)}
+        onSuccess={handlePhoneAuthSuccess}
+        title="Phone Verification"
+        subtitle="Secure login with your mobile number"
+      />
+    </>
   );
 } 
