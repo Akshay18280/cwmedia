@@ -52,6 +52,7 @@ function App() {
                 
                 {/* Admin routes */}
                 <Route path="admin" element={<AdminDashboard />} />
+                <Route path="admin/dashboard" element={<AdminDashboard />} />
                 
                 {/* Catch all route */}
                 <Route path="*" element={
