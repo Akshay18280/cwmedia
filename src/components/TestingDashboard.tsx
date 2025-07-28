@@ -277,15 +277,16 @@ export default function TestingDashboard() {
     setLoading(prev => ({ ...prev, analytics: true }));
     
     try {
-      // Test analytics service status
+      // Analytics Engine Test
       const status = realtimeAnalyticsService.getStatus();
       const impactMetrics = realtimeAnalyticsService.getImpactMetrics();
       const geoData = realtimeAnalyticsService.getGeographicDistribution();
       
-      if (status.measurementId === 'G-PLQ0H8HTTZ' && impactMetrics && geoData.length > 0) {
+      // Check if analytics is working properly (without exposing measurement ID)
+      if (status.measurementId && impactMetrics && geoData.length > 0) {
         setTestResults(prev => ({ 
           ...prev, 
-          analytics: `✅ Analytics engine operational. Measurement ID: ${status.measurementId}. ${geoData.length} countries tracked. Impact metrics: ${impactMetrics.totalReach} total reach.` 
+          analytics: `✅ Analytics engine operational. ${geoData.length} countries tracked. Impact metrics: ${impactMetrics.totalReach} total reach.` 
         }));
         toast.success('Analytics engine test passed!');
       } else {

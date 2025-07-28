@@ -154,10 +154,10 @@ export default function Unsubscribe() {
             <p className="text-sm text-gray-500 dark:text-gray-400">
               If you continue to experience issues, please contact us directly at{' '}
               <a 
-                href="mailto:support@carelwavemedia.com" 
+                href="mailto:support@carelwave.com" 
                 className="text-blue-600 dark:text-blue-400 hover:underline"
               >
-                support@carelwavemedia.com
+                                  support@carelwave.com
               </a>
             </p>
           </div>

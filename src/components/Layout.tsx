@@ -6,14 +6,13 @@ import {
   Home, 
   User, 
   FileText, 
-  Mail, 
-  Moon, 
-  Sun,
+  Mail,
   ChevronUp,
   LogIn,
   Shield
 } from 'lucide-react';
 import UnifiedAuthModal from './UnifiedAuthModal';
+import ThemeToggle from './ThemeToggle';
 import type { AuthUser } from '../services/firebase/unified-auth.service';
 
 interface LayoutProps {
@@ -22,20 +21,9 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const location = useLocation();
-
-  // Initialize theme
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const shouldUseDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
-    
-    setIsDarkMode(shouldUseDark);
-    updateTheme(shouldUseDark);
-  }, []);
 
   // Handle scroll for back to top button
   useEffect(() => {
@@ -51,21 +39,6 @@ export default function Layout({ children }: LayoutProps) {
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location]);
-
-  const updateTheme = (dark: boolean) => {
-    if (dark) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('theme', dark ? 'dark' : 'light');
-  };
-
-  const toggleTheme = () => {
-    const newTheme = !isDarkMode;
-    setIsDarkMode(newTheme);
-    updateTheme(newTheme);
-  };
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -153,14 +126,8 @@ export default function Layout({ children }: LayoutProps) {
 
             {/* Right side controls */}
             <div className="flex items-center space-x-3">
-              {/* Theme toggle */}
-              <button
-                onClick={toggleTheme}
-                className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
-                aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-              >
-                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
+              {/* Advanced Theme Toggle */}
+              <ThemeToggle variant="compact" />
 
               {/* Unified Auth button */}
               <div className="hidden md:flex items-center space-x-2">
@@ -266,7 +233,7 @@ export default function Layout({ children }: LayoutProps) {
                 best practices, and innovative solutions for the digital world.
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                © 2024 Carelwave Media. All rights reserved.
+                © 2025 Carelwave Media. All rights reserved.
               </p>
             </div>
 

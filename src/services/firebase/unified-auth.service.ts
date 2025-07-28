@@ -372,6 +372,8 @@ class UnifiedAuthService {
   // Create or update user document
   private async createOrUpdateUser(user: AuthUser): Promise<void> {
     try {
+      console.log('🔄 Creating/updating user:', { id: user.id, role: user.role, provider: user.provider });
+      
       const userRef = doc(db, 'users', user.id);
       const existingDoc = await getDoc(userRef);
       
@@ -382,15 +384,23 @@ class UnifiedAuthService {
       };
 
       if (existingDoc.exists()) {
+        console.log('✅ Updating existing user document');
         await updateDoc(userRef, userData);
+        console.log('✅ User document updated successfully');
       } else {
+        console.log('✅ Creating new user document');
         await setDoc(userRef, {
           ...userData,
           createdAt: Timestamp.now()
         });
+        console.log('✅ User document created successfully');
       }
-    } catch (error) {
-      console.error('Error creating/updating user:', error);
+    } catch (error: any) {
+      console.error('❌ Error creating/updating user:', error);
+      console.error('❌ Error code:', error.code);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ User data:', user);
+      throw error; // Re-throw to handle upstream
     }
   }
 

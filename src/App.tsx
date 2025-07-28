@@ -12,18 +12,22 @@ import AdminDashboard from './pages/AdminDashboard';
 import Verify from './pages/verify';
 import Unsubscribe from './pages/Unsubscribe';
 import TestingDashboard from './components/TestingDashboard';
+import AnalyticsSetupGuide from './components/AnalyticsSetupGuide';
 import ErrorBoundary from './components/ErrorBoundary';
 import NotFound from './components/NotFound';
+import PhoneAuthDebug from './components/PhoneAuthDebug';
+import AuthDebug from './components/AuthDebug';
+import ThemeShowcase from './pages/ThemeShowcase';
 
 function App() {
   return (
     <ErrorBoundary>
       <Router>
         <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200">
-          <Toaster 
-            position="top-right" 
-            richColors 
-            closeButton 
+          <Toaster
+            position="top-right"
+            richColors
+            closeButton
             duration={4000}
           />
           <Layout>
@@ -38,6 +42,10 @@ function App() {
               <Route path="/verify" element={<Verify />} />
               <Route path="/unsubscribe" element={<Unsubscribe />} />
               <Route path="/testing" element={<TestingDashboard />} />
+              <Route path="/analytics-setup" element={<AnalyticsSetupGuide />} />
+              <Route path="/phone-auth-debug" element={<PhoneAuthDebug />} />
+              <Route path="/auth-debug" element={<AuthDebug />} />
+              <Route path="/theme-showcase" element={<ThemeShowcase />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>

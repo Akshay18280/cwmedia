@@ -80,17 +80,21 @@ class SMSService {
     }
   }
 
-  // Generate and send admin OTP
+  // Generate and store admin OTP
   async generateAdminOTP(phoneNumber: string = '6264507878'): Promise<{
     success: boolean;
     message: string;
     error?: string;
   }> {
     try {
+      console.log('🔄 Generating admin OTP for phone:', phoneNumber);
+      
       const formattedPhone = this.formatPhoneNumber(phoneNumber);
-      const otpCode = this.generateOTP();
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
+      
+      console.log('📝 Storing OTP in Firestore...');
+      
       // Store OTP in Firestore
       await setDoc(doc(db, this.otpCollection, phoneNumber), {
         phoneNumber: formattedPhone,
@@ -101,33 +105,39 @@ class SMSService {
         attempts: 0
       });
 
-      if (this.isTestMode) {
-        console.log(`📱 TEST MODE - SMS to ${formattedPhone}: Your Carelwave Media admin OTP: ${otpCode}. Valid for 10 minutes.`);
+      console.log('✅ OTP stored successfully in Firestore');
+
+      // Try to send SMS
+      const smsContent = `Your Carelwave Media admin OTP: ${otpCode}. Valid for 10 minutes.`;
+      
+      if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN) {
+        console.log('📱 TEST MODE - SMS to', formattedPhone + ':', smsContent);
         return {
           success: true,
-          message: `OTP sent! Use code: ${otpCode} for testing.`
+          message: `OTP sent! Check console for test code. Phone: ${formattedPhone}`
         };
       }
 
-      // Send real SMS via Twilio
-      const smsContent = `Your Carelwave Media admin OTP: ${otpCode}. Valid for 10 minutes. Do not share this code.`;
+      console.log('📤 Sending real SMS via Twilio...');
       const smsSent = await this.sendTwilioSMS(formattedPhone, smsContent);
-
+      
       if (smsSent) {
+        console.log('✅ SMS sent successfully via Twilio');
         return {
           success: true,
           message: 'OTP sent successfully to your phone!'
         };
       } else {
-        // Fallback to test mode if SMS fails
-        console.log(`📱 FALLBACK - SMS to ${formattedPhone}: ${smsContent}`);
+        console.log('📱 FALLBACK - SMS to', formattedPhone + ':', smsContent);
         return {
           success: true,
-          message: `OTP sent! Use code: ${otpCode} (SMS service unavailable, using test mode).`
+          message: 'OTP generated successfully (check console for test mode)'
         };
       }
     } catch (error: any) {
-      console.error('OTP generation error:', error);
+      console.error('❌ Error generating admin OTP:', error);
+      console.error('❌ Error code:', error.code);
+      console.error('❌ Error message:', error.message);
       return {
         success: false,
         message: 'Failed to generate OTP',

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { 
   Mail, 
-  Phone, 
   MapPin, 
   Clock, 
   Send, 
@@ -13,11 +12,12 @@ import {
   Linkedin,
   Github,
   Twitter,
-  ExternalLink,
-  Star,
-  Users,
   Zap,
-  Shield
+  Heart,
+  Users,
+  Target,
+  Award,
+  ChevronRight
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { emailService } from '../services/firebase/email.service';
@@ -71,54 +71,16 @@ export default function Contact() {
 
     try {
       // Send contact form email (you can implement this in your email service)
-      const result = await emailService.sendCustomEmail({
-        to: 'contact@carelwavemedia.com',
-        subject: `New Contact Form: ${formData.subject || formData.category.toUpperCase()}`,
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #2563eb;">New Contact Form Submission</h2>
-            
-            <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
-              <h3 style="margin-top: 0;">Contact Information</h3>
-              <p><strong>Name:</strong> ${formData.name}</p>
-              <p><strong>Email:</strong> ${formData.email}</p>
-              <p><strong>Company:</strong> ${formData.company || 'Not provided'}</p>
-              <p><strong>Category:</strong> ${formData.category.toUpperCase()}</p>
-              <p><strong>Priority:</strong> ${formData.priority.toUpperCase()}</p>
-            </div>
-            
-            <div style="background: #ffffff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-              <h3 style="margin-top: 0;">Subject</h3>
-              <p>${formData.subject || 'No subject provided'}</p>
-              
-              <h3>Message</h3>
-              <p style="white-space: pre-wrap;">${formData.message}</p>
-            </div>
-            
-            <div style="margin-top: 20px; padding: 15px; background: #dbeafe; border-radius: 8px;">
-              <p style="margin: 0; color: #1e40af;">
-                <strong>Submitted:</strong> ${new Date().toLocaleString()}
-              </p>
-            </div>
-          </div>
-        `,
-        text: `
-Contact Form Submission
+      const emailData = {
+        from: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+        to: 'contact@carelwave.com',
+        company: formData.company
+      };
 
-Name: ${formData.name}
-Email: ${formData.email}
-Company: ${formData.company || 'Not provided'}
-Category: ${formData.category.toUpperCase()}
-Priority: ${formData.priority.toUpperCase()}
-
-Subject: ${formData.subject || 'No subject provided'}
-
-Message:
-${formData.message}
-
-Submitted: ${new Date().toLocaleString()}
-        `
-      });
+      const result = await emailService.sendCustomEmail(emailData);
 
       if (result.success) {
         setSubmitted(true);
@@ -152,34 +114,26 @@ Submitted: ${new Date().toLocaleString()}
     {
       icon: <Mail className="w-6 h-6" />,
       title: 'Email',
-      value: 'contact@carelwavemedia.com',
+      value: 'contact@carelwave.com',
       description: 'Send us an email anytime',
-      action: 'mailto:contact@carelwavemedia.com',
+      action: 'mailto:contact@carelwave.com',
       color: 'text-blue-600 dark:text-blue-400'
     },
     {
-      icon: <Phone className="w-6 h-6" />,
-      title: 'Phone',
-      value: '+91 6264507878',
-      description: 'Mon-Fri from 8am to 5pm',
-      action: 'tel:+916264507878',
-      color: 'text-green-600 dark:text-green-400'
-    },
-    {
-      icon: <MessageSquare className="w-6 h-6" />,
-      title: 'WhatsApp',
-      value: '+91 6264507878',
-      description: 'Quick response on WhatsApp',
-      action: 'https://wa.me/916264507878',
-      color: 'text-emerald-600 dark:text-emerald-400'
+      icon: <Mail className="w-6 h-6" />,
+      title: 'Support Email',
+      value: 'support@carelwave.com',
+      description: 'Technical support and assistance',
+      action: 'mailto:support@carelwave.com',
+      color: 'text-purple-600 dark:text-purple-400'
     },
     {
       icon: <MapPin className="w-6 h-6" />,
       title: 'Location',
       value: 'India',
       description: 'Remote-first organization',
-      action: '#',
-      color: 'text-purple-600 dark:text-purple-400'
+      action: '',
+      color: 'text-orange-600 dark:text-orange-400'
     }
   ];
 
@@ -296,9 +250,9 @@ Submitted: ${new Date().toLocaleString()}
           <div className="flex flex-wrap justify-center gap-4 mb-12">
             {[
               { icon: <Users className="w-4 h-4" />, text: '500+ Happy Clients' },
-              { icon: <Star className="w-4 h-4" />, text: '4.9/5 Rating' },
+              { icon: <Award className="w-4 h-4" />, text: '4.9/5 Rating' },
               { icon: <Zap className="w-4 h-4" />, text: '24h Response' },
-              { icon: <Shield className="w-4 h-4" />, text: '100% Confidential' }
+              { icon: <Heart className="w-4 h-4" />, text: '100% Confidential' }
             ].map((item, index) => (
               <div key={index} className="flex items-center px-4 py-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-full border border-gray-200 dark:border-gray-700">
                 <span className="text-blue-600 dark:text-blue-400 mr-2">{item.icon}</span>
@@ -339,7 +293,7 @@ Submitted: ${new Date().toLocaleString()}
 
                 <div className="mt-4 flex items-center text-blue-600 dark:text-blue-400 text-sm font-medium">
                   <span>Connect now</span>
-                  <ExternalLink className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-200" />
+                  <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-200" />
                 </div>
               </a>
             ))}
@@ -559,34 +513,34 @@ Submitted: ${new Date().toLocaleString()}
 
               {/* Quick Response */}
               <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl p-6 border border-blue-200 dark:border-blue-800">
-                <div className="flex items-center mb-4">
-                  <Zap className="w-6 h-6 text-blue-600 dark:text-blue-400 mr-3" />
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Quick Response
+                <div className="flex items-center mb-3">
+                  <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mr-3">
+                    <Mail className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">
+                    Email Response
                   </h3>
                 </div>
                 
                 <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
-                  Need an immediate response? For urgent matters, call us directly or send a WhatsApp message. 
-                  We're committed to providing rapid support when you need it most.
+                  Need a response? Send us an email and we'll get back to you promptly. 
+                  We're committed to providing comprehensive support through our email channels.
                 </p>
                 
                 <div className="flex space-x-3 mt-4">
                   <a
-                    href="tel:+916264507878"
+                    href="mailto:contact@carelwave.com"
                     className="flex-1 flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                   >
-                    <Phone className="w-4 h-4 mr-2" />
-                    Call Now
+                    <Mail className="w-4 h-4 mr-2" />
+                    Contact Us
                   </a>
                   <a
-                    href="https://wa.me/916264507878"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-1 flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+                    href="mailto:support@carelwave.com"
+                    className="flex-1 flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
                   >
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    WhatsApp
+                    <Mail className="w-4 h-4 mr-2" />
+                    Support
                   </a>
                 </div>
               </div>
@@ -648,11 +602,11 @@ Submitted: ${new Date().toLocaleString()}
                 Send Message
               </a>
               <a
-                href="tel:+916264507878"
+                href="mailto:contact@carelwave.com"
                 className="inline-flex items-center px-8 py-4 border-2 border-white text-white hover:bg-white hover:text-blue-600 font-semibold rounded-lg transition-colors"
               >
-                <Phone className="w-5 h-5 mr-2" />
-                Call Directly
+                <Mail className="w-5 h-5 mr-2" />
+                Email Us
               </a>
             </div>
           </div>
