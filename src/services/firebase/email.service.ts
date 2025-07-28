@@ -1,4 +1,4 @@
-import { Resend } from 'resend';
+// import { Resend } from 'resend';
 
 interface EmailOptions {
   to: string | string[];
@@ -17,7 +17,7 @@ interface SendResult {
 }
 
 class EmailService {
-  private resend: Resend | null = null;
+  // private resend: Resend | null = null;
   private readonly fromEmail = 'Carelwave Media <noreply@carelwave.com>';
   private readonly replyToEmail = 'contact@carelwave.com';
 
