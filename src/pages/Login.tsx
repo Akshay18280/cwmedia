@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { Phone, Mail, Shield, CheckCircle, ArrowLeft, User, Chrome } from 'lucide-react';
+import { Phone, Mail, Shield, CheckCircle, ArrowLeft, User, Chrome, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { unifiedAuthService } from '../services/firebase/unified-auth.service';
 import { firebaseAuthService } from '../services/firebase/auth.service';
@@ -16,6 +16,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [verifiedUser, setVerifiedUser] = useState<any>(null);
+  const [rememberMe, setRememberMe] = useState(false);
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -79,7 +80,7 @@ export default function Login() {
 
     setLoading(true);
     try {
-             const result = await unifiedAuthService.verifyPhoneOTP(otpCode);
+      const result = await unifiedAuthService.verifyPhoneOTP(otpCode);
       
       if (result.success && result.user) {
         setVerifiedUser(result.user);
@@ -137,262 +138,223 @@ export default function Login() {
       }
     } catch (error) {
       console.error('Resend OTP error:', error);
-      toast.error('Failed to resend verification code');
+      toast.error('Failed to resend code');
     } finally {
       setLoading(false);
     }
   };
 
-  const resetToMethodSelection = () => {
-    setStep('method');
-    setPhoneNumber('');
-    setOtpCode('');
-    setCountdown(0);
-    setVerifiedUser(null);
-  };
+  const renderMethodSelection = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          Welcome Back
+        </h2>
+        <p className="text-gray-600 dark:text-gray-300">
+          Choose your preferred sign-in method
+        </p>
+      </div>
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-blue-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        {/* Header */}
-        <div className="text-center">
-          <Link to="/" className="inline-flex items-center space-x-2 mb-6">
-            <div className="w-10 h-10 bg-gradient-flow rounded-lg flex items-center justify-center">
-              <span className="text-white font-black text-lg">C</span>
-            </div>
-            <span className="text-xl font-bold text-gradient-flow">Carelwave Media</span>
-          </Link>
-          
-          <h2 className="text-3xl font-extrabold text-high-contrast">
-            Welcome Back
-          </h2>
-          <p className="mt-2 text-body text-medium-contrast">
-            Sign in to your account to continue
-          </p>
+      {/* Google Sign In */}
+      <ModernButton
+        variant="glass"
+        intent="secondary"
+        size="lg"
+        className="w-full"
+        onClick={handleGoogleSignIn}
+        disabled={loading}
+      >
+        <Chrome className="w-5 h-5 mr-3" />
+        Continue with Google
+      </ModernButton>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-300 dark:border-gray-600" />
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-2 bg-white dark:bg-gray-900 text-gray-500">
+            Or continue with phone
+          </span>
+        </div>
+      </div>
+
+      {/* Phone Number Form */}
+      <form onSubmit={handlePhoneSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Phone Number
+          </label>
+          <div className="relative">
+            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              id="phone"
+              type="tel"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              placeholder="+1 (555) 123-4567"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              disabled={loading}
+            />
+          </div>
         </div>
 
-        {/* Method Selection */}
-        {step === 'method' && (
-          <div className="space-y-6">
-            <div className="space-y-4">
-              {/* Google Sign In */}
-                             <ModernButton
-                 variant="glass"
-                 intent="secondary"
-                size="lg"
-                onClick={handleGoogleSignIn}
-                disabled={loading}
-                className="w-full justify-center"
-              >
-                <Chrome className="w-5 h-5 mr-3" />
-                Continue with Google
-              </ModernButton>
-
-              {/* Divider */}
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-medium-contrast" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-blue-900 text-medium-contrast">
-                    or
-                  </span>
-                </div>
-              </div>
-
-              {/* Phone Number Sign In */}
-              <ModernButton
-                variant="default"
-                intent="primary"
-                size="lg"
-                onClick={() => setStep('phone')}
-                className="w-full justify-center"
-              >
-                <Phone className="w-5 h-5 mr-3" />
-                Continue with Phone
-              </ModernButton>
-            </div>
-
-            {/* Admin Login Link */}
-            <div className="text-center">
-              <Link
-                to="/admin/login"
-                className="text-body-sm text-medium-contrast hover:text-high-contrast transition-colors"
-              >
-                Are you an admin? <span className="font-medium text-blue-600 hover:text-blue-500">Sign in here</span>
-              </Link>
-            </div>
+        {/* Remember Me Checkbox */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <input
+              id="remember-me"
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+              Remember me
+            </label>
           </div>
-        )}
-
-        {/* Phone Number Step */}
-        {step === 'phone' && (
-          <form onSubmit={handlePhoneSubmit} className="space-y-6">
-            <div className="flex items-center space-x-2 mb-6">
-              <button
-                type="button"
-                onClick={resetToMethodSelection}
-                className="p-2 text-medium-contrast hover:text-high-contrast transition-colors rounded-lg"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <h3 className="text-xl font-semibold text-high-contrast">Enter Phone Number</h3>
-            </div>
-
-            <div>
-              <label htmlFor="phone" className="sr-only">
-                Phone number
-              </label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                <input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  autoComplete="tel"
-                  required
-                  className="relative block w-full pl-10 pr-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-body dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                  placeholder="Enter your phone number (+1234567890)"
-                  value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <ModernButton
-              type="submit"
-              variant="default"
-              intent="primary"
-              size="lg"
-              disabled={loading}
-              className="w-full justify-center"
-            >
-              {loading ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-              ) : (
-                <>
-                  <Phone className="w-5 h-5 mr-2" />
-                  Send Verification Code
-                </>
-              )}
-            </ModernButton>
-
-            <p className="text-xs text-medium-contrast text-center">
-              We'll send you a verification code to confirm your phone number
-            </p>
-          </form>
-        )}
-
-        {/* OTP Verification Step */}
-        {step === 'otp' && (
-          <form onSubmit={handleOTPSubmit} className="space-y-6">
-            <div className="flex items-center space-x-2 mb-6">
-              <button
-                type="button"
-                onClick={() => setStep('phone')}
-                className="p-2 text-medium-contrast hover:text-high-contrast transition-colors rounded-lg"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <h3 className="text-xl font-semibold text-high-contrast">Enter Verification Code</h3>
-            </div>
-
-            <div className="text-center mb-6">
-              <p className="text-body text-medium-contrast">
-                We sent a code to <span className="font-medium text-high-contrast">{phoneNumber}</span>
-              </p>
-            </div>
-
-            <div>
-              <label htmlFor="otp" className="sr-only">
-                Verification code
-              </label>
-              <input
-                id="otp"
-                name="otp"
-                type="text"
-                required
-                maxLength={6}
-                className="block w-full px-4 py-3 text-center text-2xl font-mono border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white tracking-widest"
-                placeholder="000000"
-                value={otpCode}
-                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              />
-            </div>
-
-            <ModernButton
-              type="submit"
-              variant="default"
-              intent="primary"
-              size="lg"
-              disabled={loading || otpCode.length !== 6}
-              className="w-full justify-center"
-            >
-              {loading ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
-              ) : (
-                <>
-                  <CheckCircle className="w-5 h-5 mr-2" />
-                  Verify Code
-                </>
-              )}
-            </ModernButton>
-
-            {/* Resend Code */}
-            <div className="text-center">
-              {countdown > 0 ? (
-                <p className="text-body-sm text-medium-contrast">
-                  Resend code in {countdown} seconds
-                </p>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleResendOTP}
-                  disabled={loading}
-                  className="text-body-sm text-blue-600 hover:text-blue-500 transition-colors font-medium"
-                >
-                  Resend verification code
-                </button>
-              )}
-            </div>
-          </form>
-        )}
-
-        {/* Success Step */}
-        {step === 'success' && verifiedUser && (
-          <div className="text-center space-y-6">
-            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/20">
-              <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
-            </div>
-            
-            <div>
-              <h3 className="text-xl font-semibold text-high-contrast mb-2">
-                Welcome, {verifiedUser.displayName || 'User'}!
-              </h3>
-              <p className="text-body text-medium-contrast">
-                Your phone number has been verified successfully.
-              </p>
-            </div>
-
-            <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-500 border-t-transparent mx-auto"></div>
-            <p className="text-body-sm text-medium-contrast">
-              Redirecting you now...
-            </p>
+          <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+            <Clock className="w-3 h-3 mr-1" />
+            <span>{rememberMe ? '30 days' : '24 hours'}</span>
           </div>
-        )}
+        </div>
 
-        {/* Footer */}
-        <div className="text-center">
-          <p className="text-xs text-low-contrast">
-            By signing in, you agree to our{' '}
-            <Link to="/terms" className="text-blue-600 hover:text-blue-500">
-              Terms of Service
-            </Link>{' '}
-            and{' '}
-            <Link to="/privacy" className="text-blue-600 hover:text-blue-500">
-              Privacy Policy
-            </Link>
+        <ModernButton
+          type="submit"
+          variant="default"
+          intent="primary"
+          size="lg"
+          className="w-full"
+          disabled={loading || !phoneNumber.trim()}
+          loading={loading}
+        >
+          Send Verification Code
+        </ModernButton>
+      </form>
+
+      <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+        Don't have an account?{' '}
+        <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
+          Sign up here
+        </Link>
+      </div>
+    </div>
+  );
+
+  const renderOTPVerification = () => (
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          Verify Your Phone
+        </h2>
+        <p className="text-gray-600 dark:text-gray-300">
+          We sent a verification code to
+        </p>
+        <p className="font-medium text-gray-900 dark:text-white">
+          {phoneNumber}
+        </p>
+      </div>
+
+      <form onSubmit={handleOTPSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="otp" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Verification Code
+          </label>
+          <input
+            id="otp"
+            type="text"
+            value={otpCode}
+            onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            placeholder="123456"
+            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-center text-2xl font-mono tracking-widest"
+            maxLength={6}
+            autoComplete="one-time-code"
+            disabled={loading}
+          />
+        </div>
+
+        <ModernButton
+          type="submit"
+          variant="default"
+          intent="primary"
+          size="lg"
+          className="w-full"
+          disabled={loading || otpCode.length !== 6}
+          loading={loading}
+        >
+          Verify Code
+        </ModernButton>
+      </form>
+
+      <div className="text-center">
+        {countdown > 0 ? (
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Resend code in {countdown} seconds
           </p>
+        ) : (
+          <button
+            onClick={handleResendOTP}
+            disabled={loading}
+            className="text-sm text-blue-600 hover:text-blue-500 disabled:opacity-50"
+          >
+            Resend verification code
+          </button>
+        )}
+      </div>
+
+      <button
+        onClick={() => setStep('method')}
+        className="flex items-center justify-center w-full text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to sign-in options
+      </button>
+    </div>
+  );
+
+  const renderSuccess = () => (
+    <div className="space-y-6 text-center">
+      <div className="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+        <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
+      </div>
+      
+      <div>
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          Welcome!
+        </h2>
+        <p className="text-gray-600 dark:text-gray-300">
+          You've been successfully signed in
+        </p>
+        {verifiedUser && (
+          <p className="font-medium text-gray-900 dark:text-white mt-2">
+            Hello, {verifiedUser.name}!
+          </p>
+        )}
+      </div>
+
+      <div className="flex items-center justify-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+        <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+        <span>Redirecting...</span>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-8">
+          {step === 'method' && renderMethodSelection()}
+          {step === 'otp' && renderOTPVerification()}
+          {step === 'success' && renderSuccess()}
+        </div>
+        
+        <div className="text-center mt-6">
+          <Link
+            to="/"
+            className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+          >
+            ← Back to Home
+          </Link>
         </div>
       </div>
     </div>

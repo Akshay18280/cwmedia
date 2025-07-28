@@ -95,7 +95,8 @@ export default function Home() {
     speak,
     amplitude,
     lastCommand,
-    availableCommands
+    availableCommands,
+    supportStatus
   } = useVoiceCommands();
 
   // Load data with enhanced error handling
@@ -196,17 +197,17 @@ export default function Home() {
             className="text-display mb-6 text-gradient-flow animate-fade-in text-high-contrast"
             style={boldHeroStyle}
           >
-            Building the Future of{' '}
+            AI-Powered Content That{' '}
             <span className="relative">
-              Technology
+              Drives Results
               <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-flow opacity-30 rounded-full transform scale-x-0 animate-scale-in delay-500" />
             </span>
           </h1>
 
           <p className="text-body-lg text-medium-contrast mb-12 max-w-3xl mx-auto animate-fade-in delay-200">
             {userBehavior.engagementLevel === 'high' 
-              ? "Welcome back! Discover cutting-edge insights, tutorials, and innovations that are shaping tomorrow's digital landscape."
-              : "Discover cutting-edge insights, tutorials, and innovations that are shaping tomorrow's digital landscape."
+              ? "Welcome back! Generate 10x more traffic with AI content that outperforms competitors and converts like crazy - all on autopilot."
+              : "Generate 10x more traffic with AI content that outperforms competitors and converts like crazy - all on autopilot."
             }
           </p>
 
@@ -224,19 +225,18 @@ export default function Home() {
               Explore Articles
             </ModernButton>
 
-            {voiceSupported && (
-              <ModernButton
-                variant="glass"
-                intent="secondary"
-                size="xl"
-                icon={isListening ? MicOff : Mic}
-                iconPosition="left"
-                onClick={toggleListening}
-                className="min-w-[200px]"
-              >
-                {isListening ? 'Stop Voice' : 'Voice Commands'}
-              </ModernButton>
-            )}
+            <ModernButton
+              variant="glass"
+              intent="secondary"
+              size="xl"
+              icon={isListening ? MicOff : Mic}
+              iconPosition="left"
+              onClick={toggleListening}
+              className="min-w-[200px]"
+              disabled={!voiceSupported}
+            >
+              {isListening ? 'Stop Voice' : voiceSupported ? 'Voice Commands' : supportStatus}
+            </ModernButton>
 
             <ModernButton
               variant="neumorphic"

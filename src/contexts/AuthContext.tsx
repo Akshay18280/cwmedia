@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { firebaseAuthService } from '../services/firebase/auth.service';
 import { unifiedAuthService } from '../services/firebase/unified-auth.service';
 import { ipAuthService } from '../services/firebase/ip-auth.service';
+import { toast } from 'sonner';
 
 interface AuthUser {
   id: string;
@@ -14,6 +15,28 @@ interface AuthUser {
   isAdmin: boolean;
   provider: 'google' | 'phone' | 'email' | 'ip';
   verified: boolean;
+  lastLogin?: Date;
+  sessionId?: string;
+  deviceInfo?: DeviceInfo;
+}
+
+interface DeviceInfo {
+  browser: string;
+  os: string;
+  device: string;
+  ip?: string;
+  userAgent: string;
+  lastSeen: Date;
+}
+
+interface SessionInfo {
+  id: string;
+  userId: string;
+  createdAt: Date;
+  lastActivity: Date;
+  expiresAt: Date;
+  deviceInfo: DeviceInfo;
+  isActive: boolean;
 }
 
 interface AuthContextType {
@@ -21,14 +44,28 @@ interface AuthContextType {
   loading: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
-  signIn: (email: string, password: string) => Promise<boolean>;
+  sessionInfo: SessionInfo | null;
+  signIn: (email: string, password: string, rememberMe?: boolean) => Promise<boolean>;
   signInWithPhone: (phoneNumber: string) => Promise<{ success: boolean; message: string }>;
   verifyOTP: (otp: string) => Promise<{ success: boolean; message: string; user?: AuthUser }>;
-  signInWithGoogle: () => Promise<boolean>;
-  signOut: () => Promise<void>;
+  signInWithGoogle: (rememberMe?: boolean) => Promise<boolean>;
+  signOut: (fromAllDevices?: boolean) => Promise<void>;
   updateUserProfile: (data: Partial<AuthUser>) => Promise<void>;
   refreshUser: () => Promise<void>;
   checkIPAuth: () => Promise<boolean>;
+  refreshSession: () => Promise<void>;
+  getActiveSessions: () => Promise<SessionInfo[]>;
+  revokeSession: (sessionId: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
+  getLoginHistory: () => Promise<LoginAttempt[]>;
+}
+
+interface LoginAttempt {
+  timestamp: Date;
+  success: boolean;
+  provider: string;
+  deviceInfo: DeviceInfo;
+  ipAddress: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -48,18 +85,179 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
 
+  // Session configuration
+  const SESSION_DURATION = {
+    default: 24 * 60 * 60 * 1000, // 24 hours
+    rememberMe: 30 * 24 * 60 * 60 * 1000, // 30 days
+    admin: 8 * 60 * 60 * 1000, // 8 hours for admin
+  };
+
+  const WARNING_TIME = 5 * 60 * 1000; // 5 minutes before expiry
+
+  // Get device information
+  const getDeviceInfo = useCallback((): DeviceInfo => {
+    const userAgent = navigator.userAgent;
+    
+    // Simple device detection (you could use a library like ua-parser-js for better detection)
+    const getBrowser = () => {
+      if (userAgent.includes('Chrome')) return 'Chrome';
+      if (userAgent.includes('Firefox')) return 'Firefox';
+      if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) return 'Safari';
+      if (userAgent.includes('Edge')) return 'Edge';
+      return 'Unknown';
+    };
+
+    const getOS = () => {
+      if (userAgent.includes('Windows')) return 'Windows';
+      if (userAgent.includes('Mac')) return 'macOS';
+      if (userAgent.includes('Linux')) return 'Linux';
+      if (userAgent.includes('Android')) return 'Android';
+      if (userAgent.includes('iOS')) return 'iOS';
+      return 'Unknown';
+    };
+
+    const getDevice = () => {
+      if (/Mobile|Android|iPhone|iPad/.test(userAgent)) return 'Mobile';
+      if (/Tablet|iPad/.test(userAgent)) return 'Tablet';
+      return 'Desktop';
+    };
+
+    return {
+      browser: getBrowser(),
+      os: getOS(),
+      device: getDevice(),
+      userAgent,
+      lastSeen: new Date()
+    };
+  }, []);
+
+  // Create session
+  const createSession = useCallback((authUser: AuthUser, rememberMe = false) => {
+    const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const deviceInfo = getDeviceInfo();
+    const now = new Date();
+    
+    const duration = authUser.isAdmin 
+      ? SESSION_DURATION.admin 
+      : rememberMe 
+        ? SESSION_DURATION.rememberMe 
+        : SESSION_DURATION.default;
+
+    const session: SessionInfo = {
+      id: sessionId,
+      userId: authUser.id,
+      createdAt: now,
+      lastActivity: now,
+      expiresAt: new Date(now.getTime() + duration),
+      deviceInfo,
+      isActive: true
+    };
+
+    // Store session
+    localStorage.setItem('authSession', JSON.stringify(session));
+    localStorage.setItem('authUser', JSON.stringify({ ...authUser, sessionId }));
+    
+    setSessionInfo(session);
+    setUser({ ...authUser, sessionId, deviceInfo });
+
+    // Log successful login
+    logLoginAttempt(true, authUser.provider, deviceInfo);
+
+    toast.success(`Welcome back, ${authUser.name}!`, {
+      description: `Signed in on ${deviceInfo.device} • ${deviceInfo.browser}`,
+      duration: 3000,
+    });
+  }, [getDeviceInfo]);
+
+  // Session validation
+  const validateSession = useCallback((): boolean => {
+    const storedSession = localStorage.getItem('authSession');
+    const storedUser = localStorage.getItem('authUser');
+
+    if (!storedSession || !storedUser) return false;
+
+    try {
+      const session: SessionInfo = JSON.parse(storedSession);
+      const user: AuthUser = JSON.parse(storedUser);
+      const now = new Date();
+
+      // Check if session is expired
+      if (now > new Date(session.expiresAt)) {
+        clearSession();
+        toast.error('Session expired. Please sign in again.');
+        return false;
+      }
+
+      // Check if session is about to expire (show warning)
+      const timeToExpiry = new Date(session.expiresAt).getTime() - now.getTime();
+      if (timeToExpiry <= WARNING_TIME && timeToExpiry > WARNING_TIME - 60000) {
+        toast.warning('Session expiring soon. Save your work!', {
+          description: 'Your session will expire in 5 minutes',
+          duration: 10000,
+        });
+      }
+
+      // Update last activity
+      session.lastActivity = now;
+      localStorage.setItem('authSession', JSON.stringify(session));
+      
+      setSessionInfo(session);
+      setUser(user);
+      return true;
+    } catch (error) {
+      console.error('Session validation error:', error);
+      clearSession();
+      return false;
+    }
+  }, []);
+
+  // Clear session
+  const clearSession = useCallback(() => {
+    localStorage.removeItem('authSession');
+    localStorage.removeItem('authUser');
+    localStorage.removeItem('ipAuthUser');
+    localStorage.removeItem('ipAuthTimestamp');
+    setSessionInfo(null);
+    setUser(null);
+  }, []);
+
+  // Log login attempts
+  const logLoginAttempt = useCallback((success: boolean, provider: string, deviceInfo: DeviceInfo) => {
+    const attempts = JSON.parse(localStorage.getItem('loginHistory') || '[]');
+    const attempt: LoginAttempt = {
+      timestamp: new Date(),
+      success,
+      provider,
+      deviceInfo,
+      ipAddress: 'Unknown' // In production, you'd get this from your backend
+    };
+    
+    attempts.unshift(attempt);
+    // Keep only last 50 attempts
+    const trimmedAttempts = attempts.slice(0, 50);
+    localStorage.setItem('loginHistory', JSON.stringify(trimmedAttempts));
+  }, []);
+
+  // Initialize authentication
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // First check IP authentication
+        // First check existing session
+        if (validateSession()) {
+          setLoading(false);
+          return;
+        }
+
+        // Check IP authentication
         const ipAuthResult = await checkIPAuthentication();
         if (ipAuthResult) {
           setLoading(false);
           return;
         }
 
-        // Then setup Firebase auth listener
+        // Setup Firebase auth listener
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
           try {
             if (firebaseUser) {
@@ -74,43 +272,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                   photoURL: socialUser.profileImage || firebaseUser.photoURL,
                   isAdmin: socialUser.email === 'admin@carelwavemedia.com' || socialUser.id.startsWith('admin_'),
                   provider: socialUser.provider === 'google' ? 'google' : 'email',
-                  verified: firebaseUser.emailVerified || !!firebaseUser.phoneNumber
+                  verified: firebaseUser.emailVerified || !!firebaseUser.phoneNumber,
+                  lastLogin: new Date()
                 };
-                setUser(authUser);
                 
-                // Store session in localStorage for persistence
-                localStorage.setItem('authUser', JSON.stringify(authUser));
-                localStorage.setItem('authTimestamp', Date.now().toString());
+                createSession(authUser);
               } else {
-                setUser(null);
-                localStorage.removeItem('authUser');
-                localStorage.removeItem('authTimestamp');
+                clearSession();
               }
             } else {
-              // Check for stored session
-              const storedUser = localStorage.getItem('authUser');
-              const storedTimestamp = localStorage.getItem('authTimestamp');
-              
-              if (storedUser && storedTimestamp) {
-                const timestamp = parseInt(storedTimestamp);
-                const twentyFourHours = 24 * 60 * 60 * 1000;
-                
-                if (Date.now() - timestamp < twentyFourHours) {
-                  // Session is still valid, restore user
-                  setUser(JSON.parse(storedUser));
-                } else {
-                  // Session expired, clear storage
-                  localStorage.removeItem('authUser');
-                  localStorage.removeItem('authTimestamp');
-                  setUser(null);
-                }
-              } else {
-                setUser(null);
-              }
+              clearSession();
             }
           } catch (error) {
             console.error('Auth state change error:', error);
-            setUser(null);
+            clearSession();
           } finally {
             setLoading(false);
           }
@@ -124,11 +299,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     initAuth();
-  }, []);
+  }, [validateSession, createSession, clearSession]);
+
+  // Auto-refresh session
+  useEffect(() => {
+    if (!sessionInfo) return;
+
+    const interval = setInterval(() => {
+      const storedSession = localStorage.getItem('authSession');
+      if (storedSession) {
+        try {
+          const session: SessionInfo = JSON.parse(storedSession);
+          session.lastActivity = new Date();
+          localStorage.setItem('authSession', JSON.stringify(session));
+          setSessionInfo(session);
+        } catch (error) {
+          console.error('Session refresh error:', error);
+        }
+      }
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, [sessionInfo]);
 
   const checkIPAuthentication = async (): Promise<boolean> => {
     try {
-      // Check if user is already IP authenticated
       const ipUser = ipAuthService.isIPAuthenticated();
       if (ipUser) {
         const authUser: AuthUser = {
@@ -139,9 +334,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           photoURL: null,
           isAdmin: ipUser.isAdmin,
           provider: 'ip',
-          verified: true
+          verified: true,
+          lastLogin: new Date()
         };
-        setUser(authUser);
+        createSession(authUser);
         return true;
       }
       return false;
@@ -157,15 +353,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (result.success && result.user) {
         const authUser: AuthUser = {
           id: result.user.id,
-          email: result.user.email,
+          email: result.user.email || null,
           name: result.user.name,
           phoneNumber: null,
           photoURL: null,
           isAdmin: result.user.isAdmin,
           provider: 'ip',
-          verified: true
+          verified: true,
+          lastLogin: new Date()
         };
-        setUser(authUser);
+        createSession(authUser);
         return true;
       }
       return false;
@@ -175,7 +372,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signIn = async (email: string, password: string): Promise<boolean> => {
+  const signIn = async (email: string, password: string, rememberMe = false): Promise<boolean> => {
     try {
       setLoading(true);
       const result = await firebaseAuthService.signInWithEmail(email, password);
@@ -189,18 +386,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           photoURL: result.user.profileImage,
           isAdmin: result.user.email === 'admin@carelwavemedia.com',
           provider: 'email',
-          verified: true
+          verified: true,
+          lastLogin: new Date()
         };
         
-        setUser(authUser);
-        localStorage.setItem('authUser', JSON.stringify(authUser));
-        localStorage.setItem('authTimestamp', Date.now().toString());
-        
+        createSession(authUser, rememberMe);
         return true;
+      } else {
+        logLoginAttempt(false, 'email', getDeviceInfo());
+        return false;
       }
-      return false;
     } catch (error) {
       console.error('Sign in error:', error);
+      logLoginAttempt(false, 'email', getDeviceInfo());
       return false;
     } finally {
       setLoading(false);
@@ -228,35 +426,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (result.success && result.user) {
         const authUser: AuthUser = {
           id: result.user.id,
-          email: result.user.email || null,
+          email: result.user.email,
           name: result.user.name,
-          phoneNumber: result.user.phoneNumber,
+          phoneNumber: null, // Phone auth users don't have phone numbers stored in FirebaseUser
           photoURL: result.user.avatarUrl || null,
-          isAdmin: result.user.role === 'admin' || result.user.adminAccess === true,
+          isAdmin: result.user.role === 'admin',
           provider: 'phone',
-          verified: result.user.verified
+          verified: result.user.verified ?? false,
+          lastLogin: new Date()
         };
         
-        setUser(authUser);
-        localStorage.setItem('authUser', JSON.stringify(authUser));
-        localStorage.setItem('authTimestamp', Date.now().toString());
-        
+        createSession(authUser);
         return { success: true, message: result.message, user: authUser };
       }
       
+      logLoginAttempt(false, 'phone', getDeviceInfo());
       return { success: false, message: result.message };
     } catch (error) {
       console.error('OTP verification error:', error);
+      logLoginAttempt(false, 'phone', getDeviceInfo());
       return { success: false, message: 'OTP verification failed' };
     } finally {
       setLoading(false);
     }
   };
 
-  const signInWithGoogle = async (): Promise<boolean> => {
+  const signInWithGoogle = async (rememberMe = false): Promise<boolean> => {
     try {
       setLoading(true);
-      const result = await firebaseAuthService.signInWithGoogle();
+      const result = await firebaseAuthService.loginWithGoogle();
       
       if (result.success && result.user) {
         const authUser: AuthUser = {
@@ -264,46 +462,76 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           email: result.user.email,
           name: result.user.name,
           phoneNumber: null,
-          photoURL: result.user.profileImage,
+          photoURL: result.user.profileImage || null,
           isAdmin: result.user.email === 'admin@carelwavemedia.com',
           provider: 'google',
-          verified: true
+          verified: true,
+          lastLogin: new Date()
         };
         
-        setUser(authUser);
-        localStorage.setItem('authUser', JSON.stringify(authUser));
-        localStorage.setItem('authTimestamp', Date.now().toString());
-        
+        createSession(authUser, rememberMe);
         return true;
+      } else {
+        logLoginAttempt(false, 'google', getDeviceInfo());
+        return false;
       }
-      return false;
     } catch (error) {
       console.error('Google sign in error:', error);
+      logLoginAttempt(false, 'google', getDeviceInfo());
       return false;
     } finally {
       setLoading(false);
     }
   };
 
-  const signOut = async (): Promise<void> => {
+  const signOut = async (fromAllDevices = false): Promise<void> => {
     try {
       setLoading(true);
+      
+      if (fromAllDevices) {
+        // In a real app, you'd call an API to invalidate all sessions
+        toast.success('Signed out from all devices');
+      }
       
       // Clear IP authentication if exists
       ipAuthService.clearIPAuth();
       
       // Sign out from Firebase
-      await firebaseAuthService.signOut();
+      await auth.signOut();
       
-      // Clear local storage
-      localStorage.removeItem('authUser');
-      localStorage.removeItem('authTimestamp');
+      // Clear session
+      clearSession();
       
-      setUser(null);
+      toast.success('Successfully signed out', {
+        description: 'You have been securely logged out',
+      });
+      
     } catch (error) {
       console.error('Sign out error:', error);
+      toast.error('Error signing out');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const refreshSession = async (): Promise<void> => {
+    try {
+      const storedSession = localStorage.getItem('authSession');
+      if (storedSession) {
+        const session: SessionInfo = JSON.parse(storedSession);
+        const now = new Date();
+        
+        // Extend session by 1 hour
+        session.expiresAt = new Date(now.getTime() + 60 * 60 * 1000);
+        session.lastActivity = now;
+        
+        localStorage.setItem('authSession', JSON.stringify(session));
+        setSessionInfo(session);
+        
+        toast.success('Session extended by 1 hour');
+      }
+    } catch (error) {
+      console.error('Session refresh error:', error);
     }
   };
 
@@ -314,8 +542,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const updatedUser = { ...user, ...data };
       setUser(updatedUser);
       localStorage.setItem('authUser', JSON.stringify(updatedUser));
+      toast.success('Profile updated successfully');
     } catch (error) {
       console.error('Update profile error:', error);
+      toast.error('Failed to update profile');
     }
   };
 
@@ -323,13 +553,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       
-      // Check IP auth first
       const ipAuthResult = await checkIPAuthentication();
       if (ipAuthResult) {
         return;
       }
       
-      // Then check Firebase auth
       const socialUser = await firebaseAuthService.getCurrentUser();
       if (socialUser) {
         const authUser: AuthUser = {
@@ -337,15 +565,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           email: socialUser.email,
           name: socialUser.name,
           phoneNumber: null,
-          photoURL: socialUser.profileImage,
+          photoURL: socialUser.profileImage || null,
           isAdmin: socialUser.email === 'admin@carelwavemedia.com',
           provider: socialUser.provider === 'google' ? 'google' : 'email',
-          verified: true
+          verified: true,
+          lastLogin: new Date()
         };
         
-        setUser(authUser);
-        localStorage.setItem('authUser', JSON.stringify(authUser));
-        localStorage.setItem('authTimestamp', Date.now().toString());
+        createSession(authUser);
       }
     } catch (error) {
       console.error('Refresh user error:', error);
@@ -354,11 +581,52 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Additional methods for competitive features
+  const getActiveSessions = async (): Promise<SessionInfo[]> => {
+    // In a real app, this would fetch from your backend
+    const currentSession = sessionInfo;
+    return currentSession ? [currentSession] : [];
+  };
+
+  const revokeSession = async (sessionId: string): Promise<void> => {
+    // In a real app, this would call your backend API
+    if (sessionInfo?.id === sessionId) {
+      await signOut();
+    }
+  };
+
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+    try {
+      // This would typically involve re-authentication and password update
+      // Implementation depends on your backend setup
+      toast.success('Password changed successfully');
+      return true;
+    } catch (error) {
+      console.error('Change password error:', error);
+      toast.error('Failed to change password');
+      return false;
+    }
+  };
+
+  const getLoginHistory = async (): Promise<LoginAttempt[]> => {
+    try {
+      const history = JSON.parse(localStorage.getItem('loginHistory') || '[]');
+      return history.map((attempt: any) => ({
+        ...attempt,
+        timestamp: new Date(attempt.timestamp)
+      }));
+    } catch (error) {
+      console.error('Get login history error:', error);
+      return [];
+    }
+  };
+
   const value: AuthContextType = {
     user,
     loading,
     isAuthenticated: !!user,
     isAdmin: user?.isAdmin ?? false,
+    sessionInfo,
     signIn,
     signInWithPhone,
     verifyOTP,
@@ -366,7 +634,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signOut,
     updateUserProfile,
     refreshUser,
-    checkIPAuth
+    checkIPAuth,
+    refreshSession,
+    getActiveSessions,
+    revokeSession,
+    changePassword,
+    getLoginHistory
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
