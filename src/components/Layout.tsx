@@ -1,186 +1,301 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, Moon, Sun, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import BackToTop from './BackToTop';
+import { 
+  Menu, 
+  X, 
+  Home, 
+  User, 
+  FileText, 
+  Mail, 
+  Moon, 
+  Sun,
+  ChevronUp,
+  LogIn,
+  Shield
+} from 'lucide-react';
+import AuthModal from './AuthModal';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const [isDark, setIsDark] = useState(() => {
-    // Check for saved theme preference or default to system preference
-    const saved = localStorage.getItem('theme');
-    if (saved) return saved === 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
-  
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalView, setAuthModalView] = useState<'user' | 'admin'>('user');
   const location = useLocation();
 
+  // Initialize theme
   useEffect(() => {
-    // Apply theme to document and save preference
-    document.documentElement.classList.toggle('dark', isDark);
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-  }, [isDark]);
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const shouldUseDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+    
+    setIsDarkMode(shouldUseDark);
+    updateTheme(shouldUseDark);
+  }, []);
 
+  // Handle scroll for back to top button
   useEffect(() => {
-    // Close mobile menu when route changes
-    setIsMenuOpen(false);
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 400);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
   }, [location]);
 
-  useEffect(() => {
-    // Prevent scroll when mobile menu is open
-    document.body.style.overflow = isMenuOpen ? 'hidden' : 'unset';
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isMenuOpen]);
+  const updateTheme = (dark: boolean) => {
+    if (dark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('theme', dark ? 'dark' : 'light');
+  };
 
   const toggleTheme = () => {
-    setIsDark(!isDark);
+    const newTheme = !isDarkMode;
+    setIsDarkMode(newTheme);
+    updateTheme(newTheme);
   };
 
-  const navItems = [
-    { to: '/', label: 'Home' },
-    { to: '/blog', label: 'Blog' },
-    { to: '/about', label: 'About' }
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const openAuthModal = (view: 'user' | 'admin' = 'user') => {
+    setAuthModalView(view);
+    setShowAuthModal(true);
+  };
+
+  const handleAuthSuccess = (user: any) => {
+    console.log('User authenticated:', user);
+    setShowAuthModal(false);
+    
+    // Redirect based on user role
+    if (user.role === 'admin') {
+      window.location.href = '/admin/dashboard';
+    } else {
+      // For regular users, they can now submit reviews
+      // You might want to show a success message or redirect to profile
+    }
+  };
+
+  const navigationItems = [
+    { href: '/', label: 'Home', icon: Home },
+    { href: '/about', label: 'About', icon: User },
+    { href: '/blog', label: 'Blog', icon: FileText },
+    { href: '/contact', label: 'Contact', icon: Mail },
   ];
 
-  const isActivePath = (path: string) => {
-    if (path === '/' && location.pathname === '/') return true;
-    if (path !== '/' && location.pathname.startsWith(path)) return true;
-    return false;
-  };
-
   return (
-    <div className={`min-h-screen ${isDark ? 'dark' : ''}`}>
-      {/* Skip to main content link for accessibility */}
+    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200">
+      {/* Skip to main content */}
       <a 
         href="#main-content" 
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-lg z-50 transition-all"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-lg z-50"
       >
         Skip to main content
       </a>
 
       {/* Navigation */}
-      <nav className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg fixed w-full z-40 top-0 border-b border-gray-200/20 dark:border-gray-700/20" role="navigation" aria-label="Main navigation">
+      <nav className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <Link 
               to="/" 
               className="flex items-center space-x-3 group"
-              aria-label="Carelwave Media - Home"
+              aria-label="Carelwave Media Home"
             >
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">C</span>
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center transform group-hover:scale-105 transition-transform duration-200">
+                <span className="text-white font-bold text-lg">C</span>
               </div>
-              <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent group-hover:scale-105 transition-transform">
-                Carelwave Media
-              </span>
+              <div>
+                <span className="text-xl font-bold text-gray-900 dark:text-white">
+                  Carelwave
+                </span>
+                <span className="text-xl font-light text-blue-600 dark:text-blue-400 ml-1">
+                  Media
+                </span>
+              </div>
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
-              {navItems.map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className={`relative px-3 py-2 text-sm font-medium transition-all duration-200 ${
-                    isActivePath(item.to)
-                      ? 'text-blue-600 dark:text-blue-400'
-                      : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400'
-                  }`}
-                >
-                  {item.label}
-                  {isActivePath(item.to) && (
-                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full" />
-                  )}
-                </Link>
-              ))}
+            <div className="hidden md:flex items-center space-x-1">
+              {navigationItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.href;
+                
+                return (
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    className={`nav-link flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      isActive
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                        : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 mr-2" />
+                    {item.label}
+                  </Link>
+                );
+              })}
             </div>
 
-            {/* Theme Toggle & Mobile Menu Button */}
-            <div className="flex items-center space-x-2">
+            {/* Right side controls */}
+            <div className="flex items-center space-x-3">
+              {/* Theme toggle */}
               <button
                 onClick={toggleTheme}
-                className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all"
-                aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
               >
-                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
 
+              {/* Auth buttons */}
+              <div className="hidden md:flex items-center space-x-2">
+                <button
+                  onClick={() => openAuthModal('user')}
+                  className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Login
+                </button>
+                <button
+                  onClick={() => openAuthModal('admin')}
+                  className="flex items-center px-4 py-2 text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors duration-200"
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  Admin
+                </button>
+              </div>
+
+              {/* Mobile menu button */}
               <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="md:hidden p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
                 aria-label="Toggle mobile menu"
-                aria-expanded={isMenuOpen}
               >
-                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
           </div>
-        </div>
 
-        {/* Mobile Navigation */}
-        <div 
-          className={`md:hidden transition-all duration-300 ease-in-out ${
-            isMenuOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
-          }`}
-        >
-          <div className="px-4 py-4 space-y-2 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
-            {navItems.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={`block px-4 py-3 text-base font-medium rounded-lg transition-all ${
-                  isActivePath(item.to)
-                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-blue-600 dark:hover:text-blue-400'
-                }`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {item.label}
-              </Link>
-            ))}
+          {/* Mobile menu */}
+          <div className={`md:hidden transition-all duration-300 ease-in-out ${
+            isMobileMenuOpen 
+              ? 'max-h-96 opacity-100 pb-4' 
+              : 'max-h-0 opacity-0 overflow-hidden'
+          }`}>
+            <div className="space-y-2 mt-4">
+              {navigationItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.href;
+                
+                return (
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    className={`nav-link flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 ${
+                      isActive
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                        : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5 mr-3" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+
+              {/* Mobile auth buttons */}
+              <div className="pt-4 space-y-2 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={() => openAuthModal('user')}
+                  className="w-full flex items-center px-4 py-3 text-left text-base font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200"
+                >
+                  <LogIn className="w-5 h-5 mr-3" />
+                  User Login
+                </button>
+                <button
+                  onClick={() => openAuthModal('admin')}
+                  className="w-full flex items-center px-4 py-3 text-left text-base font-medium bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors duration-200"
+                >
+                  <Shield className="w-5 h-5 mr-3" />
+                  Admin Login
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </nav>
 
-      {/* Main Content */}
-      <main id="main-content" className="pt-16 min-h-screen bg-gray-50 dark:bg-gray-900" role="main">
+      {/* Main content */}
+      <main id="main-content" className="flex-1">
         {children}
       </main>
 
+      {/* Back to top button */}
+      {showBackToTop && (
+        <button
+          onClick={scrollToTop}
+          className="fixed bottom-8 right-8 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 z-30"
+          aria-label="Back to top"
+        >
+          <ChevronUp className="w-6 h-6" />
+        </button>
+      )}
+
       {/* Footer */}
-      <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700" role="contentinfo">
+      <footer className="bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* Brand */}
-            <div className="col-span-1 md:col-span-2">
+            {/* Company info */}
+            <div className="md:col-span-2">
               <Link to="/" className="flex items-center space-x-3 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">C</span>
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
+                  <span className="text-white font-bold text-lg">C</span>
                 </div>
-                <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Carelwave Media
-                </span>
+                <div>
+                  <span className="text-xl font-bold text-gray-900 dark:text-white">
+                    Carelwave
+                  </span>
+                  <span className="text-xl font-light text-blue-600 dark:text-blue-400 ml-1">
+                    Media
+                  </span>
+                </div>
               </Link>
-              <p className="text-gray-600 dark:text-gray-400 max-w-md">
-                Technical insights and professional expertise in scalable systems, cloud architecture, and modern software engineering.
+              <p className="text-gray-600 dark:text-gray-400 mb-4 max-w-md">
+                Empowering developers and tech enthusiasts with cutting-edge insights, 
+                best practices, and innovative solutions for the digital world.
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                © 2024 Carelwave Media. All rights reserved.
               </p>
             </div>
 
-            {/* Quick Links */}
+            {/* Quick links */}
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Quick Links</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Quick Links
+              </h3>
               <ul className="space-y-2">
-                {navItems.map((item) => (
-                  <li key={item.to}>
-                    <Link 
-                      to={item.to} 
-                      className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                {navigationItems.map((item) => (
+                  <li key={item.href}>
+                    <Link
+                      to={item.href}
+                      className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
                     >
                       {item.label}
                     </Link>
@@ -191,54 +306,47 @@ export default function Layout({ children }: LayoutProps) {
 
             {/* Connect */}
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Connect</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                Connect
+              </h3>
               <ul className="space-y-2">
                 <li>
-                  <a 
-                    href="https://github.com/Akshay18280" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  <button
+                    onClick={() => openAuthModal('user')}
+                    className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
                   >
-                    GitHub
+                    Login / Sign Up
+                  </button>
+                </li>
+                <li>
+                  <a
+                    href="/contact"
+                    className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
+                  >
+                    Contact Us
                   </a>
                 </li>
                 <li>
-                  <a 
-                    href="https://linkedin.com/in/akshay-verma-024aa0152/" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  <a
+                    href="#newsletter"
+                    className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
                   >
-                    LinkedIn
-                  </a>
-                </li>
-                <li>
-                  <a 
-                    href="mailto:akshayvermajan28@gmail.com"
-                    className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                  >
-                    Email
+                    Newsletter
                   </a>
                 </li>
               </ul>
             </div>
           </div>
-
-          <hr className="my-8 border-gray-200 dark:border-gray-700" />
-          
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
-              © {new Date().getFullYear()} Carelwave Media. All rights reserved.
-            </p>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mt-2 md:mt-0">
-              Built with ❤️ using React & TypeScript
-            </p>
-          </div>
         </div>
       </footer>
 
-      <BackToTop />
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onLoginSuccess={handleAuthSuccess}
+        defaultView={authModalView}
+      />
     </div>
   );
 }
