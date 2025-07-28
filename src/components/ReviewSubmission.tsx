@@ -243,20 +243,19 @@ export default function ReviewSubmission({ onClose, onSuccess }: ReviewSubmissio
           {currentUser && !hasSubmittedReview && (
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* User Info Display */}
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <img
-                    src={currentUser.profilePicture || 'https://via.placeholder.com/40'}
-                    alt={currentUser.name || 'User'}
-                    className="w-10 h-10 rounded-full"
-                  />
+              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Submitting as:
+                </h3>
+                <div className="flex items-center">
+                  <div className="w-10 h-10 bg-accent-primary/10 rounded-full flex items-center justify-center mr-3">
+                    <span className="text-accent-primary font-semibold text-lg">
+                      {currentUser.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
                   <div>
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      {currentUser.name || 'Anonymous User'}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {currentUser.email}
-                    </p>
+                    <p className="font-medium text-gray-900 dark:text-white">{currentUser.name}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{currentUser.email}</p>
                   </div>
                 </div>
               </div>

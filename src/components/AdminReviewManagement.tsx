@@ -158,11 +158,11 @@ export default function AdminReviewManagement() {
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+          <div className="bg-accent-primary/5 dark:bg-accent-primary/20/20 rounded-lg p-4">
+            <div className="text-2xl font-bold text-accent-primary dark:text-accent-primary-light">
               {reviewStats.total}
             </div>
-            <div className="text-sm text-blue-800 dark:text-blue-300">Total Reviews</div>
+            <div className="text-sm text-accent-primary dark:text-accent-primary-light">Total Reviews</div>
           </div>
           
           <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4">
@@ -187,7 +187,7 @@ export default function AdminReviewManagement() {
           </div>
           
           <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
-            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+            <div className="text-2xl font-bold text-accent-primary dark:text-accent-primary-light">
               {reviewStats.averageRating.toFixed(1)}
             </div>
             <div className="text-sm text-purple-800 dark:text-purple-300">Avg Rating</div>
@@ -202,7 +202,7 @@ export default function AdminReviewManagement() {
               onClick={() => setFilter(filterOption)}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 filter === filterOption
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-accent-primary text-white'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
@@ -216,7 +216,7 @@ export default function AdminReviewManagement() {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
         {isLoading ? (
           <div className="p-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-primary mx-auto mb-4"></div>
             <p className="text-gray-600 dark:text-gray-400">Loading reviews...</p>
           </div>
         ) : reviews.length === 0 ? (
@@ -230,35 +230,30 @@ export default function AdminReviewManagement() {
               <div key={review.id} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-start gap-4">
-                    <img
-                      src={review.reviewerImage || 'https://via.placeholder.com/48'}
-                      alt={review.reviewerName}
-                      className="w-12 h-12 rounded-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://via.placeholder.com/48';
-                      }}
-                    />
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center">
+                      {review.reviewerImage ? (
+                        <img
+                          src={review.reviewerImage}
+                          alt={review.reviewerName}
+                          className="w-12 h-12 rounded-full object-cover mr-4"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                            (e.target as HTMLImageElement).nextElementSibling!.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <div className={`w-12 h-12 bg-accent-primary/10 rounded-full flex items-center justify-center mr-4 ${review.reviewerImage ? 'hidden' : ''}`}>
+                        <span className="text-accent-primary font-semibold text-lg">
+                          {review.reviewerName.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="flex-1">
                         <h3 className="font-semibold text-gray-900 dark:text-white">
                           {review.reviewerName}
                         </h3>
-                        {review.verified && (
-                          <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full">
-                            Verified
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {review.reviewerPosition} at {review.reviewerCompany}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className="flex items-center gap-1">
-                          {renderStars(review.rating)}
-                        </div>
-                        <span className="text-sm text-gray-500">
-                          {formatDate(review.submittedAt)}
-                        </span>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {review.reviewerPosition} at {review.reviewerCompany}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -356,28 +351,33 @@ export default function AdminReviewManagement() {
 
               <div className="space-y-6">
                 {/* Reviewer Info */}
-                <div className="flex items-center gap-4">
-                  <img
-                    src={selectedReview.reviewerImage || 'https://via.placeholder.com/64'}
-                    alt={selectedReview.reviewerName}
-                    className="w-16 h-16 rounded-full object-cover"
-                  />
+                <div className="flex items-center mb-4">
+                  {selectedReview.reviewerImage ? (
+                    <img
+                      src={selectedReview.reviewerImage}
+                      alt={selectedReview.reviewerName}
+                      className="w-16 h-16 rounded-full object-cover mr-4"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                        (e.target as HTMLImageElement).nextElementSibling!.classList.remove('hidden');
+                      }}
+                    />
+                  ) : null}
+                  <div className={`w-16 h-16 bg-accent-primary/10 rounded-full flex items-center justify-center mr-4 ${selectedReview.reviewerImage ? 'hidden' : ''}`}>
+                    <span className="text-accent-primary font-semibold text-xl">
+                      {selectedReview.reviewerName.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-white">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                       {selectedReview.reviewerName}
-                    </h4>
+                    </h3>
                     <p className="text-gray-600 dark:text-gray-400">
                       {selectedReview.reviewerPosition} at {selectedReview.reviewerCompany}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       {selectedReview.reviewerEmail}
                     </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      {renderStars(selectedReview.rating)}
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedReview.status)}`}>
-                        {selectedReview.status}
-                      </span>
-                    </div>
                   </div>
                 </div>
 
@@ -415,7 +415,7 @@ export default function AdminReviewManagement() {
                       {selectedReview.skills.map((skill, index) => (
                         <span
                           key={index}
-                          className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full"
+                          className="text-xs bg-accent-primary/10 dark:bg-accent-primary/20 text-accent-primary dark:text-white/70 px-2 py-1 rounded-full"
                         >
                           {skill}
                         </span>
@@ -443,7 +443,7 @@ export default function AdminReviewManagement() {
                       value={moderatorNotes}
                       onChange={(e) => setModeratorNotes(e.target.value)}
                       rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
                       placeholder="Add notes about your decision..."
                     />
                   </div>

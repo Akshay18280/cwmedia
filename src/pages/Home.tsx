@@ -63,12 +63,12 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-800 opacity-10" />
+        <div className="absolute inset-0 bg-gradient-accent opacity-10" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
               Engineering Excellence &{' '}
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-accent bg-clip-text text-transparent">
                 Innovation
               </span>
             </h1>
@@ -79,14 +79,14 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 to="/blog"
-                className="inline-flex items-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200"
+                className="inline-flex items-center px-8 py-4 bg-accent-primary hover:bg-accent-primary-light text-white font-semibold rounded-lg transition-colors duration-200 transform hover:scale-105"
               >
                 Explore Articles
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
               <Link
                 to="/about"
-                className="inline-flex items-center px-8 py-4 border-2 border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white font-semibold rounded-lg transition-colors duration-200"
+                className="inline-flex items-center px-8 py-4 border-2 border-accent-primary text-accent-primary hover:bg-accent-primary hover:text-white font-semibold rounded-lg transition-colors duration-200 transform hover:scale-105"
               >
                 About Me
               </Link>

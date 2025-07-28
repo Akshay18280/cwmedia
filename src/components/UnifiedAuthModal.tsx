@@ -198,7 +198,7 @@ export default function UnifiedAuthModal({ isOpen, onClose, onSuccess }: Unified
               : step === 'otp' 
                 ? userType === 'admin'
                   ? 'bg-gradient-to-br from-orange-400 to-red-500'
-                  : 'bg-blue-100 dark:bg-blue-900'
+                  : 'bg-accent-primary/10 dark:bg-accent-primary/20'
                 : 'bg-gray-100 dark:bg-gray-700'
           }`}>
             {step === 'success' ? (
@@ -211,7 +211,7 @@ export default function UnifiedAuthModal({ isOpen, onClose, onSuccess }: Unified
               userType === 'admin' ? (
                 <Shield className="w-8 h-8 text-white" />
               ) : (
-                <Phone className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                <Phone className="w-8 h-8 text-accent-primary dark:text-accent-primary-light" />
               )
             ) : (
               <Phone className="w-8 h-8 text-gray-600 dark:text-gray-400" />
@@ -262,7 +262,7 @@ export default function UnifiedAuthModal({ isOpen, onClose, onSuccess }: Unified
                   value={formatPhoneNumber(phoneNumber)}
                   onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
                   placeholder="98765 43210"
-                  className="w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
+                  className="w-full pl-12 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
                   maxLength={11}
                   disabled={loading}
                 />
@@ -275,7 +275,7 @@ export default function UnifiedAuthModal({ isOpen, onClose, onSuccess }: Unified
             <button
               onClick={handleSendOTP}
               disabled={loading || phoneNumber.length < 10}
-              className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
+              className="w-full flex items-center justify-center px-4 py-3 bg-gradient-accent text-white font-medium rounded-lg hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
             >
               {loading ? (
                 <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-3"></div>
@@ -316,7 +316,7 @@ export default function UnifiedAuthModal({ isOpen, onClose, onSuccess }: Unified
           <div className="px-8 pb-8 space-y-6">
             <button
               onClick={() => setStep('phone')}
-              className="flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors mb-4"
+              className="flex items-center text-accent-primary dark:text-accent-primary-light hover:text-accent-primary dark:hover:accent-primary-light transition-colors mb-4"
             >
               <ArrowLeft className="w-4 h-4 mr-1" />
               Change number
@@ -346,7 +346,7 @@ export default function UnifiedAuthModal({ isOpen, onClose, onSuccess }: Unified
                 value={otpCode}
                 onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="000000"
-                className="w-full px-4 py-3 text-center text-2xl font-mono border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
+                className="w-full px-4 py-3 text-center text-2xl font-mono border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-transparent dark:bg-gray-700 dark:text-white transition-all"
                 maxLength={6}
                 disabled={loading}
                 autoComplete="one-time-code"
@@ -376,7 +376,7 @@ export default function UnifiedAuthModal({ isOpen, onClose, onSuccess }: Unified
               <button
                 onClick={handleResendOTP}
                 disabled={countdown > 0 || loading}
-                className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="text-sm text-accent-primary dark:text-accent-primary-light hover:text-accent-primary dark:hover:accent-primary-light transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {countdown > 0 ? `Resend OTP in ${countdown}s` : 'Resend OTP'}
               </button>
@@ -417,7 +417,7 @@ export default function UnifiedAuthModal({ isOpen, onClose, onSuccess }: Unified
               </div>
               
               <div className="animate-pulse">
-                <div className="w-8 h-8 bg-blue-600 rounded-full mx-auto"></div>
+                <div className="w-8 h-8 bg-accent-primary rounded-full mx-auto"></div>
               </div>
               
               <p className="text-gray-600 dark:text-gray-400 text-sm">

@@ -73,7 +73,7 @@ export default function Layout({ children }: LayoutProps) {
       {/* Skip to main content */}
       <a 
         href="#main-content" 
-        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-lg z-50"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-accent-primary text-white px-4 py-2 rounded-lg z-50"
       >
         Skip to main content
       </a>
@@ -85,17 +85,15 @@ export default function Layout({ children }: LayoutProps) {
             {/* Logo */}
             <Link 
               to="/" 
-              className="flex items-center space-x-3 group"
+              className="flex items-center group"
               aria-label="Carelwave Media Home"
             >
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center transform group-hover:scale-105 transition-transform duration-200">
-                <span className="text-white font-bold text-lg">C</span>
+              <div className="w-10 h-10 bg-gradient-accent rounded-xl flex items-center justify-center transform group-hover:scale-105 transition-transform duration-200">
+                <span className="text-xl font-bold text-white">CM</span>
               </div>
-              <div>
-                <span className="text-xl font-bold text-gray-900 dark:text-white">
-                  Carelwave
-                </span>
-                <span className="text-xl font-light text-blue-600 dark:text-blue-400 ml-1">
+              <div className="ml-3 hidden sm:block">
+                <span className="text-2xl font-bold text-gray-900 dark:text-white">Carelwave</span>
+                <span className="text-xl font-light accent-primary ml-1">
                   Media
                 </span>
               </div>
@@ -113,8 +111,8 @@ export default function Layout({ children }: LayoutProps) {
                     to={item.href}
                     className={`nav-link flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                       isActive
-                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                        : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        ? 'bg-accent-primary/10 text-accent-primary'
+                        : 'text-gray-600 dark:text-gray-300 hover:accent-primary hover:bg-gray-100 dark:hover:bg-gray-800'
                     }`}
                   >
                     <Icon className="w-4 h-4 mr-2" />
@@ -133,7 +131,7 @@ export default function Layout({ children }: LayoutProps) {
               <div className="hidden md:flex items-center space-x-2">
                 <button
                   onClick={openAuthModal}
-                  className="flex items-center px-4 py-2 text-sm font-medium bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 rounded-lg transition-all duration-200 transform hover:scale-105"
+                  className="flex items-center px-4 py-2 text-sm font-medium bg-gradient-accent text-white hover:opacity-90 rounded-lg transition-all duration-200 transform hover:scale-105"
                 >
                   <LogIn className="w-4 h-4 mr-2" />
                   Sign In
@@ -168,8 +166,8 @@ export default function Layout({ children }: LayoutProps) {
                     to={item.href}
                     className={`nav-link flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 ${
                       isActive
-                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                        : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        ? 'bg-accent-primary/10 text-accent-primary'
+                        : 'text-gray-600 dark:text-gray-300 hover:accent-primary hover:bg-gray-100 dark:hover:bg-gray-800'
                     }`}
                   >
                     <Icon className="w-5 h-5 mr-3" />
@@ -182,7 +180,7 @@ export default function Layout({ children }: LayoutProps) {
               <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button
                   onClick={openAuthModal}
-                  className="w-full flex items-center px-4 py-3 text-left text-base font-medium bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 rounded-lg transition-all duration-200"
+                  className="w-full flex items-center px-4 py-3 text-left text-base font-medium bg-gradient-accent text-white hover:opacity-90 rounded-lg transition-all duration-200"
                 >
                   <LogIn className="w-5 h-5 mr-3" />
                   Sign In
@@ -202,7 +200,7 @@ export default function Layout({ children }: LayoutProps) {
       {showBackToTop && (
         <button
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 z-30"
+          className="fixed bottom-8 right-8 p-3 bg-accent-primary text-white rounded-full shadow-lg hover:bg-accent-primary-light transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-4 focus:ring-accent-primary/30 z-30"
           aria-label="Back to top"
         >
           <ChevronUp className="w-6 h-6" />
@@ -215,15 +213,13 @@ export default function Layout({ children }: LayoutProps) {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Company info */}
             <div className="md:col-span-2">
-              <Link to="/" className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">C</span>
+              <Link to="/" className="flex items-center">
+                <div className="w-10 h-10 bg-gradient-accent rounded-xl flex items-center justify-center">
+                  <span className="text-xl font-bold text-white">CM</span>
                 </div>
-                <div>
-                  <span className="text-xl font-bold text-gray-900 dark:text-white">
-                    Carelwave
-                  </span>
-                  <span className="text-xl font-light text-blue-600 dark:text-blue-400 ml-1">
+                <div className="ml-3">
+                  <span className="text-2xl font-bold text-gray-900 dark:text-white">Carelwave</span>
+                  <span className="text-xl font-light accent-primary ml-1">
                     Media
                   </span>
                 </div>
@@ -247,7 +243,7 @@ export default function Layout({ children }: LayoutProps) {
                   <li key={item.href}>
                     <Link
                       to={item.href}
-                      className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
+                      className="text-gray-600 dark:text-gray-400 hover:accent-primary transition-colors duration-200"
                     >
                       {item.label}
                     </Link>
@@ -265,25 +261,47 @@ export default function Layout({ children }: LayoutProps) {
                 <li>
                   <button
                     onClick={openAuthModal}
-                    className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
+                    className="text-gray-600 dark:text-gray-400 hover:accent-primary transition-colors duration-200"
                   >
                     Sign In
                   </button>
                 </li>
                 <li>
                   <a
-                    href="/contact"
-                    className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
+                    href="mailto:contact@carelwave.com"
+                    className="text-gray-600 dark:text-gray-400 hover:accent-primary transition-colors duration-200"
                   >
-                    Contact Us
+                    contact@carelwave.com
                   </a>
                 </li>
                 <li>
                   <a
-                    href="#newsletter"
-                    className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
+                    href="https://github.com/carelwave"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-600 dark:text-gray-400 hover:accent-primary transition-colors duration-200"
                   >
-                    Newsletter
+                    GitHub
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://linkedin.com/company/carelwave"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-600 dark:text-gray-400 hover:accent-primary transition-colors duration-200"
+                  >
+                    LinkedIn
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://twitter.com/carelwave"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-600 dark:text-gray-400 hover:accent-primary transition-colors duration-200"
+                  >
+                    Twitter
                   </a>
                 </li>
               </ul>
