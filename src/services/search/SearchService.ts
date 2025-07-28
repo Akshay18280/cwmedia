@@ -44,7 +44,7 @@ export interface SearchResult {
 
 export interface SearchSuggestion {
   term: string;
-  type: 'query' | 'tag' | 'category' | 'author';
+  type: 'query' | 'tag' | 'category' | 'author' | 'trending' | 'ai';
   count: number;
   popularity: number;
 }
@@ -560,9 +560,9 @@ class SearchService {
   }
 
   private async trackSearch(query: string, filters: SearchFilters): Promise<void> {
+    const analyticsRef = doc(db, 'analytics', this.SEARCH_ANALYTICS_DOC);
+    
     try {
-      const analyticsRef = doc(db, 'analytics', this.SEARCH_ANALYTICS_DOC);
-      
       // Update total searches
       await updateDoc(analyticsRef, {
         totalSearches: increment(1),

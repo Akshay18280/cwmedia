@@ -35,6 +35,14 @@ export interface SEOAnalysisResult {
   contentOptimization: ContentOptimization;
 }
 
+export interface LocalSEOAnalysis {
+  score: number;
+  businessListing: boolean;
+  localKeywords: string[];
+  reviews: number;
+  citations: number;
+}
+
 export interface SEOAnalysis {
   onPage: OnPageSEOAnalysis;
   technical: TechnicalSEOAnalysis;
@@ -241,7 +249,7 @@ export interface CompetitorSEOData {
   targetKeywords: string[];
   contentLength: number;
   backlinks: number;
-  domain Authority: number;
+  domainAuthority: number;
   topicsCovered: string[];
 }
 
@@ -736,7 +744,7 @@ class SEOAnalysisService {
       targetKeywords: request.targetKeywords,
       contentLength: 1200 + Math.random() * 800,
       backlinks: Math.floor(Math.random() * 1000),
-      'domain Authority': 60 + Math.random() * 30,
+      domainAuthority: 60 + Math.random() * 30,
       topicsCovered: ['SEO', 'Marketing', 'Content Strategy']
     }));
 

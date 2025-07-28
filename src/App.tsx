@@ -21,6 +21,7 @@ import Verify from './pages/verify';
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminLogin from './components/AdminLogin';
+import Login from './pages/Login';
 
 function App() {
   return (
@@ -49,6 +50,7 @@ function App() {
                 <Route path="accent-test" element={<AccentTest />} />
                 
                 {/* Auth routes */}
+                <Route path="login" element={<Login />} />
                 <Route path="verify" element={<Verify />} />
                 
                 {/* Admin routes */}
