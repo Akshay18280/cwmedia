@@ -258,6 +258,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
 
         // Setup Firebase auth listener
+        if (!auth) {
+          setLoading(false);
+          return;
+        }
+        
         const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
           try {
             if (firebaseUser) {
@@ -380,11 +385,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (result.success && result.user) {
         const authUser: AuthUser = {
           id: result.user.id,
-          email: result.user.email,
+          email: result.user.email || null,
           name: result.user.name,
           phoneNumber: null,
           photoURL: result.user.profileImage,
-          isAdmin: result.user.email === 'admin@carelwavemedia.com',
+          isAdmin: (result.user.email || '') === 'admin@carelwavemedia.com',
           provider: 'email',
           verified: true,
           lastLogin: new Date()
@@ -497,7 +502,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       ipAuthService.clearIPAuth();
       
       // Sign out from Firebase
-      await auth.signOut();
+      if (auth) {
+        await auth.signOut();
+      }
       
       // Clear session
       clearSession();
