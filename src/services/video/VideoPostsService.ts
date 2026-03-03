@@ -7,7 +7,7 @@
  */
 
 import { collection, addDoc, updateDoc, deleteDoc, doc, getDocs, getDoc, query, where, orderBy, limit, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebase/firebaseConfig';
+import { db } from '../../lib/firebase';
 import { videoUploadService } from './VideoUploadService';
 import { videoStreamingService } from './VideoStreamingService';
 import { youtubeIntegrationService } from './YouTubeIntegrationService';

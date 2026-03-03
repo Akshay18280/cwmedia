@@ -7,7 +7,7 @@
  */
 
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
-import { storage } from '../firebase/firebaseConfig';
+import { storage } from '../../lib/firebase';
 
 export interface VideoFile {
   id: string;

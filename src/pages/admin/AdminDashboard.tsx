@@ -23,7 +23,7 @@ interface DashboardStats {
 }
 
 export default function AdminDashboard() {
-  const { currentUser } = useAuth();
+  const { user: currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'posts' | 'videos' | 'analytics' | 'email' | 'settings'>('overview');
   const [showVideoUpload, setShowVideoUpload] = useState(false);
   const [stats, setStats] = useState<DashboardStats>({

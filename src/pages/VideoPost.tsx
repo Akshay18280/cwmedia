@@ -7,7 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Calendar, User, Eye, Heart, Share2, ArrowLeft, Clock, Tag, Play, ExternalLink, Youtube } from 'lucide-react';
-import { videoPostsService, VideoPost } from '../services/video/VideoPostsService';
+import { videoPostsService, VideoPost as VideoPostType } from '../services/video/VideoPostsService';
 import { videoAnalyticsService } from '../services/video/VideoAnalyticsService';
 import { AdvancedVideoPlayer } from '../components/video/AdvancedVideoPlayer';
 import { LiveComments } from '../components/realtime/LiveComments';
@@ -18,8 +18,8 @@ import { toast } from 'sonner';
 
 export default function VideoPost() {
   const { id } = useParams<{ id: string }>();
-  const { currentUser } = useAuth();
-  const [post, setPost] = useState<VideoPost | null>(null);
+  const { user: currentUser } = useAuth();
+  const [post, setPost] = useState<VideoPostType | null>(null);
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);

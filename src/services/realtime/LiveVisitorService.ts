@@ -8,7 +8,7 @@
 
 import { webSocketService } from './WebSocketService';
 import { doc, setDoc, deleteDoc, collection, onSnapshot, query, where, orderBy, limit, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebase/firebaseConfig';
+import { db } from '../../lib/firebase';
 
 export interface Visitor {
   id: string;
