@@ -44,7 +44,7 @@ export const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
   onClose,
   onUploadComplete
 }) => {
-  const { currentUser } = useAuth();
+  const { user: currentUser } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
 

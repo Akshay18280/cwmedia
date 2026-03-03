@@ -55,7 +55,6 @@ interface AdminOTPData {
 class UnifiedAuthService {
   private recaptchaVerifier: RecaptchaVerifier | null = null;
   private confirmationResult: ConfirmationResult | null = null;
-  private readonly ADMIN_PHONE_NUMBER = '+916264507878';
   private readonly MAX_OTP_ATTEMPTS = 3;
   private readonly OTP_EXPIRY_MINUTES = 10;
 
@@ -123,9 +122,11 @@ class UnifiedAuthService {
   }
 
   // Check if phone number belongs to admin
+  // NOTE: Admin role should be verified server-side using Firebase Custom Claims
+  // This method is deprecated and returns false for security
   private isAdminPhoneNumber(phoneNumber: string): boolean {
-    const cleaned = phoneNumber.replace(/\D/g, '');
-    return cleaned === this.ADMIN_PHONE_NUMBER || cleaned === `91${this.ADMIN_PHONE_NUMBER}`;
+    console.warn('Admin phone check is deprecated. Use Firebase Custom Claims for admin verification.');
+    return false;
   }
 
   // Unified phone authentication (handles both admin and users)
@@ -153,18 +154,9 @@ class UnifiedAuthService {
       // this.authState.phoneNumber = formattedPhone; // This line is removed as per new_code
       // this.authState.userType = isAdmin ? 'admin' : 'user'; // This line is removed as per new_code
 
-      if (isAdmin) {
-        // Use Twilio SMS for admin
-        const result = await smsService.generateAdminOTP(this.ADMIN_PHONE_NUMBER);
-        return {
-          success: result.success,
-          message: result.success 
-            ? 'Admin OTP sent to your registered number!' 
-            : result.message,
-          userType: 'admin',
-          error: result.error
-        };
-      } else {
+      // Admin authentication is handled via Firebase Custom Claims
+      // All users go through the same Firebase Phone Auth flow
+      {
         // Use Firebase Phone Auth for regular users
         try {
           await this.initializeRecaptcha();
@@ -239,76 +231,47 @@ class UnifiedAuthService {
         };
       }
 
-      if (/* this.authState.userType === 'admin' */ this.isAdminPhoneNumber(this.ADMIN_PHONE_NUMBER)) { // This line is changed as per new_code
-        // Verify admin OTP using SMS service
-        const result = await smsService.verifyAdminOTP(otpCode, this.ADMIN_PHONE_NUMBER);
-        
-        if (result.success) {
-          const adminUser: FirebaseUser = {
-            id: 'admin_' + this.ADMIN_PHONE_NUMBER,
-            phoneNumber: this.ADMIN_PHONE_NUMBER, // Assuming this is the correct phone number for admin
-            name: 'Admin (Akshay Verma)',
-            role: 'admin',
-            provider: 'phone',
-            verified: true,
-            adminAccess: true
-          };
-
-          // Store admin session
-          await this.createOrUpdateUser(adminUser);
-          // this.clearAuthState(); // This line is removed as per new_code
-          
-          return {
-            success: true,
-            message: 'Admin access granted successfully!',
-            user: adminUser
-          };
-        } else {
-          return {
-            success: false,
-            message: result.message
-          };
-        }
-      } else {
-        // Verify regular user OTP using Firebase
-        if (!this.confirmationResult) {
-          return {
-            success: false,
-            message: 'No OTP request found. Please request a new OTP.'
-          };
-        }
-
-        const result = await this.confirmationResult.confirm(otpCode);
-        const firebaseUser = result.user;
-        
-        if (firebaseUser) {
-          const regularUser: FirebaseUser = {
-            id: firebaseUser.uid,
-            phoneNumber: this.ADMIN_PHONE_NUMBER, // Assuming this is the correct phone number for regular user
-            name: `User-${this.ADMIN_PHONE_NUMBER.slice(-4)}`,
-            role: 'user',
-            provider: 'phone',
-            verified: true,
-            adminAccess: false
-          };
-
-          // Store user session
-          await this.createOrUpdateUser(regularUser);
-          localStorage.removeItem('pendingPhoneAuth');
-          // this.clearAuthState(); // This line is removed as per new_code
-          
-          return {
-            success: true,
-            message: 'Phone verified successfully!',
-            user: regularUser
-          };
-        }
-
+      // Verify OTP using Firebase
+      if (!this.confirmationResult) {
         return {
           success: false,
-          message: 'Verification failed. Please try again.'
+          message: 'No OTP request found. Please request a new OTP.'
         };
       }
+
+      const result = await this.confirmationResult.confirm(otpCode);
+      const firebaseUser = result.user;
+
+      if (firebaseUser) {
+        // Get admin status from Firebase Custom Claims
+        const idTokenResult = await firebaseUser.getIdTokenResult();
+        const isAdmin = idTokenResult.claims.admin === true;
+
+        const user: FirebaseUser = {
+          id: firebaseUser.uid,
+          phoneNumber: firebaseUser.phoneNumber || '',
+          name: firebaseUser.displayName || `User-${firebaseUser.phoneNumber?.slice(-4) || 'Unknown'}`,
+          role: isAdmin ? 'admin' : 'user',
+          provider: 'phone',
+          verified: true,
+          adminAccess: isAdmin
+        };
+
+        // Store user session
+        await this.createOrUpdateUser(user);
+        localStorage.removeItem('pendingPhoneAuth');
+
+        return {
+          success: true,
+          message: isAdmin ? 'Admin access granted successfully!' : 'Phone verified successfully!',
+          user
+        };
+      }
+
+      return {
+        success: false,
+        message: 'Verification failed. Please try again.'
+      };
     } catch (error: any) {
       console.error('Verify OTP error:', error);
       

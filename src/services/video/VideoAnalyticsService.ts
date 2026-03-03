@@ -7,7 +7,7 @@
  */
 
 import { collection, addDoc, getDocs, query, where, orderBy, limit, startAfter, serverTimestamp } from 'firebase/firestore';
-import { db } from '../firebase/firebaseConfig';
+import { db } from '../../lib/firebase';
 
 export interface VideoAnalyticsEvent {
   id?: string;

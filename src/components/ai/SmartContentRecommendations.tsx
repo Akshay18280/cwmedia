@@ -41,7 +41,7 @@ export const SmartContentRecommendations: React.FC<SmartContentRecommendationsPr
   showAnalytics = true,
   className = ''
 }) => {
-  const { currentUser } = useAuth();
+  const { user: currentUser } = useAuth();
   const [recommendations, setRecommendations] = useState<RecommendationResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<RecommendationFilters>({

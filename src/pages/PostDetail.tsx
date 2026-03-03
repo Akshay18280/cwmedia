@@ -36,7 +36,7 @@ interface Post {
 
 export default function PostDetail() {
   const { id } = useParams<{ id: string }>();
-  const { currentUser } = useAuth();
+  const { user: currentUser } = useAuth();
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);

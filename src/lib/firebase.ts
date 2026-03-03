@@ -18,10 +18,20 @@ const firebaseConfig = {
 // Initialize Firebase only if we have real config
 let app;
 try {
-  app = initializeApp(firebaseConfig);
+  // Only initialize if we have real Firebase config (not demo values)
+  const hasRealConfig = firebaseConfig.apiKey !== 'demo-api-key' && 
+                        firebaseConfig.projectId !== 'demo-project' &&
+                        firebaseConfig.apiKey !== 'your_firebase_api_key';
+                        
+  if (hasRealConfig) {
+    app = initializeApp(firebaseConfig);
+    console.log('🔥 Firebase initialized successfully');
+  } else {
+    console.log('🔥 Firebase running in demo mode (no real config found)');
+    app = null;
+  }
 } catch (error) {
-  console.warn('Firebase initialization failed:', error);
-  // Create a mock app for development
+  console.warn('🔥 Firebase initialization failed:', error);
   app = null;
 }
 

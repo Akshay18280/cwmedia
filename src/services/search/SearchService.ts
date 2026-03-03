@@ -6,8 +6,22 @@
  * @created 2025-01-15
  */
 
-import { collection, query, where, orderBy, limit, getDocs, doc, updateDoc, increment, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase/firebaseConfig';
+import { 
+  safeCollection, 
+  safeQuery, 
+  safeGetDocs, 
+  safeDoc, 
+  safeUpdateDoc, 
+  safeGetDoc, 
+  safeSetDoc,
+  where, 
+  orderBy, 
+  limit, 
+  increment,
+  isFirebaseAvailable,
+  generateMockData,
+  createMockQueryResult
+} from '../../lib/firebase-safe';
 
 export interface SearchFilters {
   categories?: string[];
@@ -95,7 +109,7 @@ class SearchService {
   private async indexPosts(): Promise<void> {
     try {
       const postsQuery = query(collection(db, 'posts'), where('published', '==', true));
-      const postsSnapshot = await getDocs(postsQuery);
+      const postsSnapshot = await safeGetDocs(postsQuery);
       
       postsSnapshot.forEach((doc) => {
         const data = doc.data();

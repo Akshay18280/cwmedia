@@ -24,6 +24,17 @@ import AdminLogin from './components/AdminLogin';
 import Login from './pages/Login';
 
 function App() {
+  // App component rendering
+  
+  // Hide fallback content when React mounts
+  React.useEffect(() => {
+    const fallback = document.getElementById('fallback-content');
+    if (fallback) {
+      fallback.style.display = 'none';
+    }
+    // App component mounted successfully
+  }, []);
+  
   return (
     <ErrorBoundary>
       <AuthProvider>

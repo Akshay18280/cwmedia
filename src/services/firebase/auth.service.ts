@@ -237,12 +237,12 @@ class FirebaseAuthService {
   }
 
   // Generate admin OTP
-  async generateAdminOTP(): Promise<{ success: boolean; message: string; error?: string }> {
+  async generateAdminOTP(phoneNumber: string): Promise<{ success: boolean; message: string; error?: string }> {
     try {
-      const phoneNumber = '6264507878'; // Updated phone number
-      const otpCode = '123456'; // Fixed OTP for testing
+      // Generate random 6-digit OTP
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-      
+
       // Store OTP in Firestore
       await setDoc(doc(this.otpCollection, phoneNumber), {
         phoneNumber,
@@ -252,12 +252,15 @@ class FirebaseAuthService {
         verified: false
       });
 
-      // In production, integrate with SMS service like Twilio
-      console.log(`SMS to ${phoneNumber}: Your Carelwave Media admin OTP: ${otpCode}. Valid for 10 minutes.`);
-      
-      return { 
-        success: true, 
-        message: 'OTP sent! Use code: 123456 for testing.' 
+      // TODO: Integrate with SMS service like Twilio in production
+      // For development, log the OTP (remove in production)
+      if (import.meta.env.DEV) {
+        console.log(`[DEV ONLY] SMS to ${phoneNumber}: Your Carelwave Media OTP: ${otpCode}. Valid for 10 minutes.`);
+      }
+
+      return {
+        success: true,
+        message: 'OTP sent successfully. Please check your phone.'
       };
     } catch (error) {
       console.error('OTP generation error:', error);
@@ -270,9 +273,8 @@ class FirebaseAuthService {
   }
 
   // Verify admin OTP
-  async verifyAdminOTP(enteredOTP: string): Promise<{ success: boolean; message: string; error?: string }> {
+  async verifyAdminOTP(phoneNumber: string, enteredOTP: string): Promise<{ success: boolean; message: string; error?: string }> {
     try {
-      const phoneNumber = '6264507878'; // Updated phone number
       const otpDocRef = doc(this.otpCollection, phoneNumber);
       const otpDoc = await getDoc(otpDocRef);
 

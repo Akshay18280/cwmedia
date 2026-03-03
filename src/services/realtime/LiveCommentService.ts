@@ -9,7 +9,7 @@
 import { webSocketService } from './WebSocketService';
 import { notificationService } from './NotificationService';
 import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, orderBy, onSnapshot, serverTimestamp, getDocs } from 'firebase/firestore';
-import { db } from '../firebase/firebaseConfig';
+import { db } from '../../lib/firebase';
 
 export interface Comment {
   id: string;

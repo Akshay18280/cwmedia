@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { Toaster } from 'sonner';
 import App from './App';
+
 import ErrorBoundary from './components/ErrorBoundary';
 import './index.css';
 
@@ -36,6 +37,8 @@ if ('serviceWorker' in navigator && import.meta.env.VITE_ENABLE_PWA === 'true') 
   });
 }
 
+// Development logging removed for production
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ErrorBoundary>
@@ -44,3 +47,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     </ErrorBoundary>
   </React.StrictMode>
 );
+
+// React mount complete
+
+// Hide loading screen once React is ready
+setTimeout(() => {
+  if ('hideLoadingScreen' in window && typeof window.hideLoadingScreen === 'function') {
+    window.hideLoadingScreen();
+  }
+}, 100);

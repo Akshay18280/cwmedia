@@ -206,6 +206,13 @@
     <!-- Main App Container -->
     <div id="root"></div>
     
+    <!-- Fallback content if React doesn't mount -->
+    <div id="fallback-content" style="display: none; padding: 40px; text-align: center; font-family: sans-serif;">
+      <h1 style="color: #333;">🔧 Development Mode</h1>
+      <p style="color: #666;">React is loading... If this message persists, check the browser console for errors.</p>
+      <p style="color: #999; font-size: 14px;">Carelwave Media - Local Development</p>
+    </div>
+    
     <!-- Service Worker Registration -->
     <script>
       if ('serviceWorker' in navigator) {
@@ -223,17 +230,43 @@
     
     <!-- Hide Loading Screen -->
     <script>
+      let loadingHidden = false;
+      
+      function hideLoadingScreen() {
+        if (loadingHidden) return;
+        loadingHidden = true;
+        
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+          console.log('🎯 Hiding loading screen');
+          loadingScreen.classList.add('hidden');
+          setTimeout(() => {
+            loadingScreen.remove();
+          }, 300);
+        }
+      }
+      
+      // Hide loading screen when DOM is loaded
       window.addEventListener('load', () => {
-        setTimeout(() => {
-          const loadingScreen = document.getElementById('loading-screen');
-          if (loadingScreen) {
-            loadingScreen.classList.add('hidden');
-            setTimeout(() => {
-              loadingScreen.remove();
-            }, 300);
-          }
-        }, 500);
+        setTimeout(hideLoadingScreen, 500);
       });
+      
+             // Also hide after 3 seconds as fallback
+       setTimeout(() => {
+         hideLoadingScreen();
+         // Show fallback if React hasn't mounted
+         setTimeout(() => {
+           const root = document.getElementById('root');
+           const fallback = document.getElementById('fallback-content');
+           if (root && fallback && (!root.children || root.children.length === 0)) {
+             console.log('🔧 Showing fallback content - React may not have mounted');
+             fallback.style.display = 'block';
+           }
+         }, 1000);
+       }, 3000);
+      
+      // Hide when React mounts (called from main.tsx)
+      window.hideLoadingScreen = hideLoadingScreen;
     </script>
     
     <script type="module" src="/src/main.tsx"></script>

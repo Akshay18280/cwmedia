@@ -18,7 +18,7 @@ import { toast } from 'sonner';
 
 export default function VideoPost() {
   const { id } = useParams<{ id: string }>();
-  const { currentUser } = useAuth();
+  const { user: currentUser } = useAuth();
   const [post, setPost] = useState<VideoPostType | null>(null);
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
