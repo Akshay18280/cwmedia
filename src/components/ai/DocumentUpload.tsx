@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Upload, FileText, X, CheckCircle, AlertCircle, ServerOff } from 'lucide-react';
 import { toast } from 'sonner';
+import { appConfig } from '@/config/appConfig';
 
 interface UploadedFile {
   name: string;
@@ -17,19 +18,20 @@ export const DocumentUpload: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [backendAvailable, setBackendAvailable] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const apiBase = appConfig.ai.apiBaseUrl;
 
   // Check if the backend document-ingestion endpoint is reachable
   useEffect(() => {
     const check = async () => {
       try {
-        const res = await fetch('/api/health', { signal: AbortSignal.timeout(3000) });
+        const res = await fetch(`${apiBase}/api/health`, { signal: AbortSignal.timeout(3000) });
         setBackendAvailable(res.ok);
       } catch {
         setBackendAvailable(false);
       }
     };
     check();
-  }, []);
+  }, [apiBase]);
 
   const formatSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
@@ -64,7 +66,7 @@ export const DocumentUpload: React.FC = () => {
         const formData = new FormData();
         formData.append('file', fileList[i]);
 
-        const res = await fetch('/api/documents/upload', {
+        const res = await fetch(`${apiBase}/api/documents/upload`, {
           method: 'POST',
           body: formData,
           signal: AbortSignal.timeout(30000),
