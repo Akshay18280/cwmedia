@@ -1,6 +1,7 @@
 // Real-time Analytics Service for Impact & Reach Dashboard
 import { collection, doc, onSnapshot, updateDoc, setDoc, getDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { appConfig } from '@/config/appConfig';
 
 interface RealtimeMetrics {
   activeUsers: number;
@@ -54,9 +55,9 @@ interface VisitorActivity {
 }
 
 class RealtimeAnalyticsService {
-  private readonly measurementId = 'G-PLQ0H8HTTZ';
-  private readonly domain = 'https://carelwave.com';
-  private readonly streamId = '11543981244';
+  private readonly measurementId = appConfig.analytics.realtimeMeasurementId;
+  private readonly domain = appConfig.site.domain;
+  private readonly streamId = appConfig.analytics.realtimeStreamId;
   
   private subscribers: Map<string, Function> = new Map();
   private simulationInterval: number | null = null;

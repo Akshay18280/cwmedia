@@ -23,6 +23,7 @@ interface AdminUser {
 // Import Firebase auth for signing in
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../lib/firebase';
+import { appConfig } from '@/config/appConfig';
 
 class IPAuthService {
   private config: IPAuthConfig = {
@@ -39,17 +40,12 @@ class IPAuthService {
   }
 
   private loadConfig() {
-    // Load configuration from environment variables or localStorage
-    const envAllowedIPs = import.meta.env.VITE_ADMIN_ALLOWED_IPS;
-    const envEnabled = import.meta.env.VITE_IP_AUTH_ENABLED;
-    
-    if (envAllowedIPs) {
-      this.config.allowedIPs = envAllowedIPs.split(',').map(ip => ip.trim());
+    // Load configuration from centralized config
+    if (appConfig.admin.allowedIPs.length > 0) {
+      this.config.allowedIPs = [...appConfig.admin.allowedIPs];
     }
-    
-    if (envEnabled !== undefined) {
-      this.config.enabled = envEnabled === 'true';
-    }
+
+    this.config.enabled = appConfig.admin.ipAuthEnabled;
 
     // Also check localStorage for runtime configuration
     const storedConfig = localStorage.getItem('ipAuthConfig');

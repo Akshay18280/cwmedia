@@ -6,6 +6,8 @@
  * @created 2025-01-15
  */
 
+import { appConfig } from '@/config/appConfig';
+
 export interface VideoStream {
   id: string;
   url: string;
@@ -130,13 +132,9 @@ class VideoStreamingService {
    * Initialize CDN endpoints
    */
   private initializeCDN(): void {
-    // Configure CDN endpoints based on environment
+    // Configure CDN endpoints based on build mode
     if (import.meta.env.PROD) {
-      this.cdnEndpoints = [
-        'https://cdn1.carelwave.com',
-        'https://cdn2.carelwave.com',
-        'https://cdn3.carelwave.com'
-      ];
+      this.cdnEndpoints = [...appConfig.cdn.endpoints];
     } else {
       this.cdnEndpoints = [
         'http://localhost:3001'

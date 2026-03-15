@@ -8,6 +8,7 @@
 
 import { webSocketService } from './WebSocketService';
 import { toast } from 'sonner';
+import { appConfig } from '@/config/appConfig';
 
 export interface Notification {
   id: string;
@@ -175,6 +176,12 @@ class NotificationService {
    * Subscribe to push notifications
    */
   public async subscribeToPush(): Promise<boolean> {
+    // Feature guard: skip if push notifications are disabled or VAPID key not provided
+    if (!appConfig.features.enablePushNotifications || !appConfig.notifications.vapidPublicKey) {
+      console.warn('Push notifications disabled — VAPID public key not configured');
+      return false;
+    }
+
     try {
       if (!this.serviceWorkerRegistration) {
         console.error('Service Worker not available');
@@ -187,8 +194,7 @@ class NotificationService {
         return false;
       }
 
-      // Generate VAPID keys (in production, these should be from your server)
-      const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY || 'your-vapid-public-key';
+      const vapidPublicKey = appConfig.notifications.vapidPublicKey;
 
       this.pushSubscription = await this.serviceWorkerRegistration.pushManager.subscribe({
         userVisibleOnly: true,

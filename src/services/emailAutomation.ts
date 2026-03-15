@@ -3,6 +3,8 @@
  * Automatically sends engaging emails to subscribers when posts go live
  */
 
+import { appConfig } from '@/config/appConfig';
+
 interface Subscriber {
   id: string;
   email: string;
@@ -209,7 +211,7 @@ export class EmailAutomationService {
       subscriber_name: subscriber.name || 'there',
       post_title: post.title,
       post_excerpt: this.generateExcerpt(post.content, 150),
-      post_url: `${process.env.BASE_URL}/post/${post.id}?utm_source=email&utm_campaign=new_post&utm_content=${template.id}`,
+      post_url: `${appConfig.site.domain}/post/${post.id}?utm_source=email&utm_campaign=new_post&utm_content=${template.id}`,
       time_ago: this.getTimeAgo(post.publishedAt),
       read_time: this.calculateReadTime(post.content),
       category: post.category,
