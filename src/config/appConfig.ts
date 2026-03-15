@@ -68,6 +68,8 @@ export const appConfig = {
   ai: {
     openaiApiKey: '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',
     openaiOrgId: '',
+    // RAG backend URL — Go API that handles document ingestion + chat
+    apiBaseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
   },
 
   // ─── WebSocket ──────────────────────────────────────────────────

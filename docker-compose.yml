@@ -1,380 +1,69 @@
-# Carelwave Media Docker Compose Configuration
-# Comprehensive deployment setup for development and production environments
-# @version 1.0.0
-# @author Carelwave Media Development Team
-# @created 2025-01-15
-
-version: '3.8'
+# Carelwave Media — RAG Stack
+# Usage: docker compose up
+# Requires: OPENAI_API_KEY in backend/.env
 
 services:
-  # Frontend Application
+  # Frontend (Vite dev server)
   frontend:
     build:
       context: .
       dockerfile: Dockerfile.frontend
-      args:
-        NODE_ENV: ${NODE_ENV:-development}
-        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:3001}
-    container_name: carelwave-frontend
+    container_name: cwmedia-frontend
     ports:
-      - "${FRONTEND_PORT:-5173}:5173"
+      - "5173:5173"
     environment:
-      - NODE_ENV=${NODE_ENV:-development}
-      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:3001}
-      - VITE_FIREBASE_API_KEY=${VITE_FIREBASE_API_KEY}
-      - VITE_FIREBASE_AUTH_DOMAIN=${VITE_FIREBASE_AUTH_DOMAIN}
-      - VITE_FIREBASE_PROJECT_ID=${VITE_FIREBASE_PROJECT_ID}
-      - VITE_FIREBASE_STORAGE_BUCKET=${VITE_FIREBASE_STORAGE_BUCKET}
-      - VITE_FIREBASE_MESSAGING_SENDER_ID=${VITE_FIREBASE_MESSAGING_SENDER_ID}
-      - VITE_FIREBASE_APP_ID=${VITE_FIREBASE_APP_ID}
-      - VITE_GA_MEASUREMENT_ID=${VITE_GA_MEASUREMENT_ID}
-      - VITE_ENABLE_VOICE_COMMANDS=${VITE_ENABLE_VOICE_COMMANDS:-true}
-      - VITE_ENABLE_PWA=${VITE_ENABLE_PWA:-true}
-      - VITE_ENABLE_ANALYTICS=${VITE_ENABLE_ANALYTICS:-true}
+      - VITE_API_BASE_URL=http://localhost:8080
     volumes:
       - .:/app
       - /app/node_modules
-      - ./src:/app/src
-    networks:
-      - carelwave-network
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5173"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
-  # Backend API Server
+  # Go RAG Backend
   backend:
     build:
-      context: ./src/server
+      context: ./backend
       dockerfile: Dockerfile
-      args:
-        NODE_ENV: ${NODE_ENV:-development}
-    container_name: carelwave-backend
+    container_name: cwmedia-backend
     ports:
-      - "${BACKEND_PORT:-3001}:3001"
+      - "8080:8080"
+    env_file:
+      - ./backend/.env
     environment:
-      - NODE_ENV=${NODE_ENV:-development}
-      - PORT=3001
-      - CORS_ORIGIN=${FRONTEND_URL:-http://localhost:5173}
-      - FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}
-      - FIREBASE_SERVICE_ACCOUNT_KEY=/app/config/firebase-service-account.json
-      - FIREBASE_DATABASE_URL=${FIREBASE_DATABASE_URL}
-      - FIREBASE_STORAGE_BUCKET=${FIREBASE_STORAGE_BUCKET}
-      - EMAIL_SERVICE=${EMAIL_SERVICE:-gmail}
-      - GMAIL_USER=${GMAIL_USER}
-      - GMAIL_CLIENT_ID=${GMAIL_CLIENT_ID}
-      - GMAIL_CLIENT_SECRET=${GMAIL_CLIENT_SECRET}
-      - GMAIL_REFRESH_TOKEN=${GMAIL_REFRESH_TOKEN}
-      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
-      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
-      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
-      - SECRET_KEY=${SECRET_KEY}
-      - JWT_SECRET=${JWT_SECRET}
-      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS:-900000}
-      - RATE_LIMIT_MAX_REQUESTS=${RATE_LIMIT_MAX_REQUESTS:-100}
-      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY}
-      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY}
-    volumes:
-      - ./src/server:/app
-      - /app/node_modules
-      - ./firebase-service-account.json:/app/config/firebase-service-account.json:ro
-    networks:
-      - carelwave-network
+      - DATABASE_URL=postgres://raguser:ragpass@postgres:5432/ragdb?sslmode=disable
+      - ALLOWED_ORIGINS=http://localhost:5173
     depends_on:
-      - redis
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
-  # Redis for Caching and Session Storage
-  redis:
-    image: redis:7-alpine
-    container_name: carelwave-redis
+  # PostgreSQL with pgvector
+  postgres:
+    image: ankane/pgvector:latest
+    container_name: cwmedia-postgres
     ports:
-      - "${REDIS_PORT:-6379}:6379"
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-carelwave2025}
+      - "5432:5432"
     environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-carelwave2025}
+      POSTGRES_USER: raguser
+      POSTGRES_PASSWORD: ragpass
+      POSTGRES_DB: ragdb
     volumes:
-      - redis_data:/data
-      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
-    networks:
-      - carelwave-network
+      - pgvector_data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD-SHELL", "pg_isready -U raguser -d ragdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  # Nginx Reverse Proxy
-  nginx:
-    image: nginx:alpine
-    container_name: carelwave-nginx
-    ports:
-      - "${HTTP_PORT:-80}:80"
-      - "${HTTPS_PORT:-443}:443"
-    environment:
-      - FRONTEND_HOST=frontend:5173
-      - BACKEND_HOST=backend:3001
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
-      - nginx_logs:/var/log/nginx
-    networks:
-      - carelwave-network
-    depends_on:
-      - frontend
-      - backend
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "nginx", "-t"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # MongoDB for Additional Data Storage (Optional)
-  mongodb:
-    image: mongo:7
-    container_name: carelwave-mongodb
-    ports:
-      - "${MONGODB_PORT:-27017}:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USERNAME:-admin}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD:-carelwave2025}
-      - MONGO_INITDB_DATABASE=carelwave
-    volumes:
-      - mongodb_data:/data/db
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-    networks:
-      - carelwave-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    profiles:
-      - mongodb
-
-  # Elasticsearch for Search and Analytics (Optional)
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
-    container_name: carelwave-elasticsearch
-    ports:
-      - "${ELASTICSEARCH_PORT:-9200}:9200"
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
-    networks:
-      - carelwave-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    profiles:
-      - search
-
-  # Monitoring with Prometheus
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: carelwave-prometheus
-    ports:
-      - "${PROMETHEUS_PORT:-9090}:9090"
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--web.enable-lifecycle'
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus_data:/prometheus
-    networks:
-      - carelwave-network
-    restart: unless-stopped
-    profiles:
-      - monitoring
-
-  # Grafana for Metrics Visualization
-  grafana:
-    image: grafana/grafana:latest
-    container_name: carelwave-grafana
-    ports:
-      - "${GRAFANA_PORT:-3000}:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-carelwave2025}
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./grafana:/etc/grafana/provisioning:ro
-    networks:
-      - carelwave-network
-    depends_on:
-      - prometheus
-    restart: unless-stopped
-    profiles:
-      - monitoring
-
-  # Backup Service
-  backup:
-    build:
-      context: ./backup
-      dockerfile: Dockerfile
-    container_name: carelwave-backup
-    environment:
-      - BACKUP_SCHEDULE=${BACKUP_SCHEDULE:-0 2 * * *}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_S3_BUCKET=${BACKUP_S3_BUCKET:-carelwave-backups}
-      - BACKUP_ENCRYPTION_KEY=${BACKUP_ENCRYPTION_KEY}
-      - MONGODB_USERNAME=${MONGODB_USERNAME:-admin}
-      - MONGODB_PASSWORD=${MONGODB_PASSWORD:-carelwave2025}
-    volumes:
-      - backup_data:/backups
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      - carelwave-network
-    depends_on:
-      - mongodb
-      - redis
-    restart: unless-stopped
-    profiles:
-      - backup
-
-# Networks
-networks:
-  carelwave-network:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
-
-# Volumes
 volumes:
-  redis_data:
+  pgvector_data:
     driver: local
-  mongodb_data:
-    driver: local
-  elasticsearch_data:
-    driver: local
-  prometheus_data:
-    driver: local
-  grafana_data:
-    driver: local
-  nginx_logs:
-    driver: local
-  backup_data:
-    driver: local
-
-# Development override
-# Usage: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
----
-# docker-compose.dev.yml
-version: '3.8'
-
-services:
-  frontend:
-    command: npm run dev
-    environment:
-      - NODE_ENV=development
-      - VITE_DEBUG_MODE=true
-      - VITE_DEV_TOOLS=true
-    volumes:
-      - .:/app
-      - /app/node_modules
-
-  backend:
-    command: npm run dev
-    environment:
-      - NODE_ENV=development
-    volumes:
-      - ./src/server:/app
-      - /app/node_modules
-
-# Production override
-# Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
----
-# docker-compose.prod.yml
-version: '3.8'
-
-services:
-  frontend:
-    environment:
-      - NODE_ENV=production
-    deploy:
-      replicas: 2
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-
-  backend:
-    environment:
-      - NODE_ENV=production
-    deploy:
-      replicas: 2
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-
-  nginx:
-    volumes:
-      - ./nginx.prod.conf:/etc/nginx/nginx.conf:ro
-
-# Testing override
-# Usage: docker-compose -f docker-compose.yml -f docker-compose.test.yml up
----
-# docker-compose.test.yml
-version: '3.8'
-
-services:
-  frontend:
-    command: npm run test
-    environment:
-      - NODE_ENV=test
-      - CI=true
-
-  backend:
-    command: npm run test
-    environment:
-      - NODE_ENV=test
-
-  test-runner:
-    build:
-      context: .
-      dockerfile: Dockerfile.test
-    container_name: carelwave-test-runner
-    environment:
-      - NODE_ENV=test
-      - CI=true
-    volumes:
-      - .:/app
-      - /app/node_modules
-    networks:
-      - carelwave-network
-    depends_on:
-      - frontend
-      - backend
-    profiles:
-      - test 

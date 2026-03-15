@@ -58,18 +58,20 @@ export const ChatWindow: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const apiBase = appConfig.ai.apiBaseUrl;
+
   // Check backend health on mount
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const res = await fetch('/api/health', { signal: AbortSignal.timeout(3000) });
+        const res = await fetch(`${apiBase}/api/health`, { signal: AbortSignal.timeout(3000) });
         setBackendStatus(res.ok ? 'connected' : 'demo');
       } catch {
         setBackendStatus('demo');
       }
     };
     checkHealth();
-  }, []);
+  }, [apiBase]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -108,11 +110,11 @@ export const ChatWindow: React.FC = () => {
     if (backendStatus === 'connected') {
       // Try real backend
       try {
-        const res = await fetch('/api/chat', {
+        const res = await fetch(`${apiBase}/api/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ question: trimmed }),
-          signal: AbortSignal.timeout(15000),
+          signal: AbortSignal.timeout(30000),
         });
         if (!res.ok) throw new Error('Backend error');
         const data = await res.json();
