@@ -11,6 +11,7 @@ import { db } from '../../lib/firebase';
 import { videoUploadService } from './VideoUploadService';
 import { videoStreamingService } from './VideoStreamingService';
 import { youtubeIntegrationService } from './YouTubeIntegrationService';
+import { appConfig } from '@/config/appConfig';
 
 export interface VideoPost {
   id: string;
@@ -259,6 +260,14 @@ class VideoPostsService {
       const videoId = this.extractVideoId(externalVideoUrl, platform);
       if (!videoId) {
         throw new Error('Invalid video URL');
+      }
+
+      // Feature guard: check if the platform integration is enabled
+      if (platform === 'youtube' && !appConfig.features.enableYoutube) {
+        throw new Error('YouTube integration is disabled — API key not configured');
+      }
+      if (platform === 'vimeo' && !appConfig.features.enableVimeo) {
+        throw new Error('Vimeo integration is disabled — credentials not configured');
       }
 
       // Get video metadata from platform

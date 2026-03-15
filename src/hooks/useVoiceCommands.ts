@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { appConfig } from '@/config/appConfig';
 
 interface VoiceCommand {
   command: string;
@@ -49,8 +50,14 @@ export const useVoiceCommands = (): VoiceCommandsHook => {
 
   // Check browser support and permissions
   const checkSupport = useCallback(async () => {
+    // Feature guard: skip if voice commands are disabled
+    if (!appConfig.features.enableVoiceCommands) {
+      setSupportStatus('Voice commands disabled in configuration');
+      return false;
+    }
+
     console.log('🎤 Checking voice command support...');
-    
+
     // Check if we're on HTTPS or localhost
     const isSecure = location.protocol === 'https:' || location.hostname === 'localhost';
     if (!isSecure) {

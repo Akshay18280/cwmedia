@@ -24,7 +24,7 @@ class Logger {
   private maxLogs = 1000;
 
   constructor() {
-    // Set log level based on environment
+    // Set log level based on build mode (PROD/DEV are compile-time Vite constants, not env vars)
     this.level = import.meta.env.PROD ? LogLevel.WARN : LogLevel.DEBUG;
   }
 

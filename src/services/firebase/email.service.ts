@@ -1,4 +1,5 @@
 // import { Resend } from 'resend';
+import { appConfig } from '@/config/appConfig';
 
 interface EmailOptions {
   to: string | string[];
@@ -17,15 +18,18 @@ interface SendResult {
 }
 
 class EmailService {
-  // private resend: Resend | null = null;
+  private resend: any = null;
   private readonly fromEmail = 'Carelwave Media <noreply@carelwave.com>';
   private readonly replyToEmail = 'contact@carelwave.com';
 
   constructor() {
-    const apiKey = import.meta.env.VITE_RESEND_API_KEY;
-    if (apiKey && apiKey !== 'your-resend-api-key') {
-      this.resend = new Resend(apiKey);
+    // Feature guard: only initialize Resend if email feature is enabled
+    if (!appConfig.features.enableResendEmail || !appConfig.email.resendApiKey) {
+      console.warn('Resend email disabled — running in test mode (emails logged to console)');
+      return;
     }
+    // Resend SDK not imported — emails run in test mode for now
+    // To enable: npm install resend, uncomment import, and set this.resend = new Resend(apiKey)
   }
 
   async sendWelcomeEmail(email: string, unsubscribeToken: string): Promise<SendResult> {
@@ -369,7 +373,7 @@ Contact Us: ${window.location.origin}/contact
       mode: hasApiKey ? 'production' : 'test',
       message: hasApiKey 
         ? 'Resend API configured and ready'
-        : 'Running in test mode (set VITE_RESEND_API_KEY for production)'
+        : 'Running in test mode (enable Resend SDK to send real emails)'
     };
   }
 

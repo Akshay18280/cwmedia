@@ -12,6 +12,7 @@ import {
 import { toast } from 'sonner';
 import { unifiedAuthService } from '../services/firebase/unified-auth.service';
 import { auth } from '../lib/firebase';
+import { appConfig } from '@/config/appConfig';
 
 export default function AuthDebug() {
   const [loading, setLoading] = useState(false);
@@ -36,12 +37,12 @@ export default function AuthDebug() {
     addLog('🔍 Testing Firebase Configuration...');
     
     const config = {
-      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-      storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-      appId: import.meta.env.VITE_FIREBASE_APP_ID,
+      apiKey: appConfig.firebase.apiKey,
+      authDomain: appConfig.firebase.authDomain,
+      projectId: appConfig.firebase.projectId,
+      storageBucket: appConfig.firebase.storageBucket,
+      messagingSenderId: appConfig.firebase.messagingSenderId,
+      appId: appConfig.firebase.appId,
     };
 
     addLog(`🔧 API Key: ${config.apiKey ? '✅ Set' : '❌ Missing'}`);

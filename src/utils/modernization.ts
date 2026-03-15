@@ -158,7 +158,7 @@ export const createErrorHandler = (componentName: string) => {
     console.error(`Error in ${componentName}:`, error, errorInfo);
     
     // In production, send to error tracking service
-    if (process.env.NODE_ENV === 'production') {
+    if (import.meta.env.PROD) {
       // Send to analytics/error tracking
       console.log('Would send error to tracking service:', { error, componentName });
     }

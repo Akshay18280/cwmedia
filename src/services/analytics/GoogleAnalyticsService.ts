@@ -6,6 +6,8 @@
  * @created 2025-01-15
  */
 
+import { appConfig } from '@/config/appConfig';
+
 interface GAEvent {
   action: string;
   category: string;
@@ -32,8 +34,8 @@ class GoogleAnalyticsService {
   private debugMode: boolean = false;
 
   constructor() {
-    this.measurementId = import.meta.env.VITE_GA_MEASUREMENT_ID || '';
-    this.debugMode = import.meta.env.VITE_DEBUG_MODE === 'true';
+    this.measurementId = appConfig.analytics.gaMeasurementId;
+    this.debugMode = appConfig.features.debugMode;
     this.initialize();
   }
 
@@ -41,6 +43,11 @@ class GoogleAnalyticsService {
    * Initialize Google Analytics
    */
   private initialize(): void {
+    // Feature guard: skip if analytics is disabled
+    if (!appConfig.features.enableAnalytics) {
+      return;
+    }
+
     if (!this.measurementId || typeof window === 'undefined') {
       console.warn('Google Analytics: Measurement ID not found or not in browser environment');
       return;

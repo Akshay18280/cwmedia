@@ -1,6 +1,8 @@
 // Production Analytics Service - 100% Real Data Only
 // No simulation, no fake data - only real production metrics
 
+import { appConfig } from '@/config/appConfig';
+
 interface RealAnalyticsConfig {
   domain: string;
   githubUsername: string;
@@ -52,7 +54,7 @@ class ProductionAnalyticsService {
   constructor() {
     this.config = {
       domain: 'https://carelwave.com',
-      githubUsername: import.meta.env.VITE_GITHUB_USERNAME || '', // Use environment variable
+      githubUsername: appConfig.github.username,
       linkedinProfile: 'https://linkedin.com/in/your-profile', // TODO: Replace with real profile
       twitterHandle: 'your_twitter', // TODO: Replace with real handle
       youtubeChannel: 'your-channel-id' // TODO: Replace with real channel

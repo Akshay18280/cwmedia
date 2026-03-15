@@ -15,6 +15,7 @@ import { seoAnalysisService } from '../../services/ai/SEOAnalysisService';
 import { ModernButton, ModernCard } from '../ModernDesignSystem';
 import { useDebounce } from '../../hooks/useDebounce';
 import { toast } from 'sonner';
+import { appConfig } from '@/config/appConfig';
 
 interface AIWritingAssistantProps {
   content: string;
@@ -57,6 +58,11 @@ export const AIWritingAssistant: React.FC<AIWritingAssistantProps> = ({
   tone = 'professional',
   className = ''
 }) => {
+  // Feature guard: render nothing if OpenAI integration is disabled
+  if (!appConfig.features.enableOpenAI) {
+    return null;
+  }
+
   const [isVisible, setIsVisible] = useState(false);
   const [activeTab, setActiveTab] = useState<'suggestions' | 'generate' | 'seo' | 'settings'>('suggestions');
   const [suggestions, setSuggestions] = useState<WritingSuggestion[]>([]);

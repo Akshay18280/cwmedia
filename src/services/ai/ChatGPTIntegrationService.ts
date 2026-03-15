@@ -6,6 +6,8 @@
  * @created 2025-01-15
  */
 
+import { appConfig } from '@/config/appConfig';
+
 export interface WritingAssistanceRequest {
   type: WritingAssistanceType;
   context: WritingContext;
@@ -140,9 +142,9 @@ export interface TemplateVariable {
 }
 
 class ChatGPTIntegrationService {
-  private readonly API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+  private readonly API_KEY = appConfig.ai.openaiApiKey;
   private readonly API_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
-  private readonly ORGANIZATION_ID = import.meta.env.VITE_OPENAI_ORG_ID;
+  private readonly ORGANIZATION_ID = appConfig.ai.openaiOrgId;
   
   private requestCache = new Map<string, WritingAssistanceResponse>();
   private rateLimitTracker = new Map<string, number[]>();
@@ -575,6 +577,11 @@ class ChatGPTIntegrationService {
   // Private helper methods
 
   private async callOpenAIAPI(prompt: string, options?: WritingOptions): Promise<any> {
+    // Feature guard: skip if OpenAI integration is disabled
+    if (!appConfig.features.enableOpenAI || !this.API_KEY) {
+      throw new Error('OpenAI integration is not enabled. Provide an API key and enable the feature flag.');
+    }
+
     const headers = {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${this.API_KEY}`

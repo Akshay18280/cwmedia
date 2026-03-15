@@ -1,6 +1,7 @@
 // Hybrid Analytics Service - Real Data + Fallback Simulation
 import { GoogleAnalyticsService, type GoogleAnalyticsConfig } from './google-analytics.service';
 import { realtimeAnalyticsService } from './realtime-analytics.service';
+import { appConfig } from '@/config/appConfig';
 
 interface HybridMetrics {
   // Core metrics
@@ -62,10 +63,15 @@ class HybridAnalyticsService {
 
   // Initialize Google Analytics with environment variables
   private async initializeGoogleAnalytics() {
+    // Feature guard: skip if analytics is disabled
+    if (!appConfig.features.enableAnalytics) {
+      return;
+    }
+
     try {
       // Check for Google Analytics configuration
-      const serviceAccountKey = import.meta.env.VITE_GOOGLE_ANALYTICS_SERVICE_KEY;
-      const propertyId = import.meta.env.VITE_GOOGLE_ANALYTICS_PROPERTY_ID || '11543981244';
+      const serviceAccountKey = appConfig.analytics.googleAnalyticsServiceKey;
+      const propertyId = appConfig.analytics.googleAnalyticsPropertyId;
       
       if (serviceAccountKey) {
         // Parse service account key if provided as JSON string

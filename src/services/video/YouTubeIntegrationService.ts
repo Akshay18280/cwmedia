@@ -6,6 +6,8 @@
  * @created 2025-01-15
  */
 
+import { appConfig } from '@/config/appConfig';
+
 export interface YouTubeVideo {
   id: string;
   title: string;
@@ -95,9 +97,9 @@ export interface VideoAnalytics {
 }
 
 class YouTubeIntegrationService {
-  private readonly YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
-  private readonly YOUTUBE_CLIENT_ID = import.meta.env.VITE_YOUTUBE_CLIENT_ID;
-  private readonly VIMEO_ACCESS_TOKEN = import.meta.env.VITE_VIMEO_ACCESS_TOKEN;
+  private readonly YOUTUBE_API_KEY = appConfig.video.youtubeApiKey;
+  private readonly YOUTUBE_CLIENT_ID = appConfig.video.youtubeClientId;
+  private readonly VIMEO_ACCESS_TOKEN = appConfig.video.vimeoAccessToken;
   
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
@@ -111,6 +113,12 @@ class YouTubeIntegrationService {
    * Authenticate with YouTube OAuth2
    */
   public async authenticateYouTube(): Promise<boolean> {
+    // Feature guard: skip if YouTube integration is disabled
+    if (!appConfig.features.enableYoutube || !this.YOUTUBE_API_KEY) {
+      console.warn('YouTube integration is disabled — API key not configured');
+      return false;
+    }
+
     try {
       // Initialize Google OAuth2
       await this.loadGoogleAPI();
@@ -143,9 +151,15 @@ class YouTubeIntegrationService {
    * Authenticate with Vimeo
    */
   public async authenticateVimeo(): Promise<boolean> {
+    // Feature guard: skip if Vimeo integration is disabled
+    if (!appConfig.features.enableVimeo || !appConfig.video.vimeoAccessToken) {
+      console.warn('Vimeo integration is disabled — credentials not configured');
+      return false;
+    }
+
     try {
       // Redirect to Vimeo OAuth
-      const clientId = import.meta.env.VITE_VIMEO_CLIENT_ID;
+      const clientId = appConfig.video.vimeoClientId;
       const redirectUri = encodeURIComponent(window.location.origin + '/auth/vimeo/callback');
       const scope = 'public private purchased upload delete edit';
       
@@ -202,6 +216,9 @@ class YouTubeIntegrationService {
    * Get YouTube videos from channel
    */
   public async getYouTubeVideos(maxResults: number = 50): Promise<YouTubeVideo[]> {
+    // Feature guard: skip if YouTube integration is disabled
+    if (!appConfig.features.enableYoutube) return [];
+
     try {
       if (!this.accessToken) {
         throw new Error('Not authenticated with YouTube');
@@ -254,10 +271,13 @@ class YouTubeIntegrationService {
    * Upload video to YouTube
    */
   public async uploadToYouTube(
-    file: File, 
+    file: File,
     options: VideoUploadOptions,
     onProgress?: (progress: UploadProgress) => void
   ): Promise<string | null> {
+    // Feature guard: skip if YouTube integration is disabled
+    if (!appConfig.features.enableYoutube) return null;
+
     try {
       if (!this.accessToken) {
         throw new Error('Not authenticated with YouTube');
@@ -386,6 +406,9 @@ class YouTubeIntegrationService {
    * Get Vimeo videos
    */
   public async getVimeoVideos(maxResults: number = 50): Promise<VimeoVideo[]> {
+    // Feature guard: skip if Vimeo integration is disabled
+    if (!appConfig.features.enableVimeo) return [];
+
     try {
       if (!this.vimeoToken && !this.VIMEO_ACCESS_TOKEN) {
         throw new Error('Not authenticated with Vimeo');
@@ -436,6 +459,9 @@ class YouTubeIntegrationService {
     options: VideoUploadOptions,
     onProgress?: (progress: UploadProgress) => void
   ): Promise<string | null> {
+    // Feature guard: skip if Vimeo integration is disabled
+    if (!appConfig.features.enableVimeo) return null;
+
     try {
       if (!this.vimeoToken && !this.VIMEO_ACCESS_TOKEN) {
         throw new Error('Not authenticated with Vimeo');
@@ -542,6 +568,9 @@ class YouTubeIntegrationService {
    * Get video analytics from YouTube
    */
   public async getYouTubeAnalytics(videoId: string, days: number = 30): Promise<VideoAnalytics | null> {
+    // Feature guard: skip if YouTube integration is disabled
+    if (!appConfig.features.enableYoutube) return null;
+
     try {
       if (!this.accessToken) {
         throw new Error('Not authenticated with YouTube');

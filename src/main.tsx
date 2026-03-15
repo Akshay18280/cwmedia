@@ -4,10 +4,11 @@ import { Toaster } from 'sonner';
 import App from './App';
 
 import ErrorBoundary from './components/ErrorBoundary';
+import { appConfig } from '@/config/appConfig';
 import './index.css';
 
 // Service Worker Registration
-if ('serviceWorker' in navigator && import.meta.env.VITE_ENABLE_PWA === 'true') {
+if ('serviceWorker' in navigator && appConfig.features.enablePWA) {
   window.addEventListener('load', async () => {
     try {
       const registration = await navigator.serviceWorker.register('/sw.js', {

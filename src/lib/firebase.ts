@@ -1,35 +1,26 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
-import { getStorage, connectStorageEmulator } from 'firebase/storage';
+import { getFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import { getStorage } from 'firebase/storage';
 import { getAnalytics } from 'firebase/analytics';
+import { appConfig } from '@/config/appConfig';
 
-// Firebase configuration
+// Firebase configuration - loaded from centralized config
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'demo-api-key',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'demo-project.firebaseapp.com',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'demo-project',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'demo-project.appspot.com',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '123456789',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:123456789:web:abcdef',
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || 'G-XXXXXXXXXX'
+  apiKey: appConfig.firebase.apiKey,
+  authDomain: appConfig.firebase.authDomain,
+  projectId: appConfig.firebase.projectId,
+  storageBucket: appConfig.firebase.storageBucket,
+  messagingSenderId: appConfig.firebase.messagingSenderId,
+  appId: appConfig.firebase.appId,
+  measurementId: appConfig.firebase.measurementId,
 };
 
-// Initialize Firebase only if we have real config
+// Initialize Firebase
 let app;
 try {
-  // Only initialize if we have real Firebase config (not demo values)
-  const hasRealConfig = firebaseConfig.apiKey !== 'demo-api-key' && 
-                        firebaseConfig.projectId !== 'demo-project' &&
-                        firebaseConfig.apiKey !== 'your_firebase_api_key';
-                        
-  if (hasRealConfig) {
-    app = initializeApp(firebaseConfig);
-    console.log('🔥 Firebase initialized successfully');
-  } else {
-    console.log('🔥 Firebase running in demo mode (no real config found)');
-    app = null;
-  }
+  app = initializeApp(firebaseConfig);
+  console.log('🔥 Firebase initialized successfully');
 } catch (error) {
   console.warn('🔥 Firebase initialization failed:', error);
   app = null;
@@ -51,17 +42,4 @@ if (typeof window !== 'undefined' && app) {
 }
 export { analytics };
 
-// Connect to emulators in development (simplified)
-if (import.meta.env.DEV && app) {
-  try {
-    // Only connect if not already connected
-    if (db) connectFirestoreEmulator(db, 'localhost', 8080);
-    if (auth) connectAuthEmulator(auth, 'http://localhost:9099');
-    if (storage) connectStorageEmulator(storage, 'localhost', 9199);
-  } catch (error) {
-    // Emulators already connected or not available
-    console.log('Firebase emulators not connected (this is normal):', error);
-  }
-}
-
-export default app; 
+export default app;

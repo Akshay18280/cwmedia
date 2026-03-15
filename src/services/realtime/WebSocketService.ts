@@ -6,6 +6,8 @@
  * @created 2025-01-15
  */
 
+import { appConfig, isDev } from '@/config/appConfig';
+
 export interface WebSocketMessage {
   type: string;
   data: any;
@@ -124,11 +126,11 @@ class WebSocketService extends SimpleEventEmitter {
    */
   private getWebSocketUrl(): string {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = import.meta.env.VITE_WS_HOST || window.location.host;
-    const port = import.meta.env.VITE_WS_PORT || '3001';
-    
+    const host = appConfig.websocket.host || window.location.host;
+    const port = appConfig.websocket.port;
+
     // For development, use localhost with WebSocket port
-    if (import.meta.env.DEV) {
+    if (isDev) {
       return `${protocol}//localhost:${port}/ws`;
     }
     
@@ -147,6 +149,11 @@ class WebSocketService extends SimpleEventEmitter {
    * Connect to WebSocket server
    */
   public async connect(userToken?: string, userId?: string): Promise<void> {
+    // Feature guard: skip if WebSocket is disabled
+    if (!appConfig.features.enableWebSocket) {
+      return;
+    }
+
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       console.log('WebSocket already connected');
       return;

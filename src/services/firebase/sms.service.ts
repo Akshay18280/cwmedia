@@ -9,6 +9,7 @@
 
 import { doc, setDoc, getDoc, deleteDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { appConfig } from '@/config/appConfig';
 
 interface OTPRecord {
   phoneNumber: string;
@@ -36,7 +37,7 @@ class SMSService {
     {
       name: 'Twilio',
       sendSMS: this.sendViaTwilio.bind(this),
-      isAvailable: () => !!process.env.TWILIO_ACCOUNT_SID
+      isAvailable: () => !!(appConfig.features.enableTwilioSMS && appConfig.twilio.accountSid && appConfig.twilio.authToken)
     },
     {
       name: 'Firebase SMS',
@@ -46,7 +47,7 @@ class SMSService {
     {
       name: 'Mock SMS (Development)',
       sendSMS: this.sendViaMock.bind(this),
-      isAvailable: () => process.env.NODE_ENV === 'development'
+      isAvailable: () => import.meta.env.DEV
     }
   ];
 
@@ -75,9 +76,9 @@ class SMSService {
   // Send OTP via Twilio
   private async sendViaTwilio(phoneNumber: string, message: string): Promise<boolean> {
     try {
-      const accountSid = process.env.TWILIO_ACCOUNT_SID;
-      const authToken = process.env.TWILIO_AUTH_TOKEN;
-      const fromNumber = process.env.TWILIO_PHONE_NUMBER;
+      const accountSid = appConfig.twilio.accountSid;
+      const authToken = appConfig.twilio.authToken;
+      const fromNumber = appConfig.twilio.phoneNumber;
 
       if (!accountSid || !authToken || !fromNumber) {
         console.warn('Twilio credentials not configured');
@@ -326,7 +327,7 @@ class SMSService {
     message: string;
   }> {
     // For development, check localStorage first
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       const devOTP = localStorage.getItem('dev_otp');
       const devPhone = localStorage.getItem('dev_otp_phone');
       
