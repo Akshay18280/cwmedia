@@ -1,49 +1,77 @@
 package services
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"strings"
-
-	openai "github.com/sashabaranov/go-openai"
 )
 
-// LLMService handles communication with LLM providers.
+// LLMService handles communication with Google Gemini API.
 type LLMService struct {
-	provider string
-	model    string
-	client   *openai.Client
+	model  string
+	apiKey string
 }
 
-// NewLLMService creates an LLM service for the given provider.
-func NewLLMService(provider, model, openaiKey, anthropicKey string) (*LLMService, error) {
-	svc := &LLMService{
-		provider: strings.ToLower(provider),
-		model:    model,
+// NewLLMService creates an LLM service for Google Gemini.
+func NewLLMService(provider, model, apiKey string) (*LLMService, error) {
+	p := strings.ToLower(provider)
+
+	if p != "gemini" {
+		return nil, fmt.Errorf("unsupported LLM provider: %s (only 'gemini' is supported)", provider)
 	}
 
-	switch svc.provider {
-	case "openai":
-		if openaiKey == "" {
-			return nil, fmt.Errorf("OPENAI_API_KEY is required for openai provider")
-		}
-		svc.client = openai.NewClient(openaiKey)
-	case "anthropic":
-		// Use the openai-compatible client with Anthropic base URL
-		if anthropicKey == "" {
-			return nil, fmt.Errorf("ANTHROPIC_API_KEY is required for anthropic provider")
-		}
-		cfg := openai.DefaultConfig(anthropicKey)
-		cfg.BaseURL = "https://api.anthropic.com/v1"
-		svc.client = openai.NewClientWithConfig(cfg)
-	default:
-		return nil, fmt.Errorf("unsupported LLM provider: %s", provider)
+	if apiKey == "" {
+		return nil, fmt.Errorf("GEMINI_API_KEY is required")
 	}
 
-	return svc, nil
+	return &LLMService{
+		model:  model,
+		apiKey: apiKey,
+	}, nil
 }
 
-// GenerateAnswer sends context + question to the LLM and returns the response.
+// --- Google Gemini API types ---
+
+type geminiRequest struct {
+	Contents         []geminiContent        `json:"contents"`
+	SystemInstruction *geminiContent        `json:"systemInstruction,omitempty"`
+	GenerationConfig  *geminiGenerationConfig `json:"generationConfig,omitempty"`
+}
+
+type geminiContent struct {
+	Parts []geminiPart `json:"parts"`
+	Role  string       `json:"role,omitempty"`
+}
+
+type geminiPart struct {
+	Text string `json:"text"`
+}
+
+type geminiGenerationConfig struct {
+	MaxOutputTokens int     `json:"maxOutputTokens,omitempty"`
+	Temperature     float64 `json:"temperature,omitempty"`
+}
+
+type geminiResponse struct {
+	Candidates []struct {
+		Content struct {
+			Parts []struct {
+				Text string `json:"text"`
+			} `json:"parts"`
+		} `json:"content"`
+	} `json:"candidates"`
+	Error *struct {
+		Code    int    `json:"code"`
+		Message string `json:"message"`
+		Status  string `json:"status"`
+	} `json:"error,omitempty"`
+}
+
+// GenerateAnswer sends context + question to Gemini and returns the response.
 func (s *LLMService) GenerateAnswer(ctx context.Context, contextChunks []string, question string) (string, error) {
 	contextText := strings.Join(contextChunks, "\n\n---\n\n")
 
@@ -53,22 +81,74 @@ to answer the question, say so clearly. Do not make up information.`
 
 	userPrompt := fmt.Sprintf("CONTEXT:\n%s\n\nQUESTION:\n%s", contextText, question)
 
-	resp, err := s.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-		Model: s.model,
-		Messages: []openai.ChatCompletionMessage{
-			{Role: openai.ChatMessageRoleSystem, Content: systemPrompt},
-			{Role: openai.ChatMessageRoleUser, Content: userPrompt},
+	reqBody := geminiRequest{
+		SystemInstruction: &geminiContent{
+			Parts: []geminiPart{{Text: systemPrompt}},
 		},
-		MaxTokens:   1024,
-		Temperature: 0.3,
-	})
+		Contents: []geminiContent{
+			{
+				Role:  "user",
+				Parts: []geminiPart{{Text: userPrompt}},
+			},
+		},
+		GenerationConfig: &geminiGenerationConfig{
+			MaxOutputTokens: 1024,
+			Temperature:     0.3,
+		},
+	}
+
+	body, err := json.Marshal(reqBody)
 	if err != nil {
-		return "", fmt.Errorf("LLM request failed: %w", err)
+		return "", fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	if len(resp.Choices) == 0 {
-		return "", fmt.Errorf("no response from LLM")
+	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", s.model, s.apiKey)
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(body))
+	if err != nil {
+		return "", fmt.Errorf("failed to create request: %w", err)
 	}
 
-	return resp.Choices[0].Message.Content, nil
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("Gemini API request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read response: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("Gemini API error (status %d): %s", resp.StatusCode, string(respBody))
+	}
+
+	var result geminiResponse
+	if err := json.Unmarshal(respBody, &result); err != nil {
+		return "", fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	if result.Error != nil {
+		return "", fmt.Errorf("Gemini error: %s", result.Error.Message)
+	}
+
+	if len(result.Candidates) == 0 || len(result.Candidates[0].Content.Parts) == 0 {
+		return "", fmt.Errorf("no response from Gemini")
+	}
+
+	var parts []string
+	for _, part := range result.Candidates[0].Content.Parts {
+		if part.Text != "" {
+			parts = append(parts, part.Text)
+		}
+	}
+
+	if len(parts) == 0 {
+		return "", fmt.Errorf("no text content in Gemini response")
+	}
+
+	return strings.Join(parts, "\n"), nil
 }

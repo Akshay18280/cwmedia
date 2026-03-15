@@ -21,7 +21,6 @@ import (
 )
 
 func main() {
-	// Load config
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
@@ -30,26 +29,27 @@ func main() {
 	ctx := context.Background()
 
 	// Initialize vector store
-	store, err := vectorstore.NewStore(ctx, cfg.DatabaseURL)
+	store, err := vectorstore.NewStore(ctx, cfg.DatabaseURL, cfg.EmbeddingDim)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer store.Close()
 
-	// Run migrations
 	if err := store.RunMigrations(ctx); err != nil {
 		log.Fatalf("Failed to run migrations: %v", err)
 	}
 	log.Println("Database migrations completed")
 
-	// Initialize embedder
-	embedder := embeddings.NewEmbedder(cfg.OpenAIKey, cfg.EmbeddingModel)
+	// Initialize local embedder (no external API needed)
+	embedder := embeddings.NewEmbedder(cfg.EmbeddingDim)
+	log.Printf("Embeddings: local hash-based (%d dims)", cfg.EmbeddingDim)
 
-	// Initialize LLM service
-	llm, err := services.NewLLMService(cfg.LLMProvider, cfg.LLMModel, cfg.OpenAIKey, cfg.AnthropicKey)
+	// Initialize Google Gemini LLM service
+	llm, err := services.NewLLMService("gemini", cfg.LLMModel, cfg.GeminiKey)
 	if err != nil {
 		log.Fatalf("Failed to initialize LLM service: %v", err)
 	}
+	log.Printf("LLM: Google Gemini (%s)", cfg.LLMModel)
 
 	// Initialize RAG pipeline
 	pipeline := rag.NewPipeline(embedder, store, llm, cfg.ChunkSize, cfg.ChunkOverlap, cfg.TopK)
@@ -62,15 +62,12 @@ func main() {
 	r.Use(middleware.ErrorHandler())
 	r.Use(middleware.CORSMiddleware(cfg.AllowedOrigins))
 
-	// Rate limiting on mutation endpoints
 	rl := middleware.NewRateLimiter(cfg.RateLimitPerMin)
 	r.Use(rl.Middleware())
 
-	// Register routes
 	handlers := api.NewHandlers(pipeline, cfg.MaxUploadSizeMB)
 	handlers.RegisterRoutes(r)
 
-	// Start server with graceful shutdown
 	addr := fmt.Sprintf(":%s", cfg.Port)
 	srv := &http.Server{
 		Addr:         addr,
@@ -86,7 +83,6 @@ func main() {
 		}
 	}()
 
-	// Wait for interrupt signal
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
@@ -98,6 +94,5 @@ func main() {
 	if err := srv.Shutdown(shutdownCtx); err != nil {
 		log.Fatalf("Server forced to shutdown: %v", err)
 	}
-
 	log.Println("Server stopped")
 }

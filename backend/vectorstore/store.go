@@ -26,11 +26,12 @@ type SearchResult struct {
 
 // Store handles vector storage and retrieval via pgvector.
 type Store struct {
-	pool *pgxpool.Pool
+	pool         *pgxpool.Pool
+	embeddingDim int
 }
 
 // NewStore creates a vector store connected to the given database.
-func NewStore(ctx context.Context, databaseURL string) (*Store, error) {
+func NewStore(ctx context.Context, databaseURL string, embeddingDim int) (*Store, error) {
 	pool, err := pgxpool.New(ctx, databaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
@@ -40,7 +41,10 @@ func NewStore(ctx context.Context, databaseURL string) (*Store, error) {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
-	return &Store{pool: pool}, nil
+	if embeddingDim <= 0 {
+		embeddingDim = 1024
+	}
+	return &Store{pool: pool, embeddingDim: embeddingDim}, nil
 }
 
 // RunMigrations creates the required extension and tables.
@@ -52,12 +56,12 @@ func (s *Store) RunMigrations(ctx context.Context) error {
 			filename TEXT NOT NULL,
 			uploaded_at TIMESTAMPTZ DEFAULT NOW()
 		)`,
-		`CREATE TABLE IF NOT EXISTS chunks (
+		fmt.Sprintf(`CREATE TABLE IF NOT EXISTS chunks (
 			id UUID PRIMARY KEY,
 			document_id UUID REFERENCES documents(id) ON DELETE CASCADE,
 			content TEXT NOT NULL,
-			embedding vector(1536)
-		)`,
+			embedding vector(%d)
+		)`, s.embeddingDim),
 		`CREATE INDEX IF NOT EXISTS chunks_embedding_idx
 			ON chunks USING hnsw (embedding vector_cosine_ops)`,
 	}

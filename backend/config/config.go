@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 
@@ -11,11 +10,9 @@ import (
 type Config struct {
 	Port            string
 	DatabaseURL     string
-	OpenAIKey       string
-	AnthropicKey    string
-	LLMProvider     string // "openai" or "anthropic"
+	GeminiKey       string
 	LLMModel        string
-	EmbeddingModel  string
+	EmbeddingDim    int
 	ChunkSize       int
 	ChunkOverlap    int
 	TopK            int
@@ -25,7 +22,6 @@ type Config struct {
 }
 
 func Load() (*Config, error) {
-	// Load .env file if it exists (ignore error in production)
 	_ = godotenv.Load()
 
 	chunkSize, _ := strconv.Atoi(getEnv("CHUNK_SIZE", "512"))
@@ -33,25 +29,23 @@ func Load() (*Config, error) {
 	topK, _ := strconv.Atoi(getEnv("TOP_K", "5"))
 	rateLimit, _ := strconv.Atoi(getEnv("RATE_LIMIT_PER_MIN", "10"))
 	maxUpload, _ := strconv.Atoi(getEnv("MAX_UPLOAD_SIZE_MB", "20"))
+	embeddingDim, _ := strconv.Atoi(getEnv("EMBEDDING_DIM", "512"))
+
+	// Google Gemini API key — hardcoded per project convention (see appConfig.ts)
+	geminiKey := getEnv("GEMINI_API_KEY", "AIzaSyCQIZqUPiRukMbp5G58lvD1wDHCJejGn58")
 
 	cfg := &Config{
 		Port:            getEnv("PORT", "8080"),
 		DatabaseURL:     getEnv("DATABASE_URL", "postgres://raguser:ragpass@postgres:5432/ragdb?sslmode=disable"),
-		OpenAIKey:       os.Getenv("OPENAI_API_KEY"),
-		AnthropicKey:    os.Getenv("ANTHROPIC_API_KEY"),
-		LLMProvider:     getEnv("LLM_PROVIDER", "openai"),
-		LLMModel:        getEnv("LLM_MODEL", "gpt-4o-mini"),
-		EmbeddingModel:  getEnv("EMBEDDING_MODEL", "text-embedding-3-small"),
+		GeminiKey:       geminiKey,
+		LLMModel:        getEnv("LLM_MODEL", "gemini-2.5-flash"),
+		EmbeddingDim:    embeddingDim,
 		ChunkSize:       chunkSize,
 		ChunkOverlap:    chunkOverlap,
 		TopK:            topK,
 		AllowedOrigins:  getEnv("ALLOWED_ORIGINS", "http://localhost:5173"),
 		RateLimitPerMin: rateLimit,
 		MaxUploadSizeMB: maxUpload,
-	}
-
-	if cfg.OpenAIKey == "" {
-		return nil, fmt.Errorf("OPENAI_API_KEY is required")
 	}
 
 	return cfg, nil
