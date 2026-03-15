@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { AuthProvider } from './contexts/AuthContext';
@@ -17,6 +17,9 @@ import SearchPage from './pages/SearchPage';
 import ThemeShowcase from './pages/ThemeShowcase';
 import AccentTest from './pages/AccentTest';
 import Verify from './pages/verify';
+
+// Lazy-loaded pages
+const AiLab = lazy(() => import('./pages/AiLab'));
 
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -51,6 +54,15 @@ function App() {
                 {/* Public routes */}
                 <Route index element={<Home />} />
                 <Route path="about" element={<About />} />
+                <Route path="ai-lab" element={
+                  <Suspense fallback={
+                    <div className="min-h-screen bg-gradient-subtle flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full border-2 border-accent-primary border-t-transparent animate-spin" />
+                    </div>
+                  }>
+                    <AiLab />
+                  </Suspense>
+                } />
                 <Route path="about-akshay" element={<AboutAkshay />} />
                 <Route path="contact" element={<Contact />} />
                 <Route path="blog" element={<Blog />} />

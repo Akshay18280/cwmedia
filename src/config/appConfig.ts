@@ -96,6 +96,7 @@ export const appConfig = {
     enableWebSocket: false,          // Feature disabled — no WebSocket server deployed
     enableTwilioSMS: false,          // Feature disabled — Twilio auth token not provided
     enableResendEmail: true,         // Resend API key is configured
+    aiLab: true,                     // AI Lab portfolio section — AI Knowledge Copilot demo
     debugMode: false,
   },
 
