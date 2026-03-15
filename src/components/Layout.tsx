@@ -8,6 +8,7 @@ import { useVoiceCommands } from '../hooks/useVoiceCommands';
 import { SearchBar } from './search/SearchBar';
 import { LiveNotifications } from './realtime/LiveNotifications';
 import { ModernButton } from './ModernDesignSystem';
+import { appConfig } from '@/config/appConfig';
 
 export default function Layout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -40,6 +41,7 @@ export default function Layout() {
   const navigation = [
     { name: 'Home', href: '/' },
     { name: 'About', href: '/about' },
+    ...(appConfig.features.aiLab ? [{ name: 'AI Lab', href: '/ai-lab' }] : []),
     { name: 'About Akshay', href: '/about-akshay' },
     { name: 'Blog', href: '/blog' },
     { name: 'Contact', href: '/contact' },
