@@ -19,6 +19,7 @@ type Config struct {
 	AllowedOrigins  string
 	RateLimitPerMin int
 	MaxUploadSizeMB int
+	TavilyKey       string
 }
 
 func Load() (*Config, error) {
@@ -43,9 +44,10 @@ func Load() (*Config, error) {
 		ChunkSize:       chunkSize,
 		ChunkOverlap:    chunkOverlap,
 		TopK:            topK,
-		AllowedOrigins:  getEnv("ALLOWED_ORIGINS", "http://localhost:5173"),
+		AllowedOrigins:  getEnv("ALLOWED_ORIGINS", "http://localhost:5173,https://carelwave.com"),
 		RateLimitPerMin: rateLimit,
 		MaxUploadSizeMB: maxUpload,
+		TavilyKey:       getEnv("TAVILY_API_KEY", ""),
 	}
 
 	return cfg, nil

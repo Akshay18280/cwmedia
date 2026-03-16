@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { firebaseAuthService } from '../services/firebase/auth.service';
@@ -268,6 +268,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Initialize authentication
   useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+
     const initAuth = async () => {
       try {
         // First check existing session
@@ -288,8 +290,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setLoading(false);
           return;
         }
-        
-        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+
+        unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
           try {
             if (firebaseUser) {
               // Get admin status from Firebase Custom Claims (server-side verification)
@@ -325,8 +327,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setLoading(false);
           }
         });
-
-        return unsubscribe;
       } catch (error) {
         console.error('Auth initialization error:', error);
         setLoading(false);
@@ -334,13 +334,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     initAuth();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, [validateSession, createSession, clearSession]);
 
-  // Auto-refresh session
+  // Track whether a session is active via ref to avoid interval churn
+  const hasSession = useRef(false);
   useEffect(() => {
-    if (!sessionInfo) return;
+    hasSession.current = !!sessionInfo;
+  }, [sessionInfo]);
+
+  // Auto-refresh session — only depends on user ID to avoid re-creating interval
+  useEffect(() => {
+    if (!user?.id) return;
 
     const interval = setInterval(() => {
+      if (!hasSession.current) return;
       const storedSession = localStorage.getItem('authSession');
       if (storedSession) {
         try {
@@ -355,7 +366,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, 60000); // Update every minute
 
     return () => clearInterval(interval);
-  }, [sessionInfo]);
+  }, [user?.id]);
 
   const checkIPAuthentication = async (): Promise<boolean> => {
     try {
@@ -660,6 +671,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const getLoginHistory = async (): Promise<LoginAttempt[]> => {
     try {
       const history = JSON.parse(localStorage.getItem('loginHistory') || '[]');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return history.map((attempt: any) => ({
         ...attempt,
         timestamp: new Date(attempt.timestamp)
@@ -670,7 +682,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const value: AuthContextType = {
+  const value: AuthContextType = useMemo(() => ({
     user,
     loading,
     isAuthenticated: !!user,
@@ -689,7 +701,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     revokeSession,
     changePassword,
     getLoginHistory
-  };
+  }), [user, loading, sessionInfo, signIn, signInWithPhone, verifyOTP, signInWithGoogle, signOut, updateUserProfile, refreshUser, checkIPAuth, refreshSession, getActiveSessions, revokeSession, changePassword, getLoginHistory]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }; 

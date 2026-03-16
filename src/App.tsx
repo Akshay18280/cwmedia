@@ -4,6 +4,7 @@ import { Toaster } from 'sonner';
 import { AuthProvider } from './contexts/AuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import Layout from './components/Layout';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 // Pages
 import Home from './pages/Home';
@@ -77,9 +78,9 @@ function App() {
                 <Route path="verify" element={<Verify />} />
                 
                 {/* Admin routes */}
-                <Route path="admin" element={<AdminDashboard />} />
+                <Route path="admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
                 <Route path="admin/login" element={<AdminLogin />} />
-                <Route path="admin/dashboard" element={<AdminDashboard />} />
+                <Route path="admin/dashboard" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
                 
                 {/* Catch all route */}
                 <Route path="*" element={

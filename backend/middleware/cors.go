@@ -9,14 +9,14 @@ import (
 
 func CORSMiddleware(allowedOrigins string) gin.HandlerFunc {
 	origins := strings.Split(allowedOrigins, ",")
-	for i := range origins {
-		origins[i] = strings.TrimSpace(origins[i])
+	for i, o := range origins {
+		origins[i] = strings.TrimSpace(o)
 	}
 
 	c := cors.New(cors.Options{
 		AllowedOrigins: origins,
-		AllowedMethods: []string{"GET", "POST", "OPTIONS"},
-		AllowedHeaders: []string{"Origin", "Content-Type"},
+		AllowedMethods: []string{"GET", "POST", "DELETE", "OPTIONS"},
+		AllowedHeaders: []string{"Origin", "Content-Type", "Authorization"},
 	})
 
 	return func(ctx *gin.Context) {

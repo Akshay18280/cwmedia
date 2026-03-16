@@ -15,6 +15,7 @@ import (
 	"github.com/akshayverma/cwmedia-backend/embeddings"
 	"github.com/akshayverma/cwmedia-backend/middleware"
 	"github.com/akshayverma/cwmedia-backend/rag"
+	"github.com/akshayverma/cwmedia-backend/seed"
 	"github.com/akshayverma/cwmedia-backend/services"
 	"github.com/akshayverma/cwmedia-backend/vectorstore"
 	"github.com/gin-gonic/gin"
@@ -54,18 +55,33 @@ func main() {
 	// Initialize RAG pipeline
 	pipeline := rag.NewPipeline(embedder, store, llm, cfg.ChunkSize, cfg.ChunkOverlap, cfg.TopK)
 
+	// Initialize research service
+	research := services.NewResearchService(llm, cfg.TavilyKey)
+	if cfg.TavilyKey != "" {
+		log.Println("Research service initialized with Tavily web search + multi-agent orchestration")
+	} else {
+		log.Println("Research service initialized with Gemini knowledge search + multi-agent orchestration")
+	}
+
+	// Seed example documents if database is empty
+	if err := seed.LoadExampleDocuments(ctx, store, pipeline); err != nil {
+		log.Printf("Warning: failed to seed example documents: %v", err)
+	}
+
 	// Set up Gin
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 	r.Use(middleware.ErrorHandler())
+	r.Use(middleware.SecurityHeaders())
 	r.Use(middleware.CORSMiddleware(cfg.AllowedOrigins))
 
 	rl := middleware.NewRateLimiter(cfg.RateLimitPerMin)
+	defer rl.Stop()
 	r.Use(rl.Middleware())
 
-	handlers := api.NewHandlers(pipeline, cfg.MaxUploadSizeMB)
+	handlers := api.NewHandlers(pipeline, cfg, research)
 	handlers.RegisterRoutes(r)
 
 	addr := fmt.Sprintf(":%s", cfg.Port)
@@ -73,7 +89,8 @@ func main() {
 		Addr:         addr,
 		Handler:      r,
 		ReadTimeout:  30 * time.Second,
-		WriteTimeout: 60 * time.Second,
+		WriteTimeout: 180 * time.Second,
+		IdleTimeout:  120 * time.Second,
 	}
 
 	go func() {

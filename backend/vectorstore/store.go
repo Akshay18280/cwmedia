@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -20,8 +21,10 @@ type Chunk struct {
 
 // SearchResult is a chunk returned from a similarity search.
 type SearchResult struct {
-	Content  string
-	Distance float64
+	ChunkID          string  `json:"chunk_id"`
+	DocumentFilename string  `json:"document_filename"`
+	Content          string  `json:"content"`
+	Distance         float64 `json:"distance"`
 }
 
 // Store handles vector storage and retrieval via pgvector.
@@ -32,7 +35,18 @@ type Store struct {
 
 // NewStore creates a vector store connected to the given database.
 func NewStore(ctx context.Context, databaseURL string, embeddingDim int) (*Store, error) {
-	pool, err := pgxpool.New(ctx, databaseURL)
+	poolCfg, err := pgxpool.ParseConfig(databaseURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse database URL: %w", err)
+	}
+
+	poolCfg.MaxConns = 10
+	poolCfg.MinConns = 2
+	poolCfg.MaxConnLifetime = 30 * time.Minute
+	poolCfg.MaxConnIdleTime = 5 * time.Minute
+	poolCfg.HealthCheckPeriod = 1 * time.Minute
+
+	pool, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
@@ -45,6 +59,11 @@ func NewStore(ctx context.Context, databaseURL string, embeddingDim int) (*Store
 		embeddingDim = 1024
 	}
 	return &Store{pool: pool, embeddingDim: embeddingDim}, nil
+}
+
+// Ping checks database connectivity.
+func (s *Store) Ping(ctx context.Context) error {
+	return s.pool.Ping(ctx)
 }
 
 // RunMigrations creates the required extension and tables.
@@ -121,9 +140,10 @@ func (s *Store) InsertChunks(ctx context.Context, documentID uuid.UUID, contents
 // Search finds the top-k most similar chunks to the query embedding.
 func (s *Store) Search(ctx context.Context, queryEmbedding []float32, topK int) ([]SearchResult, error) {
 	rows, err := s.pool.Query(ctx,
-		`SELECT content, embedding <-> $1 AS distance
-		 FROM chunks
-		 ORDER BY embedding <-> $1
+		`SELECT c.id, d.filename, c.content, c.embedding <-> $1 AS distance
+		 FROM chunks c
+		 JOIN documents d ON c.document_id = d.id
+		 ORDER BY c.embedding <-> $1
 		 LIMIT $2`,
 		pgvectorString(queryEmbedding), topK,
 	)
@@ -135,13 +155,114 @@ func (s *Store) Search(ctx context.Context, queryEmbedding []float32, topK int) 
 	var results []SearchResult
 	for rows.Next() {
 		var r SearchResult
-		if err := rows.Scan(&r.Content, &r.Distance); err != nil {
+		if err := rows.Scan(&r.ChunkID, &r.DocumentFilename, &r.Content, &r.Distance); err != nil {
 			return nil, fmt.Errorf("failed to scan result: %w", err)
 		}
 		results = append(results, r)
 	}
 
 	return results, nil
+}
+
+// DocumentInfo represents a stored document with metadata.
+type DocumentInfo struct {
+	ID         string `json:"id"`
+	Filename   string `json:"filename"`
+	UploadedAt string `json:"uploaded_at"`
+	ChunkCount int    `json:"chunk_count"`
+}
+
+// ChunkInfo represents a chunk with a content preview.
+type ChunkInfo struct {
+	ID      string `json:"id"`
+	Content string `json:"content"`
+	Preview string `json:"preview"`
+}
+
+// StoreStats holds aggregate counts.
+type StoreStats struct {
+	TotalDocuments int `json:"total_documents"`
+	TotalChunks    int `json:"total_chunks"`
+}
+
+// ListDocuments returns paginated documents with chunk counts.
+func (s *Store) ListDocuments(ctx context.Context, limit, offset int) ([]DocumentInfo, error) {
+	rows, err := s.pool.Query(ctx,
+		`SELECT d.id, d.filename, d.uploaded_at, COUNT(c.id) AS chunk_count
+		 FROM documents d
+		 LEFT JOIN chunks c ON c.document_id = d.id
+		 GROUP BY d.id, d.filename, d.uploaded_at
+		 ORDER BY d.uploaded_at DESC
+		 LIMIT $1 OFFSET $2`,
+		limit, offset,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list documents failed: %w", err)
+	}
+	defer rows.Close()
+
+	var docs []DocumentInfo
+	for rows.Next() {
+		var d DocumentInfo
+		if err := rows.Scan(&d.ID, &d.Filename, &d.UploadedAt, &d.ChunkCount); err != nil {
+			return nil, fmt.Errorf("failed to scan document: %w", err)
+		}
+		docs = append(docs, d)
+	}
+	if docs == nil {
+		docs = []DocumentInfo{}
+	}
+	return docs, nil
+}
+
+// ListChunks returns paginated chunks for a given document.
+func (s *Store) ListChunks(ctx context.Context, documentID string, limit, offset int) ([]ChunkInfo, error) {
+	rows, err := s.pool.Query(ctx,
+		`SELECT id, content FROM chunks WHERE document_id = $1 ORDER BY id LIMIT $2 OFFSET $3`,
+		documentID, limit, offset,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("list chunks failed: %w", err)
+	}
+	defer rows.Close()
+
+	var chunks []ChunkInfo
+	for rows.Next() {
+		var ch ChunkInfo
+		if err := rows.Scan(&ch.ID, &ch.Content); err != nil {
+			return nil, fmt.Errorf("failed to scan chunk: %w", err)
+		}
+		ch.Preview = ch.Content
+		if len(ch.Preview) > 200 {
+			ch.Preview = ch.Preview[:200]
+		}
+		chunks = append(chunks, ch)
+	}
+	if chunks == nil {
+		chunks = []ChunkInfo{}
+	}
+	return chunks, nil
+}
+
+// GetStats returns aggregate document and chunk counts.
+func (s *Store) GetStats(ctx context.Context) (*StoreStats, error) {
+	var stats StoreStats
+	err := s.pool.QueryRow(ctx, `SELECT COUNT(*) FROM documents`).Scan(&stats.TotalDocuments)
+	if err != nil {
+		return nil, fmt.Errorf("count documents failed: %w", err)
+	}
+	err = s.pool.QueryRow(ctx, `SELECT COUNT(*) FROM chunks`).Scan(&stats.TotalChunks)
+	if err != nil {
+		return nil, fmt.Errorf("count chunks failed: %w", err)
+	}
+	return &stats, nil
+}
+
+// DocumentCount returns the number of documents (used for seed check).
+func (s *Store) DocumentCount(ctx context.Context) (int, error) {
+	var count int
+	err := s.pool.QueryRow(ctx, `SELECT COUNT(*) FROM documents`).Scan(&count)
+	return count, err
 }
 
 // Close shuts down the connection pool.
