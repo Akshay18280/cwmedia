@@ -21,6 +21,7 @@ import Verify from './pages/verify';
 
 // Lazy-loaded pages
 const AiLab = lazy(() => import('./pages/AiLab'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
 
 // Admin pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -62,6 +63,15 @@ function App() {
                     </div>
                   }>
                     <AiLab />
+                  </Suspense>
+                } />
+                <Route path="dashboard" element={
+                  <Suspense fallback={
+                    <div className="min-h-screen bg-gradient-subtle flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full border-2 border-accent-primary border-t-transparent animate-spin" />
+                    </div>
+                  }>
+                    <Dashboard />
                   </Suspense>
                 } />
                 <Route path="about-akshay" element={<AboutAkshay />} />

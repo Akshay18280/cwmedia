@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -8,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/akshayverma/cwmedia-backend/config"
 	"github.com/akshayverma/cwmedia-backend/middleware"
@@ -103,7 +105,7 @@ func (h *Handlers) Chat(c *gin.Context) {
 
 	result, err := h.pipeline.Query(c.Request.Context(), req.Question)
 	if err != nil {
-		fmt.Printf("Chat query failed: %v\n", err)
+		log.Printf("Chat query failed: %v", err)
 		middleware.RespondError(c, http.StatusInternalServerError, "query_failed", "Failed to process your question. Please try again.")
 		return
 	}
@@ -157,7 +159,7 @@ func (h *Handlers) Upload(c *gin.Context) {
 
 	// Run ingestion pipeline
 	if err := h.pipeline.IngestDocument(c.Request.Context(), tmpPath, header.Filename); err != nil {
-		fmt.Printf("Document ingestion failed: %v\n", err)
+		log.Printf("Document ingestion failed: %v", err)
 		middleware.RespondError(c, http.StatusInternalServerError, "ingestion_failed", "Document processing failed. Please try again.")
 		return
 	}
@@ -203,6 +205,10 @@ func (h *Handlers) ListDocuments(c *gin.Context) {
 // ListChunks returns paginated chunks for a specific document.
 func (h *Handlers) ListChunks(c *gin.Context) {
 	docID := c.Param("id")
+	if _, err := uuid.Parse(docID); err != nil {
+		middleware.RespondError(c, http.StatusBadRequest, "invalid_id", "Document ID must be a valid UUID.")
+		return
+	}
 	limit, offset := parsePagination(c)
 	chunks, err := h.pipeline.Store().ListChunks(c.Request.Context(), docID, limit, offset)
 	if err != nil {
@@ -217,7 +223,7 @@ func (h *Handlers) ListChunks(c *gin.Context) {
 func (h *Handlers) Stats(c *gin.Context) {
 	stats, err := h.pipeline.Store().GetStats(c.Request.Context())
 	if err != nil {
-		fmt.Printf("Stats query failed: %v\n", err)
+		log.Printf("Stats query failed: %v", err)
 		middleware.RespondError(c, http.StatusInternalServerError, "stats_failed", "Failed to get stats.")
 		return
 	}
@@ -306,28 +312,37 @@ func (h *Handlers) ResearchStream(c *gin.Context) {
 		return
 	}
 
+	// Enforce a 3-minute timeout on research to prevent indefinite runs
+	researchCtx, cancel := context.WithTimeout(c.Request.Context(), 3*time.Minute)
+	defer cancel()
+
 	eventCh := make(chan services.ResearchEvent, 64)
 
 	go func() {
 		defer close(eventCh)
-		_, err := h.research.Research(c.Request.Context(), req.Question, eventCh)
+		_, err := h.research.Research(researchCtx, req.Question, eventCh)
 		if err != nil {
 			select {
 			case eventCh <- services.ResearchEvent{Type: "error", Message: err.Error()}:
-			case <-c.Request.Context().Done():
+			case <-researchCtx.Done():
 			}
 		}
 	}()
 
-	for event := range eventCh {
+	for {
 		select {
 		case <-c.Request.Context().Done():
+			// Client disconnected — cancel research context so goroutine exits
+			cancel()
 			return
-		default:
+		case event, ok := <-eventCh:
+			if !ok {
+				return // channel closed, research complete
+			}
+			jsonData, _ := json.Marshal(event)
+			fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", event.Type, string(jsonData))
+			flusher.Flush()
 		}
-		jsonData, _ := json.Marshal(event)
-		fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", event.Type, string(jsonData))
-		flusher.Flush()
 	}
 }
 

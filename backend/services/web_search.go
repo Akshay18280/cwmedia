@@ -106,7 +106,10 @@ func (w *WebSearchService) searchTavily(ctx context.Context, query string, maxRe
 	}
 	defer resp.Body.Close()
 
-	respBody, _ := io.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read tavily response: %w", err)
+	}
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("tavily error (status %d): %s", resp.StatusCode, string(respBody))
 	}

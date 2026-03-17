@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"sync"
 	"time"
@@ -30,16 +31,91 @@ type AgentResult struct {
 
 // ResearchReport is the final structured output.
 type ResearchReport struct {
-	Title          string               `json:"title"`
-	Summary        string               `json:"summary"`
-	Sections       []ReportSection      `json:"sections"`
-	KeyFindings    []string             `json:"key_findings"`
-	DataPoints     []DataPoint          `json:"data_points,omitempty"`
-	AgentResults   []AgentResult        `json:"agent_results"`
-	Metrics        ResearchMetrics      `json:"metrics"`
-	Verification   *VerificationResult  `json:"verification,omitempty"`
-	AllSources     []WebSearchResult    `json:"all_sources,omitempty"`
-	ResearchPrompts []PromptRecord      `json:"research_prompts,omitempty"`
+	Title           string               `json:"title"`
+	Summary         string               `json:"summary"`
+	Sections        []ReportSection      `json:"sections"`
+	KeyFindings     []string             `json:"key_findings"`
+	DataPoints      []DataPoint          `json:"data_points,omitempty"`
+	CompanyProfile  *CompanyProfile      `json:"company_profile,omitempty"`
+	FinancialData   []FinancialMetric    `json:"financial_data,omitempty"`
+	Competitors     []CompetitorEntry    `json:"competitors,omitempty"`
+	SwotAnalysis    *SwotAnalysis        `json:"swot_analysis,omitempty"`
+	Timeline        []TimelineEvent      `json:"timeline,omitempty"`
+	NewsItems       []NewsItem           `json:"news_items,omitempty"`
+	ConfidenceScore *ConfidenceScore     `json:"confidence_score,omitempty"`
+	AgentResults    []AgentResult        `json:"agent_results"`
+	Metrics         ResearchMetrics      `json:"metrics"`
+	Verification    *VerificationResult  `json:"verification,omitempty"`
+	AllSources      []WebSearchResult    `json:"all_sources,omitempty"`
+	ResearchPrompts []PromptRecord       `json:"research_prompts,omitempty"`
+}
+
+// CompanyProfile holds structured company metadata.
+type CompanyProfile struct {
+	Name        string `json:"name"`
+	Founded     string `json:"founded,omitempty"`
+	CEO         string `json:"ceo,omitempty"`
+	Headquarters string `json:"headquarters,omitempty"`
+	Employees   string `json:"employees,omitempty"`
+	Industry    string `json:"industry,omitempty"`
+	MarketCap   string `json:"market_cap,omitempty"`
+	StockTicker string `json:"stock_ticker,omitempty"`
+	Website     string `json:"website,omitempty"`
+	Description string `json:"description,omitempty"`
+}
+
+// FinancialMetric represents a financial data point for charts.
+type FinancialMetric struct {
+	Label    string  `json:"label"`
+	Value    float64 `json:"value"`
+	Unit     string  `json:"unit"`
+	Category string  `json:"category"` // revenue, profit, growth, valuation
+	Period   string  `json:"period,omitempty"`
+}
+
+// CompetitorEntry represents a competitor comparison row.
+type CompetitorEntry struct {
+	Name       string `json:"name"`
+	MarketCap  string `json:"market_cap,omitempty"`
+	Revenue    string `json:"revenue,omitempty"`
+	Strengths  string `json:"strengths,omitempty"`
+	Weaknesses string `json:"weaknesses,omitempty"`
+	MarketShare string `json:"market_share,omitempty"`
+}
+
+// SwotAnalysis holds structured SWOT data.
+type SwotAnalysis struct {
+	Strengths     []string `json:"strengths"`
+	Weaknesses    []string `json:"weaknesses"`
+	Opportunities []string `json:"opportunities"`
+	Threats       []string `json:"threats"`
+}
+
+// TimelineEvent represents a key event in company history.
+type TimelineEvent struct {
+	Year        string `json:"year"`
+	Title       string `json:"title"`
+	Description string `json:"description,omitempty"`
+	Category    string `json:"category,omitempty"` // founding, ipo, acquisition, product, milestone
+}
+
+// NewsItem represents a recent news item with sentiment.
+type NewsItem struct {
+	Title     string `json:"title"`
+	Source    string `json:"source,omitempty"`
+	Date      string `json:"date,omitempty"`
+	Summary   string `json:"summary"`
+	Sentiment string `json:"sentiment"` // positive, neutral, negative
+	Impact    string `json:"impact,omitempty"` // high, medium, low
+}
+
+// ConfidenceScore represents overall research confidence.
+type ConfidenceScore struct {
+	Overall      float64 `json:"overall"` // 0-100
+	SourceCount  int     `json:"source_count"`
+	Reliability  string  `json:"reliability"` // high, medium, low
+	DataFreshness string `json:"data_freshness,omitempty"`
+	Label        string  `json:"label"` // "High Confidence", etc.
 }
 
 // PromptRecord captures prompts used during research for transparency.
@@ -94,6 +170,7 @@ type ResearchService struct {
 	factExtract  *FactExtractor
 	verifier     *VerificationAgent
 	memory       *ResearchMemory
+	financial    *FinancialDataService
 	agents       []ResearchAgent
 }
 
@@ -105,50 +182,138 @@ func NewResearchService(llm *LLMService, tavilyKey string) *ResearchService {
 		{
 			ID:          "overview",
 			Name:        "Overview Analyst",
-			Description: "Comprehensive topic overview, background, history, and significance",
-			SystemPrompt: `You are an overview research analyst. Provide a comprehensive background of the given topic.
-Include: definition, history, current state, key players, significance, and recent developments.
-Be factual and structured. Use bullet points for key facts. Include dates and specific names.`,
+			Description: "Company/topic overview, history, leadership, key metrics, and product ecosystem",
+			SystemPrompt: `You are a senior research analyst specializing in company profiles and industry overviews.
+Provide investment-grade analysis including:
+- Company founding, history, and key milestones with exact dates
+- Leadership team (CEO, CTO, key executives) with backgrounds
+- Core products and services with market positioning
+- Employee count, headquarters, and global presence
+- Mission statement and strategic vision
+- Recent organizational changes or pivots
+
+Format company metadata as:
+COMPANY_PROFILE:
+name|[company name]
+founded|[year]
+ceo|[CEO name]
+headquarters|[city, country]
+employees|[count]
+industry|[sector]
+market_cap|[value]
+stock_ticker|[ticker]
+website|[url]
+
+Format key milestones as:
+TIMELINE:
+[year]|[event title]|[brief description]|[category: founding/ipo/acquisition/product/milestone]
+
+Be precise with numbers and dates. Cite sources.`,
 		},
 		{
 			ID:          "market",
 			Name:        "Market Intelligence",
-			Description: "Market size, growth, trends, competitive landscape, and market dynamics",
-			SystemPrompt: `You are a market intelligence analyst. Analyze the market aspects of the given topic.
-Include: market size (with specific numbers), growth rate, key competitors, market share breakdown, and future projections.
-Provide specific numbers, percentages, and dollar amounts. Be data-driven.`,
+			Description: "Market size, financial performance, growth metrics, and valuation analysis",
+			SystemPrompt: `You are a senior financial analyst. Provide data-driven market and financial analysis including:
+- Market capitalization and valuation metrics (P/E ratio, EV/EBITDA)
+- Revenue figures with year-over-year growth rates
+- Profit margins (gross, operating, net) with trends
+- Key financial ratios and performance indicators
+- Market size and share estimates with CAGR projections
+- Stock performance and analyst consensus
+
+Format financial data as pipe-separated values:
+FINANCIAL_DATA:
+[metric label]|[numeric value]|[unit: $B, %, ratio]|[category: revenue/profit/growth/valuation]|[period: FY2024]
+
+Include at least 8-12 quantitative data points for chart visualization.
+Be precise — use exact figures from earnings reports and financial filings.`,
 		},
 		{
 			ID:          "technical",
 			Name:        "Technical Analyst",
-			Description: "Technology architecture, innovation, implementation, and technical depth",
-			SystemPrompt: `You are a technical research analyst. Deep dive into the technical aspects.
-Include: technology stack, architecture, key innovations, patents, R&D investment, technical roadmap.
-Be specific about technologies, versions, standards, and implementation details.`,
+			Description: "Technology stack, R&D, patents, product architecture, and innovation pipeline",
+			SystemPrompt: `You are a technology research analyst specializing in product and R&D analysis.
+Provide deep technical analysis including:
+- Core technology stack and architecture decisions
+- Key patents and intellectual property
+- R&D investment as % of revenue and absolute figures
+- AI/ML capabilities and technology strategy
+- Product roadmap and upcoming launches
+- Developer ecosystem and API strategy
+- Cloud infrastructure and scalability approach
+- Technical moats and competitive advantages
+
+Be specific about technology choices, versions, and implementation approaches.
+Include specific patent numbers, R&D dollar amounts, and technical benchmarks.`,
 		},
 		{
 			ID:          "news",
 			Name:        "News Intelligence",
-			Description: "Recent news, developments, announcements, partnerships, and events",
-			SystemPrompt: `You are a news intelligence analyst. Report on recent developments.
-Include: latest news, announcements, partnerships, acquisitions, regulatory updates, and events.
-Focus on the most recent and impactful developments. Include dates.`,
+			Description: "Breaking news, sentiment analysis, partnerships, regulatory updates, and market impact",
+			SystemPrompt: `You are a news intelligence analyst producing institutional-grade news briefings.
+Analyze recent developments including:
+- Latest earnings, announcements, and press releases
+- Partnership and M&A activity
+- Regulatory developments and compliance updates
+- Executive changes and organizational news
+- Product launches and market expansion
+- Industry trends affecting the subject
+
+Format each news item as:
+NEWS_ITEM:
+[title]|[source]|[date]|[1-2 sentence summary]|[sentiment: positive/neutral/negative]|[impact: high/medium/low]
+
+Include 5-10 recent news items. Assess overall news sentiment.
+Focus on items from the last 3-6 months.`,
 		},
 		{
 			ID:          "competitor",
 			Name:        "Competitor Analyst",
-			Description: "Competitive analysis, comparative strengths, weaknesses, and positioning",
-			SystemPrompt: `You are a competitive intelligence analyst. Analyze the competitive landscape.
-Include: top competitors, comparative analysis, strengths vs weaknesses, market positioning, and competitive advantages.
-Provide specific comparisons with data points.`,
+			Description: "Competitive landscape, market positioning, comparative analysis, and SWOT",
+			SystemPrompt: `You are a competitive intelligence analyst at a top strategy firm.
+Produce a professional competitive analysis including:
+- Top 4-6 direct competitors with market positioning
+- Market share comparison with specific percentages
+- Revenue and valuation comparisons
+- Competitive advantages and disadvantages for each player
+- Product feature comparison matrix
+- Barriers to entry and competitive moats
+
+Format competitor data as:
+COMPETITOR:
+[name]|[market cap]|[revenue]|[key strength]|[key weakness]|[market share]
+
+Also produce a SWOT analysis:
+SWOT:
+S|[strength point]
+S|[strength point]
+W|[weakness point]
+W|[weakness point]
+O|[opportunity point]
+O|[opportunity point]
+T|[threat point]
+T|[threat point]
+
+Include 3-5 items per SWOT category. Be specific and actionable.`,
 		},
 		{
 			ID:          "risks",
-			Name:        "Risk Analyst",
-			Description: "Risk assessment, challenges, regulatory concerns, and mitigation strategies",
-			SystemPrompt: `You are a risk and challenges analyst. Evaluate risks and challenges.
-Include: key risks, regulatory concerns, ethical issues, market threats, operational challenges, and mitigation strategies.
-Be balanced — identify both risks and opportunities.`,
+			Name:        "Strategic Analyst",
+			Description: "Risk assessment, strategic outlook, growth catalysts, and investment thesis",
+			SystemPrompt: `You are a senior strategy consultant producing C-suite level analysis.
+Provide strategic assessment including:
+- Key growth catalysts and expansion opportunities
+- Risk factors categorized by severity (high/medium/low)
+- Regulatory and geopolitical risks
+- Technology disruption risks
+- ESG considerations and sustainability strategy
+- 1-year, 3-year, and 5-year strategic outlook
+- Bull case and bear case scenarios
+- Strategic recommendations
+
+Be balanced and nuanced. Quantify risks where possible.
+Include probability assessments for key scenarios.`,
 		},
 	}
 
@@ -158,6 +323,7 @@ Be balanced — identify both risks and opportunities.`,
 		factExtract: NewFactExtractor(llm),
 		verifier:    NewVerificationAgent(llm),
 		memory:      NewResearchMemory(20),
+		financial:   NewFinancialDataService(),
 		agents:      agents,
 	}
 }
@@ -201,7 +367,7 @@ func (r *ResearchService) Research(ctx context.Context, question string, eventCh
 		Message: fmt.Sprintf("Deploying %d agents: %s", len(selectedAgents), strings.Join(agentNames, ", ")),
 		Data: map[string]interface{}{
 			"plan":   researchPlan,
-			"agents": selectedAgents,
+			"agents": agentNames,
 		},
 	}
 
@@ -265,6 +431,36 @@ func (r *ResearchService) Research(ctx context.Context, question string, eventCh
 	synthesisMs := time.Since(synthesisStart).Milliseconds()
 	prompts = append(prompts, synthPrompt)
 
+	// Phase 5.5: Financial data enrichment — fetch live market data if ticker is detected
+	if ticker := DetectTicker(question, report.CompanyProfile); ticker != "" {
+		if quote, err := r.financial.FetchQuote(ctx, ticker); err == nil {
+			liveMetrics := QuoteToFinancialMetrics(quote)
+			if len(liveMetrics) > 0 {
+				// Merge live data: prepend live metrics, keep LLM-extracted ones that don't overlap
+				liveLabels := make(map[string]bool)
+				for _, m := range liveMetrics {
+					liveLabels[m.Label] = true
+				}
+				for _, m := range report.FinancialData {
+					if !liveLabels[m.Label] {
+						liveMetrics = append(liveMetrics, m)
+					}
+				}
+				report.FinancialData = liveMetrics
+				log.Printf("Financial data: enriched with %d live metrics for %s", len(liveMetrics), ticker)
+			}
+			// Enrich company profile with live data
+			if report.CompanyProfile != nil && quote.LongName != "" && report.CompanyProfile.Name == "" {
+				report.CompanyProfile.Name = quote.LongName
+			}
+			if report.CompanyProfile != nil && report.CompanyProfile.StockTicker == "" {
+				report.CompanyProfile.StockTicker = ticker
+			}
+		} else {
+			log.Printf("Financial data: could not fetch live data for %s: %v", ticker, err)
+		}
+	}
+
 	// Count total sources
 	totalSources := len(allSources)
 
@@ -322,7 +518,9 @@ Analyze the company's market position, competitive landscape, and recent develop
 
 	response, err := r.llm.Generate(ctx, systemPrompt, userPrompt, 256)
 	if err != nil {
-		return r.agents[:4], "Default research plan with overview, market, technical, and news analysis.", prompt, nil
+		// Fallback to default agents but log the failure
+		log.Printf("Research planning LLM failed, using default agents: %v", err)
+		return r.agents[:4], "Default research plan (planning LLM unavailable) — deploying overview, market, technical, and news agents.", prompt, nil
 	}
 
 	lines := strings.SplitN(strings.TrimSpace(response), "\n", 2)
@@ -512,9 +710,10 @@ func (r *ResearchService) synthesize(ctx context.Context, question string, resul
 		}
 	}
 
-	systemPrompt := `You are a senior research synthesis specialist. Create structured, professional research reports.
+	systemPrompt := `You are a senior research synthesis specialist at a top-tier investment research firm.
+Create professional, publication-ready research reports comparable to institutional investment research.
 Be data-driven and precise. Include specific numbers, percentages, and metrics.
-For each section, cite which research agent provided the information.`
+Structure your output for both human reading and machine parsing.`
 
 	userPrompt := fmt.Sprintf(`Research Question: %s
 
@@ -522,43 +721,94 @@ Agent Research Outputs:
 %s
 %s
 
-Create a professional research report. Format EXACTLY as follows:
+Create a professional intelligence report. Format EXACTLY as follows:
 
-TITLE: [Concise, professional report title]
+TITLE: [Professional report title — e.g., "Apple Inc. — Strategic Intelligence Report Q1 2026"]
 
-SUMMARY: [3-4 sentence executive summary with key numbers]
+SUMMARY: [4-5 sentence executive summary with key metrics and strategic assessment]
 
 KEY_FINDINGS:
-- [Finding 1 with specific data]
-- [Finding 2 with specific data]
-- [Finding 3 with specific data]
-- [Finding 4 with specific data]
-- [Finding 5 with specific data]
+- [Finding 1 with specific data point]
+- [Finding 2 with specific data point]
+- [Finding 3 with specific data point]
+- [Finding 4 with specific data point]
+- [Finding 5 with specific data point]
+- [Finding 6 with specific data point]
 
-DATA_POINTS:
-[metric label]|[numeric_value]|[unit]|[category]
-(Include 4-8 quantitative data points for charts. Categories: financial, market, technical, growth)
+COMPANY_PROFILE:
+name|[company/subject name]
+founded|[year or N/A]
+ceo|[CEO name or N/A]
+headquarters|[location or N/A]
+employees|[count or N/A]
+industry|[sector]
+market_cap|[value or N/A]
+stock_ticker|[ticker or N/A]
+website|[url or N/A]
+description|[1-sentence description]
+
+FINANCIAL_DATA:
+[metric]|[value]|[unit]|[category]|[period]
+(Include 8-12 data points. Categories: revenue, profit, growth, valuation, market)
+
+COMPETITOR:
+[name]|[market cap]|[revenue]|[key strength]|[key weakness]|[market share]
+(Include 4-6 competitors)
+
+SWOT:
+S|[strength]
+S|[strength]
+S|[strength]
+W|[weakness]
+W|[weakness]
+W|[weakness]
+O|[opportunity]
+O|[opportunity]
+O|[opportunity]
+T|[threat]
+T|[threat]
+T|[threat]
+
+TIMELINE:
+[year]|[event]|[description]|[category]
+(Include 5-8 key milestones. Categories: founding, ipo, acquisition, product, milestone)
+
+NEWS_ITEM:
+[title]|[source]|[date]|[summary]|[sentiment]|[impact]
+(Include 5-8 recent news items. Sentiment: positive/neutral/negative. Impact: high/medium/low)
+
+CONFIDENCE:
+[overall_score 0-100]|[source_count]|[reliability: high/medium/low]|[data_freshness]
 
 SECTION: Executive Summary
-[2-3 paragraphs summarizing the research]
+[3-4 paragraphs with a comprehensive strategic overview, key financial highlights, and investment thesis]
 
-SECTION: Market Analysis
-[2-3 paragraphs on market position, size, and dynamics]
+SECTION: Company Overview
+[2-3 paragraphs on company history, mission, leadership, and organizational structure]
+
+SECTION: Financial Performance
+[3-4 paragraphs analyzing revenue trends, profitability, growth metrics, and financial health]
+
+SECTION: Market Position & Strategy
+[2-3 paragraphs on market share, competitive positioning, go-to-market strategy]
+
+SECTION: Product & Technology
+[2-3 paragraphs on product portfolio, technology stack, R&D investment, innovation pipeline]
 
 SECTION: Competitive Landscape
-[2-3 paragraphs on competitors and positioning]
+[2-3 paragraphs on key competitors, market dynamics, and competitive advantages/disadvantages]
 
-SECTION: Technology & Innovation
-[2-3 paragraphs on technical aspects]
+SECTION: News & Developments
+[2-3 paragraphs on recent news, partnerships, regulatory updates, and market impact]
 
-SECTION: Recent Developments
-[2-3 paragraphs on news and developments]
+SECTION: SWOT Analysis
+[2-3 paragraphs expanding on the structured SWOT data above with strategic context]
 
-SECTION: Risks & Challenges
-[2-3 paragraphs on risks and opportunities]
+SECTION: Strategic Outlook
+[2-3 paragraphs on 1-3-5 year outlook, growth catalysts, risk factors, and strategic recommendations]
 
-SECTION: Future Outlook
-[2-3 paragraphs on predictions and trajectory]`, question, strings.Join(agentOutputs, "\n\n---\n\n"), verificationNote)
+SECTION: Conclusion
+[1-2 paragraphs with final assessment, confidence level, and key takeaways]`, question, strings.Join(agentOutputs, "\n\n---\n\n"), verificationNote)
 
 	prompt := PromptRecord{Phase: "synthesis", System: systemPrompt, User: userPrompt}
 
@@ -604,20 +854,143 @@ func parseResearchReport(response string) *ResearchReport {
 	var currentSection *ReportSection
 	var sectionContent []string
 
+	// Track which structured block we're parsing
+	currentBlock := ""
+
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
 
-		if strings.HasPrefix(trimmed, "TITLE:") {
+		// Detect block headers
+		switch {
+		case strings.HasPrefix(trimmed, "TITLE:"):
+			currentBlock = ""
 			report.Title = strings.TrimSpace(strings.TrimPrefix(trimmed, "TITLE:"))
-		} else if strings.HasPrefix(trimmed, "SUMMARY:") {
+			continue
+		case strings.HasPrefix(trimmed, "SUMMARY:"):
+			currentBlock = ""
 			report.Summary = strings.TrimSpace(strings.TrimPrefix(trimmed, "SUMMARY:"))
-		} else if trimmed == "KEY_FINDINGS:" {
 			continue
-		} else if strings.HasPrefix(trimmed, "- ") && report.Title != "" && len(report.Sections) == 0 && currentSection == nil {
-			report.KeyFindings = append(report.KeyFindings, strings.TrimPrefix(trimmed, "- "))
-		} else if strings.HasPrefix(trimmed, "DATA_POINTS:") {
+		case trimmed == "KEY_FINDINGS:":
+			currentBlock = "key_findings"
 			continue
-		} else if strings.Contains(trimmed, "|") && !strings.HasPrefix(trimmed, "SECTION:") && currentSection == nil {
+		case trimmed == "COMPANY_PROFILE:":
+			currentBlock = "company_profile"
+			report.CompanyProfile = &CompanyProfile{}
+			continue
+		case trimmed == "FINANCIAL_DATA:":
+			currentBlock = "financial_data"
+			continue
+		case trimmed == "DATA_POINTS:":
+			currentBlock = "data_points"
+			continue
+		case strings.HasPrefix(trimmed, "COMPETITOR:") && !strings.HasPrefix(trimmed, "COMPETITOR: "):
+			currentBlock = "competitor"
+			continue
+		case strings.HasPrefix(trimmed, "SWOT:") && !strings.HasPrefix(trimmed, "SWOT: "):
+			currentBlock = "swot"
+			report.SwotAnalysis = &SwotAnalysis{}
+			continue
+		case strings.HasPrefix(trimmed, "TIMELINE:") && !strings.HasPrefix(trimmed, "TIMELINE: "):
+			currentBlock = "timeline"
+			continue
+		case strings.HasPrefix(trimmed, "NEWS_ITEM:") && !strings.HasPrefix(trimmed, "NEWS_ITEM: "):
+			currentBlock = "news_item"
+			continue
+		case strings.HasPrefix(trimmed, "CONFIDENCE:") && !strings.HasPrefix(trimmed, "CONFIDENCE: "):
+			currentBlock = "confidence"
+			continue
+		case strings.HasPrefix(trimmed, "SECTION:"):
+			currentBlock = "section"
+			if currentSection != nil {
+				currentSection.Content = strings.TrimSpace(strings.Join(sectionContent, "\n"))
+				report.Sections = append(report.Sections, *currentSection)
+			}
+			currentSection = &ReportSection{
+				Title: strings.TrimSpace(strings.TrimPrefix(trimmed, "SECTION:")),
+			}
+			sectionContent = nil
+			continue
+		}
+
+		// Parse content based on current block
+		if trimmed == "" && currentBlock != "section" {
+			if currentBlock != "" && currentBlock != "key_findings" {
+				currentBlock = ""
+			}
+			continue
+		}
+
+		switch currentBlock {
+		case "key_findings":
+			if strings.HasPrefix(trimmed, "- ") {
+				report.KeyFindings = append(report.KeyFindings, strings.TrimPrefix(trimmed, "- "))
+			}
+
+		case "company_profile":
+			if report.CompanyProfile != nil {
+				parts := strings.SplitN(trimmed, "|", 2)
+				if len(parts) == 2 {
+					key := strings.TrimSpace(parts[0])
+					val := strings.TrimSpace(parts[1])
+					if val == "N/A" || val == "" {
+						continue
+					}
+					switch key {
+					case "name":
+						report.CompanyProfile.Name = val
+					case "founded":
+						report.CompanyProfile.Founded = val
+					case "ceo":
+						report.CompanyProfile.CEO = val
+					case "headquarters":
+						report.CompanyProfile.Headquarters = val
+					case "employees":
+						report.CompanyProfile.Employees = val
+					case "industry":
+						report.CompanyProfile.Industry = val
+					case "market_cap":
+						report.CompanyProfile.MarketCap = val
+					case "stock_ticker":
+						report.CompanyProfile.StockTicker = val
+					case "website":
+						report.CompanyProfile.Website = val
+					case "description":
+						report.CompanyProfile.Description = val
+					}
+				}
+			}
+
+		case "financial_data":
+			parts := strings.SplitN(trimmed, "|", 5)
+			if len(parts) >= 3 {
+				var value float64
+				fmt.Sscanf(strings.TrimSpace(parts[1]), "%f", &value)
+				unit := strings.TrimSpace(parts[2])
+				category := ""
+				if len(parts) >= 4 {
+					category = strings.TrimSpace(parts[3])
+				}
+				period := ""
+				if len(parts) >= 5 {
+					period = strings.TrimSpace(parts[4])
+				}
+				report.FinancialData = append(report.FinancialData, FinancialMetric{
+					Label:    strings.TrimSpace(parts[0]),
+					Value:    value,
+					Unit:     unit,
+					Category: category,
+					Period:   period,
+				})
+				// Also add to DataPoints for backward compatibility
+				report.DataPoints = append(report.DataPoints, DataPoint{
+					Label:    strings.TrimSpace(parts[0]),
+					Value:    value,
+					Unit:     unit,
+					Category: category,
+				})
+			}
+
+		case "data_points":
 			parts := strings.SplitN(trimmed, "|", 4)
 			if len(parts) >= 2 {
 				var value float64
@@ -630,26 +1003,119 @@ func parseResearchReport(response string) *ResearchReport {
 				if len(parts) >= 4 {
 					category = strings.TrimSpace(parts[3])
 				}
-				if value != 0 || strings.TrimSpace(parts[1]) == "0" {
-					report.DataPoints = append(report.DataPoints, DataPoint{
-						Label:    strings.TrimSpace(parts[0]),
-						Value:    value,
-						Unit:     unit,
-						Category: category,
-					})
+				report.DataPoints = append(report.DataPoints, DataPoint{
+					Label:    strings.TrimSpace(parts[0]),
+					Value:    value,
+					Unit:     unit,
+					Category: category,
+				})
+			}
+
+		case "competitor":
+			parts := strings.SplitN(trimmed, "|", 6)
+			if len(parts) >= 2 {
+				entry := CompetitorEntry{Name: strings.TrimSpace(parts[0])}
+				if len(parts) >= 2 {
+					entry.MarketCap = strings.TrimSpace(parts[1])
+				}
+				if len(parts) >= 3 {
+					entry.Revenue = strings.TrimSpace(parts[2])
+				}
+				if len(parts) >= 4 {
+					entry.Strengths = strings.TrimSpace(parts[3])
+				}
+				if len(parts) >= 5 {
+					entry.Weaknesses = strings.TrimSpace(parts[4])
+				}
+				if len(parts) >= 6 {
+					entry.MarketShare = strings.TrimSpace(parts[5])
+				}
+				report.Competitors = append(report.Competitors, entry)
+			}
+
+		case "swot":
+			if report.SwotAnalysis != nil {
+				parts := strings.SplitN(trimmed, "|", 2)
+				if len(parts) == 2 {
+					category := strings.TrimSpace(parts[0])
+					item := strings.TrimSpace(parts[1])
+					switch category {
+					case "S":
+						report.SwotAnalysis.Strengths = append(report.SwotAnalysis.Strengths, item)
+					case "W":
+						report.SwotAnalysis.Weaknesses = append(report.SwotAnalysis.Weaknesses, item)
+					case "O":
+						report.SwotAnalysis.Opportunities = append(report.SwotAnalysis.Opportunities, item)
+					case "T":
+						report.SwotAnalysis.Threats = append(report.SwotAnalysis.Threats, item)
+					}
 				}
 			}
-		} else if strings.HasPrefix(trimmed, "SECTION:") {
+
+		case "timeline":
+			parts := strings.SplitN(trimmed, "|", 4)
+			if len(parts) >= 2 {
+				event := TimelineEvent{
+					Year:  strings.TrimSpace(parts[0]),
+					Title: strings.TrimSpace(parts[1]),
+				}
+				if len(parts) >= 3 {
+					event.Description = strings.TrimSpace(parts[2])
+				}
+				if len(parts) >= 4 {
+					event.Category = strings.TrimSpace(parts[3])
+				}
+				report.Timeline = append(report.Timeline, event)
+			}
+
+		case "news_item":
+			parts := strings.SplitN(trimmed, "|", 6)
+			if len(parts) >= 4 {
+				item := NewsItem{
+					Title:   strings.TrimSpace(parts[0]),
+					Source:  strings.TrimSpace(parts[1]),
+					Date:    strings.TrimSpace(parts[2]),
+					Summary: strings.TrimSpace(parts[3]),
+				}
+				if len(parts) >= 5 {
+					item.Sentiment = strings.TrimSpace(parts[4])
+				}
+				if len(parts) >= 6 {
+					item.Impact = strings.TrimSpace(parts[5])
+				}
+				report.NewsItems = append(report.NewsItems, item)
+			}
+
+		case "confidence":
+			parts := strings.SplitN(trimmed, "|", 4)
+			if len(parts) >= 3 {
+				var score float64
+				fmt.Sscanf(strings.TrimSpace(parts[0]), "%f", &score)
+				var sourceCount int
+				fmt.Sscanf(strings.TrimSpace(parts[1]), "%d", &sourceCount)
+				label := "Moderate Confidence"
+				if score >= 80 {
+					label = "High Confidence"
+				} else if score < 50 {
+					label = "Low Confidence"
+				}
+				cs := &ConfidenceScore{
+					Overall:     score,
+					SourceCount: sourceCount,
+					Reliability: strings.TrimSpace(parts[2]),
+					Label:       label,
+				}
+				if len(parts) >= 4 {
+					cs.DataFreshness = strings.TrimSpace(parts[3])
+				}
+				report.ConfidenceScore = cs
+			}
+			currentBlock = ""
+
+		case "section":
 			if currentSection != nil {
-				currentSection.Content = strings.TrimSpace(strings.Join(sectionContent, "\n"))
-				report.Sections = append(report.Sections, *currentSection)
+				sectionContent = append(sectionContent, line)
 			}
-			currentSection = &ReportSection{
-				Title: strings.TrimSpace(strings.TrimPrefix(trimmed, "SECTION:")),
-			}
-			sectionContent = nil
-		} else if currentSection != nil {
-			sectionContent = append(sectionContent, line)
 		}
 	}
 
@@ -660,6 +1126,11 @@ func parseResearchReport(response string) *ResearchReport {
 
 	if report.Title == "" {
 		report.Title = "Research Report"
+	}
+
+	// Clean up empty company profile
+	if report.CompanyProfile != nil && report.CompanyProfile.Name == "" {
+		report.CompanyProfile = nil
 	}
 
 	return report

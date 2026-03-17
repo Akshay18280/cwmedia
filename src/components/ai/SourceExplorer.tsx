@@ -22,7 +22,7 @@ export const SourceExplorer: React.FC<SourceExplorerProps> = ({ sources, verific
   const [activeTab, setActiveTab] = useState<'sources' | 'verification'>('sources');
 
   const hasSources = sources && sources.length > 0;
-  const hasVerification = verification && verification.verified_facts.length > 0;
+  const hasVerification = verification && verification.verified_facts && verification.verified_facts.length > 0;
 
   if (!hasSources && !hasVerification) return null;
 

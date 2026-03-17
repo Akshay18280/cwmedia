@@ -82,8 +82,10 @@ Cross-reference these claims against all agent findings and verify each one.`, s
 
 	response, err := v.llm.Generate(ctx, verificationPrompt, prompt, 1024)
 	if err != nil {
-		// Return facts with default confidence if verification fails
-		return v.defaultVerification(facts), nil
+		// Return facts with default confidence and a warning that verification failed
+		result := v.defaultVerification(facts)
+		result.Warnings = append(result.Warnings, fmt.Sprintf("Verification LLM call failed: %v — using default confidence scores", err))
+		return result, nil
 	}
 
 	return v.parseVerification(response, facts), nil
@@ -155,9 +157,11 @@ func (v *VerificationAgent) parseVerification(response string, originalFacts []E
 		verifiedFacts = append(verifiedFacts, vf)
 	}
 
-	// If parsing yielded nothing, use defaults
+	// If parsing yielded nothing, use defaults with warning
 	if len(verifiedFacts) == 0 {
-		return v.defaultVerification(originalFacts)
+		result := v.defaultVerification(originalFacts)
+		result.Warnings = append(result.Warnings, "Verification response could not be parsed — using default confidence scores")
+		return result
 	}
 
 	result.VerifiedFacts = verifiedFacts

@@ -216,15 +216,90 @@ export function exportReportAsMarkdown(report: ResearchReport): string {
     '',
     report.summary,
     '',
-    '## Key Findings',
-    ...report.key_findings.map(f => `- ${f}`),
-    '',
   ];
 
+  // Confidence score
+  if (report.confidence_score) {
+    lines.push(`> **${report.confidence_score.label}** — ${report.confidence_score.overall.toFixed(0)}% confidence | ${report.confidence_score.source_count} sources | ${report.confidence_score.reliability} reliability`, '');
+  }
+
+  // Company profile
+  if (report.company_profile) {
+    const p = report.company_profile;
+    lines.push('## Company Profile', '');
+    lines.push(`**${p.name}**${p.description ? ` — ${p.description}` : ''}`, '');
+    const meta: string[] = [];
+    if (p.ceo) meta.push(`CEO: ${p.ceo}`);
+    if (p.founded) meta.push(`Founded: ${p.founded}`);
+    if (p.headquarters) meta.push(`HQ: ${p.headquarters}`);
+    if (p.employees) meta.push(`Employees: ${p.employees}`);
+    if (p.industry) meta.push(`Industry: ${p.industry}`);
+    if (p.market_cap) meta.push(`Market Cap: ${p.market_cap}`);
+    if (p.stock_ticker) meta.push(`Ticker: ${p.stock_ticker}`);
+    if (p.website) meta.push(`Website: ${p.website}`);
+    lines.push(meta.map(m => `- ${m}`).join('\n'), '');
+  }
+
+  // Key findings
+  if (report.key_findings?.length) {
+    lines.push('## Key Findings', '', ...report.key_findings.map(f => `- ${f}`), '');
+  }
+
+  // Financial data
+  if (report.financial_data?.length) {
+    lines.push('## Financial Data', '');
+    lines.push('| Metric | Value | Unit | Period |', '|--------|-------|------|--------|');
+    for (const m of report.financial_data) {
+      lines.push(`| ${m.label} | ${m.value.toLocaleString()} | ${m.unit} | ${m.period || '—'} |`);
+    }
+    lines.push('');
+  }
+
+  // Competitors
+  if (report.competitors?.length) {
+    lines.push('## Competitive Landscape', '');
+    lines.push('| Company | Market Cap | Revenue | Market Share | Strength | Weakness |', '|---------|-----------|---------|-------------|----------|----------|');
+    for (const c of report.competitors) {
+      lines.push(`| ${c.name} | ${c.market_cap || '—'} | ${c.revenue || '—'} | ${c.market_share || '—'} | ${c.strengths || '—'} | ${c.weaknesses || '—'} |`);
+    }
+    lines.push('');
+  }
+
+  // SWOT
+  if (report.swot_analysis) {
+    const s = report.swot_analysis;
+    lines.push('## SWOT Analysis', '');
+    if (s.strengths?.length) lines.push('**Strengths**', ...s.strengths.map(i => `- ${i}`), '');
+    if (s.weaknesses?.length) lines.push('**Weaknesses**', ...s.weaknesses.map(i => `- ${i}`), '');
+    if (s.opportunities?.length) lines.push('**Opportunities**', ...s.opportunities.map(i => `- ${i}`), '');
+    if (s.threats?.length) lines.push('**Threats**', ...s.threats.map(i => `- ${i}`), '');
+  }
+
+  // Timeline
+  if (report.timeline?.length) {
+    lines.push('## Timeline', '');
+    for (const e of report.timeline) {
+      lines.push(`- **${e.year}** — ${e.title}${e.description ? `: ${e.description}` : ''}`);
+    }
+    lines.push('');
+  }
+
+  // News
+  if (report.news_items?.length) {
+    lines.push('## News Intelligence', '');
+    for (const n of report.news_items) {
+      const sentiment = n.sentiment === 'positive' ? '+' : n.sentiment === 'negative' ? '-' : '~';
+      lines.push(`- [${sentiment}] **${n.title}** — ${n.summary}${n.source ? ` (${n.source}${n.date ? `, ${n.date}` : ''})` : ''}`);
+    }
+    lines.push('');
+  }
+
+  // Report sections
   for (const section of report.sections) {
     lines.push(`## ${section.title}`, '', section.content, '');
   }
 
+  // Verification
   if (report.verification && report.verification.verified_facts.length > 0) {
     lines.push('## Fact Verification', '');
     lines.push(`Overall Confidence: ${(report.verification.overall_confidence * 100).toFixed(0)}%`, '');
@@ -236,6 +311,7 @@ export function exportReportAsMarkdown(report: ResearchReport): string {
     lines.push('');
   }
 
+  // Sources
   if (report.all_sources && report.all_sources.length > 0) {
     lines.push('## Sources', '');
     for (const src of report.all_sources) {
@@ -244,6 +320,7 @@ export function exportReportAsMarkdown(report: ResearchReport): string {
     lines.push('');
   }
 
+  // Metrics
   if (report.metrics) {
     lines.push('## Research Metrics', '');
     lines.push(`- Total time: ${(report.metrics.total_ms / 1000).toFixed(1)}s`);

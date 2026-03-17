@@ -86,11 +86,12 @@ func main() {
 
 	addr := fmt.Sprintf(":%s", cfg.Port)
 	srv := &http.Server{
-		Addr:         addr,
-		Handler:      r,
-		ReadTimeout:  30 * time.Second,
-		WriteTimeout: 180 * time.Second,
-		IdleTimeout:  120 * time.Second,
+		Addr:           addr,
+		Handler:        r,
+		ReadTimeout:    30 * time.Second,
+		WriteTimeout:   180 * time.Second,
+		IdleTimeout:    120 * time.Second,
+		MaxHeaderBytes: 1 << 20, // 1 MB
 	}
 
 	go func() {

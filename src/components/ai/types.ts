@@ -95,17 +95,87 @@ export interface PromptRecord {
   user: string;
 }
 
+export interface CompanyProfile {
+  name: string;
+  founded?: string;
+  ceo?: string;
+  headquarters?: string;
+  employees?: string;
+  industry?: string;
+  market_cap?: string;
+  stock_ticker?: string;
+  website?: string;
+  description?: string;
+}
+
+export interface FinancialMetric {
+  label: string;
+  value: number;
+  unit: string;
+  category: string;
+  period?: string;
+}
+
+export interface CompetitorEntry {
+  name: string;
+  market_cap?: string;
+  revenue?: string;
+  strengths?: string;
+  weaknesses?: string;
+  market_share?: string;
+}
+
+export interface SwotAnalysis {
+  strengths: string[];
+  weaknesses: string[];
+  opportunities: string[];
+  threats: string[];
+}
+
+export interface TimelineEvent {
+  year: string;
+  title: string;
+  description?: string;
+  category?: string;
+}
+
+export interface NewsItem {
+  title: string;
+  source?: string;
+  date?: string;
+  summary: string;
+  sentiment: 'positive' | 'neutral' | 'negative';
+  impact?: 'high' | 'medium' | 'low';
+}
+
+export interface ConfidenceScore {
+  overall: number;
+  source_count: number;
+  reliability: 'high' | 'medium' | 'low';
+  data_freshness?: string;
+  label: string;
+}
+
 export interface ResearchReport {
   title: string;
   summary: string;
   sections: ReportSection[];
   key_findings: string[];
   data_points?: DataPoint[];
+  company_profile?: CompanyProfile;
+  financial_data?: FinancialMetric[];
+  competitors?: CompetitorEntry[];
+  swot_analysis?: SwotAnalysis;
+  timeline?: TimelineEvent[];
+  news_items?: NewsItem[];
+  confidence_score?: ConfidenceScore;
   agent_results: AgentResult[];
   metrics: ResearchMetrics;
   verification?: VerificationResult;
   all_sources?: WebSearchResult[];
   research_prompts?: PromptRecord[];
+  /** Set when research encountered an error but produced partial results */
+  error?: string;
 }
 
 export interface ResearchMetrics {
