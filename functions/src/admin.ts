@@ -6,7 +6,7 @@ import * as admin from 'firebase-admin';
  * This is the only email that can grant/remove admin roles
  * Change this to your actual super admin email
  */
-const SUPER_ADMIN_EMAIL = 'admin@carelwavemedia.com';
+const SUPER_ADMIN_EMAILS = ['admin@carelwavemedia.com', 'akshayvermajan28@gmail.com'];
 
 /**
  * Grant admin role to a user using Firebase Custom Claims
@@ -25,7 +25,7 @@ export const setAdminRole = functions.https.onCall(async (data, context) => {
 
   // Verify caller is the super admin
   const callerEmail = context.auth.token.email;
-  if (callerEmail !== SUPER_ADMIN_EMAIL) {
+  if (!SUPER_ADMIN_EMAILS.includes(callerEmail || '')) {
     // Log security event
     await admin.firestore().collection('securityEvents').add({
       type: 'unauthorized_admin_attempt',
@@ -105,7 +105,7 @@ export const removeAdminRole = functions.https.onCall(async (data, context) => {
 
   // Verify caller is the super admin
   const callerEmail = context.auth.token.email;
-  if (callerEmail !== SUPER_ADMIN_EMAIL) {
+  if (!SUPER_ADMIN_EMAILS.includes(callerEmail || '')) {
     throw new functions.https.HttpsError(
       'permission-denied',
       'Only the super admin can remove admin roles'
@@ -124,7 +124,7 @@ export const removeAdminRole = functions.https.onCall(async (data, context) => {
   // Prevent removing admin from super admin
   try {
     const user = await admin.auth().getUser(uid);
-    if (user.email === SUPER_ADMIN_EMAIL) {
+    if (SUPER_ADMIN_EMAILS.includes(user.email || '')) {
       throw new functions.https.HttpsError(
         'permission-denied',
         'Cannot remove admin role from super admin'

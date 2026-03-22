@@ -11,7 +11,6 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/ledongthuc/pdf v0.0.0-20250511090121-5959a4027728
 	github.com/rs/cors v1.11.0
-	github.com/sashabaranov/go-openai v1.24.1
 )
 
 require (

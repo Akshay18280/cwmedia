@@ -144,6 +144,32 @@ body {
   }
 }
 
+/* === SEMANTIC COLOR TOKENS (Tailwind-compatible with alpha) === */
+:root {
+  --semantic-bg-high: var(--color-white);
+  --semantic-bg-medium: var(--color-gray-50);
+  --semantic-bg-low: var(--color-gray-100);
+  --semantic-text-high: var(--color-gray-900);
+  --semantic-text-medium: var(--color-gray-700);
+  --semantic-text-low: var(--color-gray-600);
+  --semantic-border-high: var(--color-gray-900);
+  --semantic-border-medium: var(--color-gray-300);
+  --semantic-border-low: var(--color-gray-200);
+  --semantic-accent-primary: 99, 102, 241;
+}
+.dark {
+  --semantic-bg-high: var(--color-gray-900);
+  --semantic-bg-medium: var(--color-gray-800);
+  --semantic-bg-low: var(--color-gray-700);
+  --semantic-text-high: var(--color-white);
+  --semantic-text-medium: var(--color-gray-300);
+  --semantic-text-low: var(--color-gray-400);
+  --semantic-border-high: var(--color-white);
+  --semantic-border-medium: var(--color-gray-600);
+  --semantic-border-low: var(--color-gray-700);
+  --semantic-accent-primary: 129, 140, 248;
+}
+
 /* === ENHANCED COLOR CONTRAST SYSTEM === */
 /* High contrast text utilities for accessibility */
 .text-high-contrast {
@@ -665,4 +691,67 @@ body {
   );
   background-size: 400% 400%;
   animation: holographic-shift 12s ease-in-out infinite;
+}
+
+/* === DESIGN SYSTEM EXTENSIONS (Step 1) === */
+
+/* Tabular numeric data — for metrics, stats, financial figures */
+.text-mono-data {
+  font-family: 'Inter', ui-monospace, SFMono-Regular, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* Count-up animation for confidence scores / stats */
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-count-up {
+  animation: count-up 0.5s ease-out forwards;
+}
+
+/* Skeleton shimmer for loading states */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(var(--semantic-bg-medium), 0.4) 25%,
+    rgba(var(--semantic-bg-medium), 0.7) 50%,
+    rgba(var(--semantic-bg-medium), 0.4) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  border-radius: 0.5rem;
+}
+
+/* Theme-aware graph container background */
+.bg-graph-container {
+  background-color: rgba(var(--color-gray-100), 0.6);
+}
+.dark .bg-graph-container {
+  background-color: rgba(var(--color-gray-900), 0.6);
+}
+
+/* Theme-aware chart tooltip */
+.chart-tooltip {
+  background-color: rgb(var(--semantic-bg-high));
+  border: 1px solid rgb(var(--semantic-border-medium));
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  color: rgb(var(--semantic-text-high));
+  box-shadow: var(--shadow-md);
+}
+
+/* Fade-slide entrance for message bubbles */
+@keyframes message-enter {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-message-enter {
+  animation: message-enter 0.3s cubic-bezier(0.25, 0.4, 0.25, 1) forwards;
 }

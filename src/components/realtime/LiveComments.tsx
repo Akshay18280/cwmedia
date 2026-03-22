@@ -69,7 +69,13 @@ const CommentItem: React.FC<CommentItemProps> = ({
   };
 
   const renderMentions = (content: string) => {
-    return content.replace(/@(\w+)/g, '<span class="text-blue-500 font-medium">@$1</span>');
+    const parts = content.split(/(@\w+)/g);
+    return parts.map((part, i) => {
+      if (part.startsWith('@')) {
+        return <span key={i} className="text-blue-500 font-medium">{part}</span>;
+      }
+      return <React.Fragment key={i}>{part}</React.Fragment>;
+    });
   };
 
   return (
@@ -169,10 +175,9 @@ const CommentItem: React.FC<CommentItemProps> = ({
             </div>
 
             {/* Content */}
-            <div 
-              className="text-medium-contrast leading-relaxed"
-              dangerouslySetInnerHTML={{ __html: renderMentions(comment.content) }}
-            />
+            <div className="text-medium-contrast leading-relaxed">
+              {renderMentions(comment.content)}
+            </div>
           </div>
 
           {/* Actions */}

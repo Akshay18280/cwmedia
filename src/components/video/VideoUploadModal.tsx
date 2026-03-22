@@ -22,7 +22,7 @@ interface VideoUploadModalProps {
 interface VideoFile {
   file: File;
   preview: string;
-  metadata?: any;
+  metadata?: Record<string, string | number>;
 }
 
 interface ChapterData {
@@ -146,7 +146,7 @@ export const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
   }, []);
 
   // Form handlers
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | string[] | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -202,7 +202,7 @@ export const VideoUploadModal: React.FC<VideoUploadModalProps> = ({
     setSubtitles(prev => [...prev, newSubtitle]);
   };
 
-  const updateSubtitle = (id: string, field: string, value: any) => {
+  const updateSubtitle = (id: string, field: string, value: string | File) => {
     setSubtitles(prev =>
       prev.map(subtitle =>
         subtitle.id === id ? { ...subtitle, [field]: value } : subtitle

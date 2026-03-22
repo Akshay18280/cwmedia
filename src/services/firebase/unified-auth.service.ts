@@ -21,7 +21,6 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, Timestamp } from 'firebase/firestore';
 import { auth, db } from '../../lib/firebase';
-import { FirebaseUser } from '../../types/firebase';
 import { smsService } from './sms.service';
 
 /**
@@ -49,12 +48,29 @@ interface AdminOTPData {
 }
 
 /**
+ * Exported user type for auth consumers
+ */
+export interface AuthUser {
+  id: string;
+  email?: string;
+  name: string;
+  role: 'user' | 'admin';
+  provider: string;
+  verified: boolean;
+  profileImage?: string;
+  avatarUrl?: string;
+  phoneNumber?: string;
+  adminAccess?: boolean;
+}
+
+/**
  * Unified Authentication Service
  * Provides authentication methods for both regular users and administrators
  */
 class UnifiedAuthService {
   private recaptchaVerifier: RecaptchaVerifier | null = null;
   private confirmationResult: ConfirmationResult | null = null;
+  private pendingPhoneNumber: string | null = null;
   private readonly MAX_OTP_ATTEMPTS = 3;
   private readonly OTP_EXPIRY_MINUTES = 10;
 
@@ -160,13 +176,14 @@ class UnifiedAuthService {
         // Use Firebase Phone Auth for regular users
         try {
           await this.initializeRecaptcha();
-          
+
           this.confirmationResult = await signInWithPhoneNumber(
-            auth, 
-            formattedPhone, 
+            auth!,
+            formattedPhone,
             this.recaptchaVerifier!
           );
-          
+
+          this.pendingPhoneNumber = formattedPhone;
           localStorage.setItem('pendingPhoneAuth', formattedPhone);
           
           return {
@@ -212,7 +229,7 @@ class UnifiedAuthService {
   async verifyPhoneOTP(otpCode: string): Promise<{
     success: boolean;
     message: string;
-    user?: FirebaseUser;
+    user?: AuthUser;
     error?: string;
   }> {
     try {
@@ -247,7 +264,7 @@ class UnifiedAuthService {
         const idTokenResult = await firebaseUser.getIdTokenResult();
         const isAdmin = idTokenResult.claims.admin === true;
 
-        const user: FirebaseUser = {
+        const user: AuthUser = {
           id: firebaseUser.uid,
           phoneNumber: firebaseUser.phoneNumber || '',
           name: firebaseUser.displayName || `User-${firebaseUser.phoneNumber?.slice(-4) || 'Unknown'}`,
@@ -257,8 +274,13 @@ class UnifiedAuthService {
           adminAccess: isAdmin
         };
 
-        // Store user session
-        await this.createOrUpdateUser(user);
+        // Firestore write is non-blocking
+        try {
+          await this.createOrUpdateUser(user);
+        } catch (firestoreErr) {
+          console.warn('⚠️ User document write failed (non-fatal):', firestoreErr);
+        }
+        this.pendingPhoneNumber = null;
         localStorage.removeItem('pendingPhoneAuth');
 
         return {
@@ -295,19 +317,26 @@ class UnifiedAuthService {
   async signInWithGoogle(): Promise<{
     success: boolean;
     message: string;
-    user?: FirebaseUser;
+    user?: AuthUser;
     error?: string;
   }> {
     try {
+      if (!auth) {
+        return {
+          success: false,
+          message: 'Firebase not initialized. Please refresh and try again.'
+        };
+      }
+
       const provider = new GoogleAuthProvider();
       provider.addScope('profile');
       provider.addScope('email');
-      
+
       const result = await signInWithPopup(auth, provider);
       const firebaseUser = result.user;
-      
+
       if (firebaseUser) {
-        const googleUser: FirebaseUser = {
+        const googleUser: AuthUser = {
           id: firebaseUser.uid,
           email: firebaseUser.email || '',
           name: firebaseUser.displayName || 'Google User',
@@ -315,11 +344,17 @@ class UnifiedAuthService {
           provider: 'google',
           verified: true,
           profileImage: firebaseUser.photoURL || undefined,
+          avatarUrl: firebaseUser.photoURL || undefined,
           adminAccess: false
         };
 
-        await this.createOrUpdateUser(googleUser);
-        
+        // Firestore write is non-blocking — auth succeeds even if user doc write fails
+        try {
+          await this.createOrUpdateUser(googleUser);
+        } catch (firestoreErr) {
+          console.warn('⚠️ User document write failed (non-fatal):', firestoreErr);
+        }
+
         return {
           success: true,
           message: 'Google sign-in successful!',
@@ -333,15 +368,21 @@ class UnifiedAuthService {
       };
     } catch (error: any) {
       console.error('Google sign-in error:', error);
-      
+
       let errorMessage = 'Google sign-in failed. Please try again.';
-      
+
       if (error.code === 'auth/popup-closed-by-user') {
         errorMessage = 'Sign-in cancelled. Please try again.';
       } else if (error.code === 'auth/popup-blocked') {
         errorMessage = 'Popup blocked. Please allow popups and try again.';
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = 'Google sign-in is not enabled. Please contact support.';
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        errorMessage = 'Sign-in cancelled. Please try again.';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your connection.';
       }
-      
+
       return {
         success: false,
         message: errorMessage,
@@ -351,22 +392,34 @@ class UnifiedAuthService {
   }
 
   // Create or update user document
-  private async createOrUpdateUser(user: FirebaseUser): Promise<void> {
+  private async createOrUpdateUser(user: AuthUser): Promise<void> {
+    if (!db) {
+      console.warn('⚠️ Firestore not initialized, skipping user document write');
+      return;
+    }
+
     try {
       console.log('🔄 Creating/updating user:', { id: user.id, role: user.role, provider: user.provider });
-      
+
       const userRef = doc(db, 'users', user.id);
       const existingDoc = await getDoc(userRef);
-      
+
       const userData = {
-        ...user,
+        email: user.email || '',
+        name: user.name,
+        role: user.role,
+        provider: user.provider,
+        verified: user.verified,
+        profileImage: user.profileImage || null,
+        avatarUrl: user.avatarUrl || null,
+        phoneNumber: user.phoneNumber || null,
         lastLogin: Timestamp.now(),
         updatedAt: Timestamp.now()
       };
 
       if (existingDoc.exists()) {
         console.log('✅ Updating existing user document');
-        await setDoc(userRef, userData);
+        await setDoc(userRef, userData, { merge: true });
         console.log('✅ User document updated successfully');
       } else {
         console.log('✅ Creating new user document');
@@ -377,17 +430,15 @@ class UnifiedAuthService {
         console.log('✅ User document created successfully');
       }
     } catch (error: any) {
-      console.error('❌ Error creating/updating user:', error);
-      console.error('❌ Error code:', error.code);
-      console.error('❌ Error message:', error.message);
-      console.error('❌ User data:', user);
-      throw error; // Re-throw to handle upstream
+      console.error('❌ Error creating/updating user:', error.code, error.message);
+      throw error; // Re-throw — caller handles gracefully
     }
   }
 
   // Get current user
-  async getCurrentUser(): Promise<FirebaseUser | null> {
+  async getCurrentUser(): Promise<AuthUser | null> {
     try {
+      if (!auth || !db) return null;
       const user = auth.currentUser;
       if (!user) return null;
 
@@ -415,7 +466,7 @@ class UnifiedAuthService {
   // Sign out user
   async signOut(): Promise<void> {
     try {
-      await auth.signOut();
+      if (auth) await auth.signOut();
       // this.clearAuthState(); // This line is removed as per new_code
       localStorage.removeItem('pendingPhoneAuth');
     } catch (error) {
@@ -430,8 +481,7 @@ class UnifiedAuthService {
     userType: 'admin' | 'user';
     error?: string;
   }> {
-    // if (!this.authState.phoneNumber) { // This line is removed as per new_code
-    if (!this.ADMIN_PHONE_NUMBER) { // This line is changed as per new_code
+    if (!this.pendingPhoneNumber) {
       return {
         success: false,
         message: 'No phone number found. Please start over.',
@@ -439,8 +489,7 @@ class UnifiedAuthService {
       };
     }
 
-    // this.clearAuthState(); // This line is removed as per new_code
-    return this.sendPhoneOTP(this.ADMIN_PHONE_NUMBER); // This line is changed as per new_code
+    return this.sendPhoneOTP(this.pendingPhoneNumber);
   }
 
   // Clear authentication state
@@ -468,19 +517,17 @@ class UnifiedAuthService {
   }
 
   // Check if user has admin access
-  isAdmin(user: FirebaseUser | null): boolean {
+  isAdmin(user: AuthUser | null): boolean {
     return user?.role === 'admin' && user?.adminAccess === true;
   }
 
   // Get phone number display format
   getFormattedPhoneNumber(): string | null {
-    // if (!this.authState.phoneNumber) return null; // This line is removed as per new_code
-    if (!this.ADMIN_PHONE_NUMBER) return null; // This line is changed as per new_code
-    
-    const phone = this.ADMIN_PHONE_NUMBER.replace('+91', ''); // This line is changed as per new_code
-    return `+91 ${phone.slice(0, 5)} ${phone.slice(5)}`; // This line is changed as per new_code
+    if (!this.pendingPhoneNumber) return null;
+
+    const phone = this.pendingPhoneNumber.replace('+91', '');
+    return `+91 ${phone.slice(0, 5)} ${phone.slice(5)}`;
   }
 }
 
-export const unifiedAuthService = new UnifiedAuthService();
-export type { FirebaseUser }; 
+export const unifiedAuthService = new UnifiedAuthService(); 

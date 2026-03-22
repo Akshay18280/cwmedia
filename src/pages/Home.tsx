@@ -1,389 +1,266 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  ArrowRight, Mail, Github, Linkedin, Twitter, 
-  TrendingUp, Users, BookOpen, Star, Play, Sparkles,
-  Zap, Brain, Calendar, Target, Heart, Award, Eye,
-  MessageSquare, Share2, Clock, Mic, MicOff
+import {
+  ArrowRight, Brain, Shield, Network, TrendingUp,
+  Calendar, Sparkles, BarChart3, Search, Zap,
 } from 'lucide-react';
-import { toast } from 'sonner';
-import { ModernButton, ModernCard } from '../components/ModernDesignSystem';
+import { motion } from 'framer-motion';
+import { ModernCard } from '../components/ModernDesignSystem';
 import Newsletter from '../components/Newsletter';
+import { HeroSearchBar } from '../components/HeroSearchBar';
 import { firebasePostsService } from '../services/firebase/posts.service';
-import { productionAnalyticsService } from '../services/analytics/production-analytics.service';
-import { useVoiceCommands } from '../hooks/useVoiceCommands';
 
-// Enhanced user behavior tracking
-const useAIPersonalization = () => {
-  const [userBehavior, setUserBehavior] = useState({
-    deviceType: typeof window !== 'undefined' ? 
-      (window.innerWidth < 768 ? 'mobile' : window.innerWidth < 1024 ? 'tablet' : 'desktop') : 'desktop',
-    timeOnSite: 0,
-    scrollDepth: 0,
-    clickPattern: 'explorer',
-    engagementLevel: 'medium',
-    preferredContentType: 'article',
-    readingSpeed: 'normal'
-  });
+const CAPABILITIES = [
+  {
+    icon: Brain,
+    title: 'Multi-Agent Research',
+    desc: '6 specialized AI agents work in parallel — overview, market, technical, news, competitor, and strategic analysis.',
+    color: 'from-indigo-500 to-purple-600',
+  },
+  {
+    icon: Shield,
+    title: 'Fact Verification',
+    desc: 'Cross-reference claims across multiple sources with confidence scoring and contradiction detection.',
+    color: 'from-emerald-500 to-cyan-600',
+  },
+  {
+    icon: Network,
+    title: 'Knowledge Graphs',
+    desc: 'Interactive entity relationship maps and agent activity trees visualize the research process.',
+    color: 'from-amber-500 to-orange-600',
+  },
+  {
+    icon: BarChart3,
+    title: 'Financial Intelligence',
+    desc: 'Live market data, financial metrics, competitor benchmarks, and SWOT analysis — all automated.',
+    color: 'from-rose-500 to-pink-600',
+  },
+];
 
-  useEffect(() => {
-    const startTime = Date.now();
-    let maxScrollDepth = 0;
-    let clickCount = 0;
-
-    const trackScrollDepth = () => {
-      const scrollTop = window.pageYOffset;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const scrollPercent = (scrollTop / docHeight) * 100;
-      
-      if (scrollPercent > maxScrollDepth) {
-        maxScrollDepth = scrollPercent;
-        setUserBehavior(prev => ({ ...prev, scrollDepth: Math.round(scrollPercent) }));
-      }
-    };
-
-    const trackClicks = () => {
-      clickCount++;
-      const pattern = clickCount > 10 ? 'explorer' : clickCount > 5 ? 'focused' : 'casual';
-      setUserBehavior(prev => ({ ...prev, clickPattern: pattern }));
-    };
-
-    const trackTimeOnSite = () => {
-      const timeOnSite = Math.round((Date.now() - startTime) / 1000);
-      const engagementLevel = timeOnSite > 120 ? 'high' : timeOnSite > 30 ? 'medium' : 'low';
-      setUserBehavior(prev => ({ 
-        ...prev, 
-        timeOnSite, 
-        engagementLevel 
-      }));
-    };
-
-    window.addEventListener('scroll', trackScrollDepth);
-    document.addEventListener('click', trackClicks);
-    const timeInterval = setInterval(trackTimeOnSite, 10000);
-
-    return () => {
-      window.removeEventListener('scroll', trackScrollDepth);
-      document.removeEventListener('click', trackClicks);
-      clearInterval(timeInterval);
-    };
-  }, []);
-
-  return userBehavior;
-};
+const AI_STATS = [
+  { label: 'Parallel Agents', value: '6', icon: Brain },
+  { label: 'Avg Research Time', value: '~30s', icon: Zap },
+  { label: 'Source Verification', value: '100%', icon: Shield },
+  { label: 'Cost Per Query', value: '$0', icon: TrendingUp },
+];
 
 export default function Home() {
   const [featuredPosts, setFeaturedPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [realStats, setRealStats] = useState({
-    totalArticles: 0,
-    totalNewsletterSubscribers: 0,
-    githubStars: 0,
-    totalPageViews: 0,
-    githubRepos: 0,
-    approvedReviews: 0
-  });
 
-  // Enhanced AI personalization
-  const userBehavior = useAIPersonalization();
-  
-  // Voice commands integration
-  const {
-    isListening,
-    isSupported: voiceSupported,
-    toggleListening,
-    speak,
-    amplitude,
-    lastCommand,
-    availableCommands,
-    supportStatus
-  } = useVoiceCommands();
-
-  // Load data with enhanced error handling
-  const loadHomePageData = useCallback(async () => {
+  const loadFeaturedPosts = useCallback(async () => {
     try {
       setLoading(true);
-      
-      // Parallel data loading for optimal performance
-      const [posts, analytics] = await Promise.all([
-        firebasePostsService.getFeaturedPosts(3),
-        productionAnalyticsService.getRealTimeMetrics()
-      ]);
-
+      const posts = await firebasePostsService.getFeaturedPosts(3);
       setFeaturedPosts(posts);
-      setRealStats({
-        totalArticles: analytics.totalArticles,
-        totalNewsletterSubscribers: analytics.totalNewsletterSubscribers,
-        githubStars: analytics.githubStars,
-        totalPageViews: analytics.totalPageViews,
-        githubRepos: analytics.githubRepos,
-        approvedReviews: analytics.approvedReviews
-      });
     } catch (error) {
-      console.error('Error loading home page data:', error);
-      // Fallback data for graceful degradation
-      setRealStats({
-        totalArticles: 0,
-        totalNewsletterSubscribers: 0,
-        githubStars: 0,
-        totalPageViews: 0,
-        githubRepos: 0,
-        approvedReviews: 0
-      });
+      console.error('Error loading featured posts:', error);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadHomePageData();
-  }, [loadHomePageData]);
-
-  // Format numbers with modern notation
-  const formatNumber = (num: number): string => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-    return num.toString();
-  };
-
-  // Enhanced typography and spacing constants
-  const boldHeroStyle = {
-    fontWeight: '900',
-    lineHeight: '0.9',
-    letterSpacing: '-0.02em'
-  };
+    loadFeaturedPosts();
+  }, [loadFeaturedPosts]);
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
-      {/* Hero Section with AI-Powered Personalized Greeting */}
-      <section className="relative py-20 lg:py-32 overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-5 pointer-events-none" 
-             style={{
-               backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M 40 0 L 0 0 0 40' fill='none' stroke='rgba(59,130,246,0.05)' stroke-width='1'/%3E%3C/svg%3E")`
-             }} 
-        />
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          {/* Voice Command Visualization */}
-          {isListening && (
-            <div className="fixed top-20 right-4 z-50 p-4 bg-gradient-flow rounded-xl text-white shadow-lg">
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-1">
-                  <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                  <div className="w-2 h-2 bg-white/70 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
-                  <div className="w-2 h-2 bg-white/50 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
-                </div>
-                <span className="text-body-sm font-medium">Listening...</span>
-                <div 
-                  className="w-8 h-1 bg-white/30 rounded-full overflow-hidden"
-                >
-                  <div 
-                    className="h-full voice-amplitude rounded-full transition-all duration-100"
-                    style={{ width: `${amplitude * 100}%` }}
-                  />
-                </div>
-              </div>
-              {lastCommand && (
-                <div className="text-caption text-white/80 mt-2">
-                  Last: "{lastCommand}"
-                </div>
-              )}
-            </div>
-          )}
+      {/* ━━━ AI-First Hero ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <section className="relative overflow-hidden pt-24 pb-16 sm:pt-32 sm:pb-24">
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-transparent blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] rounded-full bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent blur-3xl" />
+        </div>
 
-          {/* Bold Typography Hero */}
-          <h1 
-            className="text-display mb-6 text-gradient-flow animate-fade-in text-high-contrast"
-            style={boldHeroStyle}
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
           >
-            AI-Powered Content That{' '}
-            <span className="relative">
-              Drives Results
-              <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-flow opacity-30 rounded-full transform scale-x-0 animate-scale-in delay-500" />
-            </span>
-          </h1>
-
-          <p className="text-body-lg text-medium-contrast mb-12 max-w-3xl mx-auto animate-fade-in delay-200">
-            {userBehavior.engagementLevel === 'high' 
-              ? "Welcome back! Generate 10x more traffic with AI content that outperforms competitors and converts like crazy - all on autopilot."
-              : "Generate 10x more traffic with AI content that outperforms competitors and converts like crazy - all on autopilot."
-            }
-          </p>
-
-          {/* CTA Buttons with Voice Integration */}
-          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
-            <ModernButton
-              variant="default"
-              intent="primary"
-              size="xl"
-              icon={ArrowRight}
-              iconPosition="right"
-              href="/blog"
-              className="min-w-[200px] transform hover:scale-105"
-            >
-              Explore Articles
-            </ModernButton>
-
-            <ModernButton
-              variant="glass"
-              intent="secondary"
-              size="xl"
-              icon={isListening ? MicOff : Mic}
-              iconPosition="left"
-              onClick={toggleListening}
-              className="min-w-[200px]"
-              disabled={!voiceSupported}
-            >
-              {isListening ? 'Stop Voice' : voiceSupported ? 'Voice Commands' : supportStatus}
-            </ModernButton>
-
-            <ModernButton
-              variant="neumorphic"
-              intent="accent"
-              size="xl"
-              icon={Sparkles}
-              iconPosition="left"
-              onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
-              className="min-w-[200px]"
-            >
-              Discover More
-            </ModernButton>
-          </div>
-
-          {/* Live Analytics Dashboard */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
-            <div className="text-center">
-              <div className="text-title md:text-4xl font-bold text-gradient-accent mb-2">
-                {formatNumber(realStats.totalArticles)}
-              </div>
-              <div className="text-medium-contrast">Articles Published</div>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-accent-primary/20 bg-accent-primary/5 text-accent-primary text-xs font-semibold tracking-wide uppercase mb-6">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent-primary animate-pulse" />
+              AI-Powered Research Intelligence
             </div>
-            <div className="text-center">
-              <div className="text-title md:text-4xl font-bold text-holographic mb-2">
-                {formatNumber(realStats.totalNewsletterSubscribers)}
-              </div>
-              <div className="text-medium-contrast">Newsletter Subscribers</div>
-            </div>
-            <div className="text-center">
-              <div className="text-title md:text-4xl font-bold text-gradient-flow mb-2">
-                {formatNumber(realStats.totalPageViews)}
-              </div>
-              <div className="text-medium-contrast">Page Views</div>
-            </div>
-            <div className="text-center">
-              <div className="text-title md:text-4xl font-bold text-accent-primary mb-2">
-                {formatNumber(realStats.githubStars)}
-              </div>
-              <div className="text-medium-contrast">GitHub Stars</div>
-            </div>
+          </motion.div>
+
+          <motion.h1
+            className="text-display text-gradient-flow mb-5 !leading-tight"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            Research Anything.<br className="hidden sm:block" /> Instantly.
+          </motion.h1>
+
+          <motion.p
+            className="text-body-lg text-medium-contrast max-w-2xl mx-auto leading-relaxed mb-10"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            6 AI agents research in parallel, verify facts across sources, and deliver
+            structured reports with financial data, competitive analysis, and confidence scoring.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <HeroSearchBar />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ━━━ AI Stats Strip ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <section className="py-10 border-y border-medium-contrast/30">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {AI_STATS.map((stat, i) => (
+              <motion.div
+                key={stat.label}
+                className="text-center"
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+              >
+                <stat.icon className="w-5 h-5 text-accent-primary mx-auto mb-2" />
+                <div className="text-headline font-bold text-high-contrast text-mono-data">
+                  {stat.value}
+                </div>
+                <div className="text-caption text-medium-contrast">{stat.label}</div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Featured Content Section */}
-      <section className="py-20 bg-high-contrast" id="featured-content">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-headline md:text-5xl font-bold text-high-contrast mb-6 text-gradient-flow">
-              Featured Content
-            </h2>
-            <p className="text-body-lg text-medium-contrast max-w-3xl mx-auto">
-              Hand-picked articles and tutorials that showcase the latest in technology innovation.
-            </p>
+      {/* ━━━ Capabilities Grid ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
+      <section className="py-20">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <motion.h2
+              className="text-headline font-bold text-high-contrast mb-3"
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              Enterprise-Grade Research, Zero Cost
+            </motion.h2>
+            <motion.p
+              className="text-body text-medium-contrast max-w-2xl mx-auto"
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+            >
+              Built with Go, pgvector, and Gemini 2.5 Flash — the entire system runs at $0/month.
+            </motion.p>
           </div>
 
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[1, 2, 3].map((i) => (
-                <ModernCard key={i} className="animate-pulse bg-neumorphic p-6">
-                  <div className="h-48 bg-low-contrast rounded-lg mb-4" />
-                  <div className="h-6 bg-low-contrast rounded mb-2" />
-                  <div className="h-4 bg-low-contrast rounded w-3/4" />
-                </ModernCard>
-              ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {CAPABILITIES.map((cap, i) => (
+              <motion.div
+                key={cap.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className="group rounded-xl border border-medium-contrast/40 bg-medium-contrast/10 p-6 hover:border-accent-primary/30 hover:shadow-md transition-all"
+              >
+                <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${cap.color} flex items-center justify-center text-white mb-4`}>
+                  <cap.icon className="w-5 h-5" />
+                </div>
+                <h3 className="text-body-lg font-semibold text-high-contrast mb-2">{cap.title}</h3>
+                <p className="text-body-sm text-medium-contrast leading-relaxed">{cap.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <motion.div
+            className="mt-10 text-center"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3 }}
+          >
+            <Link
+              to="/ai-lab"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl text-sm font-semibold hover:shadow-lg hover:shadow-indigo-500/25 transition-all"
+            >
+              <Sparkles className="w-4 h-4" />
+              Try AI Research Now
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ━━━ Featured Articles (de-emphasized) ━━━━━━━━━━━━━━ */}
+      {featuredPosts.length > 0 && (
+        <section className="py-16 border-t border-medium-contrast/30">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-section-title font-semibold text-high-contrast">Latest Articles</h2>
+              <Link
+                to="/blog"
+                className="text-body-sm text-accent-primary hover:text-accent-primary/80 flex items-center gap-1 transition-colors"
+              >
+                View all <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredPosts.map((post, index) => (
-                <ModernCard 
-                  key={post.id} 
-                  className="group p-6 hover:shadow-xl transition-all duration-300"
-                  hover
-                >
-                  <div className="relative mb-4 overflow-hidden rounded-lg">
-                    <img
-                      src={post.imageUrl || `/api/placeholder/400/240`}
-                      alt={post.title}
-                      className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-flow opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
+
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse rounded-xl border border-medium-contrast/30 p-5">
+                    <div className="h-36 bg-medium-contrast/20 rounded-lg mb-3" />
+                    <div className="h-5 bg-medium-contrast/20 rounded mb-2" />
+                    <div className="h-4 bg-medium-contrast/20 rounded w-3/4" />
                   </div>
-                  
-                  <h3 className="text-body-lg font-bold text-high-contrast mb-3 group-hover:text-gradient-accent transition-colors duration-200">
-                    {post.title}
-                  </h3>
-                  
-                  <p className="text-medium-contrast mb-4 line-clamp-3">
-                    {post.excerpt || post.content?.substring(0, 120) + '...'}
-                  </p>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center text-body-sm text-low-contrast">
-                      <Calendar className="w-4 h-4 mr-1" />
-                      {new Date(post.publishedAt).toLocaleDateString()}
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {featuredPosts.map((post) => (
+                  <Link
+                    key={post.id}
+                    to={`/blog/${post.id}`}
+                    className="group rounded-xl border border-medium-contrast/40 bg-medium-contrast/10 overflow-hidden hover:border-accent-primary/30 hover:shadow-md transition-all"
+                  >
+                    {post.imageUrl && (
+                      <div className="overflow-hidden">
+                        <img
+                          src={post.imageUrl}
+                          alt={post.title}
+                          className="w-full h-36 object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      </div>
+                    )}
+                    <div className="p-5">
+                      <h3 className="text-body font-semibold text-high-contrast mb-2 group-hover:text-accent-primary transition-colors line-clamp-2">
+                        {post.title}
+                      </h3>
+                      <p className="text-body-sm text-medium-contrast line-clamp-2 mb-3">
+                        {post.excerpt || post.content?.substring(0, 100) + '...'}
+                      </p>
+                      <div className="flex items-center text-caption text-low-contrast">
+                        <Calendar className="w-3.5 h-3.5 mr-1" />
+                        {new Date(post.publishedAt).toLocaleDateString()}
+                      </div>
                     </div>
-                    
-                    <ModernButton
-                      variant="minimal"
-                      intent="primary"
-                      size="sm"
-                      icon={ArrowRight}
-                      href={`/blog/${post.id}`}
-                    >
-                      Read More
-                    </ModernButton>
-                  </div>
-                </ModernCard>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Voice Commands Help Section */}
-      {voiceSupported && (
-        <section className="py-12 bg-medium-contrast">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h3 className="text-body-lg font-bold mb-4 text-high-contrast">Voice Navigation</h3>
-            <p className="text-medium-contrast mb-6">
-              Use voice commands to navigate and interact with content hands-free
-            </p>
-            
-            <div className="flex flex-wrap justify-center gap-3 mb-6">
-              {availableCommands.slice(0, 6).map((cmd, index) => (
-                <span 
-                  key={index}
-                  className="px-3 py-1 bg-low-contrast text-high-contrast rounded-full text-body-sm"
-                >
-                  "{cmd.command}"
-                </span>
-              ))}
-            </div>
-            
-            <ModernButton
-              variant="neumorphic"
-              intent="accent"
-              icon={isListening ? MicOff : Mic}
-              onClick={toggleListening}
-            >
-              {isListening ? 'Stop Listening' : 'Try Voice Commands'}
-            </ModernButton>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </section>
       )}
 
-      {/* Newsletter Section */}
+      {/* ━━━ Newsletter (compact) ━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
       <section id="newsletter">
         <Newsletter />
       </section>

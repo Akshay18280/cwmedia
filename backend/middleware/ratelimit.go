@@ -9,8 +9,8 @@ import (
 )
 
 type visitor struct {
-	count    int
-	resetAt  time.Time
+	count   int
+	resetAt time.Time
 }
 
 type RateLimiter struct {
@@ -18,6 +18,7 @@ type RateLimiter struct {
 	visitors map[string]*visitor
 	limit    int
 	window   time.Duration
+	stopCh   chan struct{}
 }
 
 func NewRateLimiter(limitPerMin int) *RateLimiter {
@@ -25,17 +26,29 @@ func NewRateLimiter(limitPerMin int) *RateLimiter {
 		visitors: make(map[string]*visitor),
 		limit:    limitPerMin,
 		window:   time.Minute,
+		stopCh:   make(chan struct{}),
 	}
 
 	// Cleanup stale entries every 2 minutes
 	go func() {
+		ticker := time.NewTicker(2 * time.Minute)
+		defer ticker.Stop()
 		for {
-			time.Sleep(2 * time.Minute)
-			rl.cleanup()
+			select {
+			case <-ticker.C:
+				rl.cleanup()
+			case <-rl.stopCh:
+				return
+			}
 		}
 	}()
 
 	return rl
+}
+
+// Stop terminates the cleanup goroutine.
+func (rl *RateLimiter) Stop() {
+	close(rl.stopCh)
 }
 
 func (rl *RateLimiter) cleanup() {

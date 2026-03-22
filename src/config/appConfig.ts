@@ -99,6 +99,7 @@ export const appConfig = {
     enableTwilioSMS: false,          // Feature disabled — Twilio auth token not provided
     enableResendEmail: true,         // Resend API key is configured
     aiLab: true,                     // AI Lab portfolio section — AI Knowledge Copilot demo
+    automationLab: true,             // Automation Lab — AI newsroom research + publish pipeline
     debugMode: false,
   },
 
