@@ -46,3 +46,4 @@ supabase/
 # Build
 build/
 .env.backup
+.vercel
