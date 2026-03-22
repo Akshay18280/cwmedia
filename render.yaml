@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: cwmedia-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    region: oregon
+    plan: free
+    envVars:
+      - key: PORT
+        value: "8080"
+      - key: ALLOWED_ORIGINS
+        value: "https://carelwave.com,https://cwmedia-8enlfahwg-akshays-projects-b3661252.vercel.app"
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
