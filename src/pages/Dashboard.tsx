@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Brain, Sparkles, Shield, Database, Search,
-  ArrowRight, Trash2, Clock,
+  ArrowRight, Trash2, Clock, Zap, CheckCircle2, XCircle,
 } from 'lucide-react';
 import { useResearchStore, type SavedReportSummary } from '@/stores/researchStore';
+import { useAutomationStore } from '@/stores/automationStore';
 
 const STAT_ICONS = [Brain, Shield, Database, Search] as const;
 
@@ -66,6 +67,9 @@ export default function Dashboard() {
           ))}
         </div>
 
+        {/* Automation Stats */}
+        <AutomationSection />
+
         {/* Recent research */}
         <section>
           <h2 className="text-section-title font-semibold text-high-contrast mb-4">Recent Research</h2>
@@ -99,6 +103,83 @@ export default function Dashboard() {
     </div>
   );
 }
+
+const AutomationSection: React.FC = () => {
+  const savedJobs = useAutomationStore((s) => s.savedJobs);
+
+  if (savedJobs.length === 0) return null;
+
+  const published = savedJobs.filter((j) => j.publishDecision === 'publish').length;
+  const rejected = savedJobs.length - published;
+  const avgConf = savedJobs.length > 0
+    ? Math.round(savedJobs.reduce((s, j) => s + j.confidence * 100, 0) / savedJobs.length)
+    : 0;
+  const avgDuration = savedJobs.length > 0
+    ? (savedJobs.reduce((s, j) => s + j.durationMs, 0) / savedJobs.length / 1000).toFixed(1)
+    : '0';
+
+  return (
+    <section className="mb-8">
+      <div className="flex items-center gap-2 mb-4">
+        <Zap className="w-5 h-5 text-amber-500" />
+        <h2 className="text-section-title font-semibold text-high-contrast">Automation Lab</h2>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <div className="rounded-xl border border-medium-contrast/40 bg-medium-contrast/10 p-3">
+          <p className="text-xl font-bold text-high-contrast text-mono-data">{savedJobs.length}</p>
+          <p className="text-caption text-medium-contrast">Total Runs</p>
+        </div>
+        <div className="rounded-xl border border-medium-contrast/40 bg-medium-contrast/10 p-3">
+          <p className="text-xl font-bold text-emerald-400 text-mono-data">{published} <span className="text-xs text-low-contrast font-normal">/ {rejected} rejected</span></p>
+          <p className="text-caption text-medium-contrast">Published</p>
+        </div>
+        <div className="rounded-xl border border-medium-contrast/40 bg-medium-contrast/10 p-3">
+          <p className="text-xl font-bold text-high-contrast text-mono-data">{avgConf}%</p>
+          <p className="text-caption text-medium-contrast">Avg Confidence</p>
+        </div>
+        <div className="rounded-xl border border-medium-contrast/40 bg-medium-contrast/10 p-3">
+          <p className="text-xl font-bold text-high-contrast text-mono-data">{avgDuration}s</p>
+          <p className="text-caption text-medium-contrast">Avg Duration</p>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        {savedJobs.slice(0, 5).map((job, i) => (
+          <motion.div
+            key={job.id}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.04 }}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-xl border border-medium-contrast/20 bg-medium-contrast/5"
+          >
+            {job.publishDecision === 'publish' ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+            ) : (
+              <XCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-high-contrast truncate">{job.topic}</p>
+              <p className="text-[10px] text-low-contrast">
+                {new Date(job.createdAt).toLocaleDateString()} · {(job.durationMs / 1000).toFixed(1)}s · {job.sourceCount} sources · {job.agentCount} agents
+              </p>
+            </div>
+            <span className="text-xs font-mono text-low-contrast flex-shrink-0">
+              {(job.confidence * 100).toFixed(0)}%
+            </span>
+          </motion.div>
+        ))}
+      </div>
+
+      <Link
+        to="/automation-lab"
+        className="inline-flex items-center gap-1.5 mt-3 text-sm font-medium text-accent-primary hover:underline"
+      >
+        Go to Automation Lab <ArrowRight className="w-3.5 h-3.5" />
+      </Link>
+    </section>
+  );
+};
 
 const ReportCard: React.FC<{
   report: SavedReportSummary;

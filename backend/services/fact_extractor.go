@@ -19,11 +19,11 @@ type ExtractedFact struct {
 
 // FactExtractor extracts structured facts from research content.
 type FactExtractor struct {
-	llm *LLMService
+	llm LLMProvider
 }
 
 // NewFactExtractor creates a fact extractor.
-func NewFactExtractor(llm *LLMService) *FactExtractor {
+func NewFactExtractor(llm LLMProvider) *FactExtractor {
 	return &FactExtractor{llm: llm}
 }
 

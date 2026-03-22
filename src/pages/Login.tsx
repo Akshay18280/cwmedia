@@ -20,7 +20,7 @@ export default function Login() {
   
   const navigate = useNavigate();
   const location = useLocation();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, signInWithGoogle } = useAuth();
 
   // Redirect if already logged in
   useEffect(() => {
@@ -106,18 +106,17 @@ export default function Login() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      const result = await firebaseAuthService.loginWithGoogle();
-      
-      if (result.success && result.user) {
-        toast.success('Successfully signed in with Google!');
+      const success = await signInWithGoogle(rememberMe);
+
+      if (success) {
+        toast.success('Signed in successfully!');
         const from = location.state?.from?.pathname || '/';
         navigate(from);
-      } else {
-        toast.error(result.error || 'Failed to sign in with Google');
       }
+      // Error toasts are now shown inside signInWithGoogle
     } catch (error) {
       console.error('Google sign in error:', error);
-      toast.error('An unexpected error occurred');
+      toast.error('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -234,9 +233,13 @@ export default function Login() {
 
       <div className="text-center text-sm text-gray-600 dark:text-gray-400">
         Don't have an account?{' '}
-        <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
-          Sign up here
-        </Link>
+        <button
+          onClick={handleGoogleSignIn}
+          disabled={loading}
+          className="font-medium text-blue-600 hover:text-blue-500 disabled:opacity-50"
+        >
+          Sign up with Google
+        </button>
       </div>
     </div>
   );

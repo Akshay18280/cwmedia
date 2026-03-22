@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import type { Message } from '@/components/ai/MessageBubble';
-import type { PipelineStep, SourceChunk, QueryMetrics } from '@/components/ai/types';
+import type { PipelineStep, SourceChunk, QueryMetrics, AIModel } from '@/components/ai/types';
 import { streamChat } from '@/services/ai/SSEChatService';
 import { appConfig } from '@/config/appConfig';
 
@@ -74,6 +75,8 @@ export function useChat() {
   const [lastPrompt, setLastPrompt] = useState<{ system_prompt: string; user_prompt: string } | null>(null);
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState<string>('');
+  const [selectedModel, setSelectedModel] = useState('gemini-2.5-flash');
+  const [availableModels, setAvailableModels] = useState<AIModel[]>([]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -87,12 +90,21 @@ export function useChat() {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
   }, [messages]);
 
-  // Check backend health
+  // Check backend health + fetch available models
   useEffect(() => {
     const checkHealth = async () => {
       try {
         const res = await fetch(`${apiBase}/api/health`, { signal: AbortSignal.timeout(3000) });
         setBackendStatus(res.ok ? 'connected' : 'demo');
+        if (res.ok) {
+          try {
+            const modelsRes = await fetch(`${apiBase}/api/models`, { signal: AbortSignal.timeout(3000) });
+            if (modelsRes.ok) {
+              const data = await modelsRes.json();
+              if (data.models?.length) setAvailableModels(data.models);
+            }
+          } catch { /* models fetch is optional */ }
+        }
       } catch {
         setBackendStatus('demo');
       }
@@ -214,6 +226,7 @@ export function useChat() {
       try {
         await new Promise<void>((resolve, reject) => {
           const ctrl = streamChat(apiBase, question, {
+            model: selectedModel,
             onStep: (step) => {
               setPipelineSteps(prev => prev.map(s => s.step === step.step ? { ...s, ...step } : s));
             },
@@ -235,7 +248,11 @@ export function useChat() {
           sources,
           metrics: metrics || undefined,
         });
-      } catch {
+      } catch (streamErr) {
+        // Show toast for rate limit errors
+        if (streamErr instanceof Error && /rate.limit|limit.reached/i.test(streamErr.message)) {
+          toast.error('Model rate limit reached. Try switching to a different model.');
+        }
         try {
           const res = await fetch(`${apiBase}/api/chat`, {
             method: 'POST',
@@ -319,6 +336,10 @@ export function useChat() {
     setAttachedFile,
     scrollToBottom,
     setStreamingText,
+    // Model selection
+    selectedModel,
+    setSelectedModel,
+    availableModels,
   };
 }
 

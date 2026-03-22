@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Award, Code, Globe, BookOpen, Heart, Users, Target, Zap, Star, MapPin, Mail, Phone, Linkedin, Github, Brain, Briefcase, GraduationCap, ChevronDown } from 'lucide-react';
+import { Award, Code, Globe, BookOpen, Heart, Users, Target, Zap, Star, MapPin, Mail, Phone, Linkedin, Github, Brain, Briefcase, GraduationCap, ChevronDown, Monitor, Server, Rocket } from 'lucide-react';
 
 export default function AboutAkshay() {
   const [activeSection, setActiveSection] = useState<string>('');
@@ -24,7 +24,7 @@ export default function AboutAkshay() {
   const professionalTimeline = [
     {
       period: "September 2025 – Present",
-      role: "Software Development Engineer (SDE-1)",
+      role: "SDE-1, Software Development Engineer",
       company: "CSG International",
       location: "Bangalore, India",
       type: "Telecom Product Company",
@@ -41,7 +41,7 @@ export default function AboutAkshay() {
     },
     {
       period: "July 2022 – August 2025",
-      role: "Software Development Engineer (SDE-Grad)",
+      role: "SDE-Grad, Software Development Engineer",
       company: "CSG International",
       location: "Bangalore, India",
       type: "Telecom Product Company",
@@ -55,7 +55,7 @@ export default function AboutAkshay() {
     },
     {
       period: "December 2021 – July 2022",
-      role: "Software Development Engineer Intern",
+      role: "SDE Intern",
       company: "CSG International",
       location: "Bangalore, India",
       type: "Telecom Product Company",
@@ -69,34 +69,53 @@ export default function AboutAkshay() {
   ];
 
   const technicalSkills: Record<string, string[]> = {
-    "Languages": ["Golang", "Python", "SQL", "Bash"],
+    "Languages": ["Golang", "TypeScript", "JavaScript", "Python", "SQL", "Bash"],
+    "Frontend": ["React", "Tailwind CSS", "Vite", "Zustand", "Recharts", "Framer Motion"],
+    "Backend & APIs": ["Go/Gin", "REST APIs", "SSE Streaming", "pgvector", "Distributed Systems"],
     "Cloud & Infrastructure": ["AWS (Lambda, ECS, EC2, S3, RDS, DynamoDB, SQS, SNS, CloudWatch)", "Terraform", "Docker"],
-    "Databases & Caching": ["PostgreSQL", "Redis", "ElastiCache"],
+    "Databases & Caching": ["PostgreSQL", "Redis", "ElastiCache", "Firebase Firestore"],
+    "AI & ML": ["Google Gemini", "Multi-Agent Systems", "RAG Pipelines", "Cursor AI", "GitHub Copilot", "Claude"],
     "DevOps & Observability": ["CI/CD", "Azure DevOps", "Jenkins", "Grafana", "Prometheus", "CloudWatch"],
-    "Developer Tools": ["Jira", "Postman", "Linux", "REST APIs", "Distributed Systems"],
-    "AI-Assisted Development": ["Cursor AI", "GitHub Copilot", "Claude"]
+    "Deployment & Hosting": ["Vercel", "Firebase Hosting", "GitHub Actions"],
+    "Developer Tools": ["Jira", "Postman", "Linux"]
   };
 
   const skillIcons: Record<string, React.ReactNode> = {
     "Languages": <Code className="w-5 h-5" />,
+    "Frontend": <Monitor className="w-5 h-5" />,
+    "Backend & APIs": <Server className="w-5 h-5" />,
     "Cloud & Infrastructure": <Globe className="w-5 h-5" />,
     "Databases & Caching": <Target className="w-5 h-5" />,
+    "AI & ML": <Brain className="w-5 h-5" />,
     "DevOps & Observability": <Zap className="w-5 h-5" />,
-    "Developer Tools": <Briefcase className="w-5 h-5" />,
-    "AI-Assisted Development": <Brain className="w-5 h-5" />
+    "Deployment & Hosting": <Rocket className="w-5 h-5" />,
+    "Developer Tools": <Briefcase className="w-5 h-5" />
   };
 
-  const project = {
-    title: "ASCENDON Rating & Charging Platform",
-    company: "CSG International",
-    technologies: ["Golang", "AWS", "Terraform", "Cursor AI"],
-    highlights: [
-      "Built microservices for telecom usage rating pipelines",
-      "Implemented CDR ingestion and distributed event processing",
-      "Designed event-driven architecture using AWS services",
-      "Provisioned infrastructure using Terraform IaC"
-    ]
-  };
+  const projects = [
+    {
+      title: "ASCENDON Rating & Charging Platform",
+      company: "CSG International",
+      technologies: ["Golang", "AWS", "Terraform", "Cursor AI"],
+      highlights: [
+        "Built microservices for telecom usage rating pipelines",
+        "Implemented CDR ingestion and distributed event processing",
+        "Designed event-driven architecture using AWS services",
+        "Provisioned infrastructure using Terraform IaC"
+      ]
+    },
+    {
+      title: "CWMedia — AI Research Intelligence Platform",
+      company: "Carelwave Media (Personal Project)",
+      technologies: ["React", "TypeScript", "Go/Gin", "PostgreSQL", "pgvector", "Gemini AI", "Firebase", "Tailwind CSS", "Vite", "Vercel"],
+      highlights: [
+        "Built end-to-end AI research platform with multi-agent orchestration, SSE streaming, and fact verification",
+        "Developed 6 specialized research agents with parallel execution, retry logic, and financial data enrichment",
+        "Created responsive UI with dark mode, command palette, floating assistant, knowledge graphs, and PDF export",
+        "Deployed full-stack on Vercel + Go backend with Firebase auth, Zustand state management, and real-time notifications"
+      ]
+    }
+  ];
 
   const achievements = [
     {
@@ -242,29 +261,33 @@ export default function AboutAkshay() {
           </div>
         </section>
 
-        {/* Key Project */}
+        {/* Key Projects */}
         <section id="projects" className="mb-20">
-          <h2 className="text-section-title mb-12 text-center">Key Project</h2>
-          <div className="max-w-3xl mx-auto bg-medium-contrast rounded-xl p-8 shadow-lg border border-low-contrast">
-            <h3 className="text-body-lg font-bold text-high-contrast mb-2">{project.title}</h3>
-            <p className="text-gradient-flow font-semibold mb-4">{project.company}</p>
+          <h2 className="text-section-title mb-12 text-center">Key Projects</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
+            {projects.map((proj, projIdx) => (
+              <div key={projIdx} className="bg-medium-contrast rounded-xl p-8 shadow-lg border border-low-contrast">
+                <h3 className="text-body-lg font-bold text-high-contrast mb-2">{proj.title}</h3>
+                <p className="text-gradient-flow font-semibold mb-4">{proj.company}</p>
 
-            <div className="flex flex-wrap gap-2 mb-6">
-              {project.technologies.map((tech, idx) => (
-                <span key={idx} className="px-3 py-1 bg-low-contrast text-high-contrast text-caption rounded-lg font-medium">
-                  {tech}
-                </span>
-              ))}
-            </div>
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {proj.technologies.map((tech, idx) => (
+                    <span key={idx} className="px-3 py-1 bg-low-contrast text-high-contrast text-caption rounded-lg font-medium">
+                      {tech}
+                    </span>
+                  ))}
+                </div>
 
-            <ul className="space-y-2.5">
-              {project.highlights.map((highlight, idx) => (
-                <li key={idx} className="flex items-start">
-                  <Zap className="w-4 h-4 text-blue-500 mt-1 mr-3 flex-shrink-0" />
-                  <span className="text-high-contrast text-body-sm">{highlight}</span>
-                </li>
-              ))}
-            </ul>
+                <ul className="space-y-2.5">
+                  {proj.highlights.map((highlight, idx) => (
+                    <li key={idx} className="flex items-start">
+                      <Zap className="w-4 h-4 text-blue-500 mt-1 mr-3 flex-shrink-0" />
+                      <span className="text-high-contrast text-body-sm">{highlight}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
         </section>
 

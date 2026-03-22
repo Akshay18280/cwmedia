@@ -41,7 +41,7 @@ type PromptPreview struct {
 type Pipeline struct {
 	embedder *embeddings.Embedder
 	store    *vectorstore.Store
-	llm      *services.LLMService
+	llm      services.LLMProvider
 	chunkSz  int
 	overlap  int
 	topK     int
@@ -51,7 +51,7 @@ type Pipeline struct {
 func NewPipeline(
 	embedder *embeddings.Embedder,
 	store *vectorstore.Store,
-	llm *services.LLMService,
+	llm services.LLMProvider,
 	chunkSize, chunkOverlap, topK int,
 ) *Pipeline {
 	return &Pipeline{

@@ -6,14 +6,23 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
+	"sync"
+	"time"
 )
 
 // LLMService handles communication with Google Gemini API.
+// Includes a rate limiter to respect Gemini free-tier limits (5 RPM).
 type LLMService struct {
 	model  string
 	apiKey string
+	// Rate limiter: allows maxConcurrent simultaneous requests with retry on 429
+	sem          chan struct{}
+	mu           sync.Mutex
+	lastCallTime time.Time
+	minInterval  time.Duration // minimum time between requests
 }
 
 // NewLLMService creates an LLM service for Google Gemini.
@@ -29,10 +38,18 @@ func NewLLMService(provider, model, apiKey string) (*LLMService, error) {
 	}
 
 	return &LLMService{
-		model:  model,
-		apiKey: apiKey,
+		model:       model,
+		apiKey:      apiKey,
+		sem:         make(chan struct{}, 3),    // max 3 concurrent requests
+		minInterval: 3 * time.Second,          // throttle to ~20 RPM; 429 retry handles bursts
 	}, nil
 }
+
+// ModelName returns the model identifier.
+func (s *LLMService) ModelName() string { return s.model }
+
+// ProviderName returns the provider name.
+func (s *LLMService) ProviderName() string { return "gemini" }
 
 // --- Google Gemini API types ---
 
@@ -158,6 +175,89 @@ func (s *LLMService) GenerateAnswer(ctx context.Context, contextChunks []string,
 	return strings.Join(parts, "\n"), nil
 }
 
+// acquireSlot waits for a rate-limiter slot, enforcing minimum interval between requests.
+func (s *LLMService) acquireSlot(ctx context.Context) error {
+	// Acquire semaphore slot (limits concurrency)
+	select {
+	case s.sem <- struct{}{}:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+
+	// Enforce minimum interval between requests
+	s.mu.Lock()
+	elapsed := time.Since(s.lastCallTime)
+	if elapsed < s.minInterval {
+		wait := s.minInterval - elapsed
+		s.mu.Unlock()
+		log.Printf("[LLM] Rate limiter: waiting %v before next request", wait)
+		select {
+		case <-time.After(wait):
+		case <-ctx.Done():
+			<-s.sem // release slot
+			return ctx.Err()
+		}
+		s.mu.Lock()
+	}
+	s.lastCallTime = time.Now()
+	s.mu.Unlock()
+
+	return nil
+}
+
+func (s *LLMService) releaseSlot() {
+	<-s.sem
+}
+
+// doGenerateRequest sends a single Gemini API request with 429 retry logic.
+func (s *LLMService) doGenerateRequest(ctx context.Context, body []byte) ([]byte, error) {
+	maxRetries := 3
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		if err := s.acquireSlot(ctx); err != nil {
+			return nil, err
+		}
+
+		url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", s.model, s.apiKey)
+		req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(body))
+		if err != nil {
+			s.releaseSlot()
+			return nil, err
+		}
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := http.DefaultClient.Do(req)
+		s.releaseSlot()
+		if err != nil {
+			return nil, fmt.Errorf("Gemini request: %w", err)
+		}
+
+		respBody, err := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			return nil, fmt.Errorf("failed to read Gemini response: %w", err)
+		}
+
+		if resp.StatusCode == 429 && attempt < maxRetries {
+			// Rate limited — wait and retry with increasing backoff
+			backoff := time.Duration(8*(attempt+1)) * time.Second
+			log.Printf("[LLM] Rate limited (429), retrying in %v (attempt %d/%d)", backoff, attempt+1, maxRetries)
+			select {
+			case <-time.After(backoff):
+				continue
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			}
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			return nil, fmt.Errorf("Gemini error (status %d): %s", resp.StatusCode, string(respBody[:min(500, len(respBody))]))
+		}
+
+		return respBody, nil
+	}
+	return nil, fmt.Errorf("Gemini: exhausted retries after rate limiting")
+}
+
 // Generate sends a system prompt and user prompt to Gemini with custom max tokens.
 func (s *LLMService) Generate(ctx context.Context, system, user string, maxTokens int) (string, error) {
 	reqBody := geminiRequest{
@@ -178,25 +278,9 @@ func (s *LLMService) Generate(ctx context.Context, system, user string, maxToken
 		return "", fmt.Errorf("marshal: %w", err)
 	}
 
-	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", s.model, s.apiKey)
-	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(body))
+	respBody, err := s.doGenerateRequest(ctx, body)
 	if err != nil {
 		return "", err
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("Gemini request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("failed to read Gemini response: %w", err)
-	}
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("Gemini error (status %d): %s", resp.StatusCode, string(respBody))
 	}
 
 	var result geminiResponse

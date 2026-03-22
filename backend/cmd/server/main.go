@@ -45,18 +45,38 @@ func main() {
 	embedder := embeddings.NewEmbedder(cfg.EmbeddingDim)
 	log.Printf("Embeddings: local hash-based (%d dims)", cfg.EmbeddingDim)
 
-	// Initialize Google Gemini LLM service
+	// Initialize provider registry
+	registry := services.NewProviderRegistry(cfg.LLMModel)
+
+	// Register Gemini (primary)
 	llm, err := services.NewLLMService("gemini", cfg.LLMModel, cfg.GeminiKey)
 	if err != nil {
 		log.Fatalf("Failed to initialize LLM service: %v", err)
 	}
+	registry.Register("gemini-2.5-flash", "Gemini 2.5 Flash", "free", llm)
 	log.Printf("LLM: Google Gemini (%s)", cfg.LLMModel)
+
+	// Register Groq models (optional — only if API key is set)
+	if cfg.GroqKey != "" {
+		groqModels := []struct{ id, name string }{
+			{"llama-3.3-70b-versatile", "Llama 3.3 70B"},
+			{"mixtral-8x7b-32768", "Mixtral 8x7B"},
+			{"gemma2-9b-it", "Gemma 2 9B"},
+		}
+		for _, m := range groqModels {
+			groq, err := services.NewGroqProvider(m.id, cfg.GroqKey)
+			if err == nil {
+				registry.Register(m.id, m.name, "free", groq)
+				log.Printf("LLM: Groq (%s) registered", m.id)
+			}
+		}
+	}
 
 	// Initialize RAG pipeline
 	pipeline := rag.NewPipeline(embedder, store, llm, cfg.ChunkSize, cfg.ChunkOverlap, cfg.TopK)
 
 	// Initialize research service
-	research := services.NewResearchService(llm, cfg.TavilyKey)
+	research := services.NewResearchService(llm, registry, cfg.TavilyKey)
 	if cfg.TavilyKey != "" {
 		log.Println("Research service initialized with Tavily web search + multi-agent orchestration")
 	} else {
@@ -81,7 +101,7 @@ func main() {
 	defer rl.Stop()
 	r.Use(rl.Middleware())
 
-	handlers := api.NewHandlers(pipeline, cfg, research)
+	handlers := api.NewHandlers(pipeline, cfg, research, registry)
 	handlers.RegisterRoutes(r)
 
 	addr := fmt.Sprintf(":%s", cfg.Port)

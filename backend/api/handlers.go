@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/akshayverma/cwmedia-backend/config"
@@ -25,15 +26,19 @@ type Handlers struct {
 	pipeline       *rag.Pipeline
 	config         *config.Config
 	research       *services.ResearchService
+	automation     *services.AutomationService
+	registry       *services.ProviderRegistry
 	maxUploadBytes int64
 }
 
 // NewHandlers creates API handlers.
-func NewHandlers(pipeline *rag.Pipeline, cfg *config.Config, research *services.ResearchService) *Handlers {
+func NewHandlers(pipeline *rag.Pipeline, cfg *config.Config, research *services.ResearchService, registry *services.ProviderRegistry) *Handlers {
 	return &Handlers{
 		pipeline:       pipeline,
 		config:         cfg,
 		research:       research,
+		automation:     services.NewAutomationService(research),
+		registry:       registry,
 		maxUploadBytes: int64(cfg.MaxUploadSizeMB) * 1024 * 1024,
 	}
 }
@@ -88,6 +93,7 @@ func (h *Handlers) Metadata(c *gin.Context) {
 // ChatRequest is the body for POST /api/chat.
 type ChatRequest struct {
 	Question string `json:"question" binding:"required"`
+	Model    string `json:"model,omitempty"`
 }
 
 // Chat handles RAG queries and returns enriched results.
@@ -276,7 +282,11 @@ func (h *Handlers) ChatStream(c *gin.Context) {
 	}
 
 	if err := h.pipeline.QueryStream(c.Request.Context(), req.Question, cb); err != nil {
-		writeSSE("error", map[string]string{"message": err.Error()})
+		errData := map[string]string{"message": err.Error()}
+		if isRateLimitError(err) {
+			errData["code"] = "limit_reached"
+		}
+		writeSSE("error", errData)
 		return
 	}
 
@@ -286,6 +296,7 @@ func (h *Handlers) ChatStream(c *gin.Context) {
 // ResearchRequest is the body for POST /api/research.
 type ResearchRequest struct {
 	Question string `json:"question" binding:"required"`
+	Model    string `json:"model,omitempty"`
 }
 
 // ResearchStream handles SSE streaming research queries with multi-agent orchestration.
@@ -322,8 +333,12 @@ func (h *Handlers) ResearchStream(c *gin.Context) {
 		defer close(eventCh)
 		_, err := h.research.Research(researchCtx, req.Question, eventCh)
 		if err != nil {
+			evt := services.ResearchEvent{Type: "error", Message: err.Error()}
+			if isRateLimitError(err) {
+				evt.Data = map[string]string{"code": "limit_reached"}
+			}
 			select {
-			case eventCh <- services.ResearchEvent{Type: "error", Message: err.Error()}:
+			case eventCh <- evt:
 			case <-researchCtx.Done():
 			}
 		}
@@ -378,6 +393,133 @@ func (h *Handlers) ClearResearchMemory(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Research memory cleared"})
 }
 
+// ── Automation Lab endpoints ───────────────────────────────────────
+
+// RunAutomation triggers the full AI newsroom automation pipeline.
+func (h *Handlers) RunAutomation(c *gin.Context) {
+	var req struct {
+		Topic string `json:"topic" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "topic is required"})
+		return
+	}
+
+	jobID := h.automation.RunWorkflow(c.Request.Context(), req.Topic)
+	c.JSON(http.StatusAccepted, gin.H{
+		"job_id":  jobID,
+		"status":  "started",
+		"message": fmt.Sprintf("Automation workflow started for: %s", req.Topic),
+	})
+}
+
+// AutomationStatus returns the current status of an automation job.
+func (h *Handlers) AutomationStatus(c *gin.Context) {
+	jobID := c.Param("id")
+	job, ok := h.automation.GetJobStatus(jobID)
+	if !ok {
+		c.JSON(http.StatusNotFound, gin.H{"error": "job not found"})
+		return
+	}
+	c.JSON(http.StatusOK, job)
+}
+
+// CreateBlog creates a blog post from automation results or manual input.
+func (h *Handlers) CreateBlog(c *gin.Context) {
+	var req struct {
+		JobID string `json:"job_id"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "job_id is required"})
+		return
+	}
+
+	job, ok := h.automation.GetJobStatus(req.JobID)
+	if !ok {
+		c.JSON(http.StatusNotFound, gin.H{"error": "job not found"})
+		return
+	}
+	if job.Blog == nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "no blog generated for this job (may have been rejected)"})
+		return
+	}
+	c.JSON(http.StatusOK, job.Blog)
+}
+
+// ListAutomationBlogs returns all generated blog posts.
+func (h *Handlers) ListAutomationBlogs(c *gin.Context) {
+	blogs := h.automation.GetBlogs()
+	c.JSON(http.StatusOK, gin.H{"blogs": blogs, "total": len(blogs)})
+}
+
+// AutomationStream handles SSE streaming automation pipeline.
+func (h *Handlers) AutomationStream(c *gin.Context) {
+	var req struct {
+		Topic string `json:"topic" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "topic is required"})
+		return
+	}
+
+	if len(req.Topic) > 5000 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "topic must be under 5000 characters"})
+		return
+	}
+
+	c.Header("Content-Type", "text/event-stream")
+	c.Header("Cache-Control", "no-cache")
+	c.Header("Connection", "keep-alive")
+	c.Header("X-Accel-Buffering", "no")
+
+	flusher, ok := c.Writer.(http.Flusher)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "streaming not supported"})
+		return
+	}
+
+	// 5-minute timeout for automation (longer than research due to additional phases)
+	automationCtx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Minute)
+	defer cancel()
+
+	eventCh := make(chan services.AutomationEvent, 100)
+	jobID := h.automation.RunWorkflowStream(automationCtx, req.Topic, eventCh)
+
+	// Send initial event with job ID
+	initData, _ := json.Marshal(map[string]string{"job_id": jobID})
+	fmt.Fprintf(c.Writer, "event: init\ndata: %s\n\n", initData)
+	flusher.Flush()
+
+	for {
+		select {
+		case <-c.Request.Context().Done():
+			cancel()
+			return
+		case event, ok := <-eventCh:
+			if !ok {
+				return
+			}
+			jsonData, _ := json.Marshal(event)
+			fmt.Fprintf(c.Writer, "event: %s\ndata: %s\n\n", event.Type, string(jsonData))
+			flusher.Flush()
+		}
+	}
+}
+
+// ListModels returns all available AI models.
+func (h *Handlers) ListModels(c *gin.Context) {
+	models := h.registry.ListModels()
+	c.JSON(http.StatusOK, gin.H{"models": models})
+}
+
+// isRateLimitError checks if an error is a rate limit / quota exceeded error.
+func isRateLimitError(err error) bool {
+	msg := err.Error()
+	return strings.Contains(msg, "rate limit") ||
+		strings.Contains(msg, "limit reached") ||
+		strings.Contains(msg, "exhausted retries")
+}
+
 // RegisterRoutes sets up all API routes on the given engine.
 func (h *Handlers) RegisterRoutes(r *gin.Engine) {
 	r.GET("/", h.Root)
@@ -386,6 +528,7 @@ func (h *Handlers) RegisterRoutes(r *gin.Engine) {
 	{
 		api.GET("/health", h.HealthCheck)
 		api.GET("/metadata", h.Metadata)
+		api.GET("/models", h.ListModels)
 		api.GET("/documents", h.ListDocuments)
 		api.GET("/documents/:id/chunks", h.ListChunks)
 		api.GET("/stats", h.Stats)
@@ -395,5 +538,12 @@ func (h *Handlers) RegisterRoutes(r *gin.Engine) {
 		api.GET("/research/history", h.ResearchHistory)
 		api.DELETE("/research/memory", h.ClearResearchMemory)
 		api.POST("/documents/upload", h.Upload)
+
+		// Automation Lab endpoints
+		api.POST("/automation/run", h.RunAutomation)
+		api.POST("/automation/stream", h.AutomationStream)
+		api.GET("/automation/status/:id", h.AutomationStatus)
+		api.POST("/automation/blog", h.CreateBlog)
+		api.GET("/automation/blogs", h.ListAutomationBlogs)
 	}
 }

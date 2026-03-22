@@ -166,6 +166,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ isPopup = false, onClose
         onSetWindowMode={setWindowMode}
         isPopup={isPopup}
         onClose={onClose}
+        models={chat.availableModels}
+        selectedModel={chat.selectedModel}
+        onSelectModel={chat.setSelectedModel}
       />
 
       {windowMode !== 'minimized' && (

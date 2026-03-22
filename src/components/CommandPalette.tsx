@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Home, User, Brain, Mail, BookOpen, Search,
   Sun, Moon, Sparkles, LayoutDashboard, Download,
-  FileText, Clock,
+  FileText, Clock, Zap,
 } from 'lucide-react';
 import { useResearchStore } from '@/stores/researchStore';
 
@@ -81,6 +81,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ onToggleTheme, i
                 keywords={['search', 'find', 'documents']}
               >
                 Search Documents
+              </CommandItem>
+              <CommandItem
+                icon={<Zap className="w-4 h-4" />}
+                onSelect={() => runAction(() => navigate('/automation-lab'))}
+                keywords={['automation', 'lab', 'pipeline', 'n8n', 'publish', 'blog']}
+              >
+                Automation Lab
               </CommandItem>
             </Command.Group>
 

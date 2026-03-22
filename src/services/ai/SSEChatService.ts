@@ -1,6 +1,7 @@
 import type { SourceChunk, QueryMetrics, PipelineStep } from '@/components/ai/types';
 
 interface StreamCallbacks {
+  model?: string;
   onStep: (step: PipelineStep) => void;
   onToken: (text: string) => void;
   onSources: (sources: SourceChunk[]) => void;
@@ -21,7 +22,7 @@ export function streamChat(
       const res = await fetch(`${apiBase}/api/chat/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ question, ...(callbacks.model ? { model: callbacks.model } : {}) }),
         signal: controller.signal,
       });
 
@@ -72,9 +73,16 @@ export function streamChat(
                 case 'done':
                   callbacks.onDone();
                   break;
-                case 'error':
-                  callbacks.onError(parsed.message || 'Unknown error');
+                case 'error': {
+                  const errMsg = parsed.message || 'Unknown error';
+                  const code = parsed.code as string | undefined;
+                  if (code === 'limit_reached' || /rate.limit|limit.reached/i.test(errMsg)) {
+                    callbacks.onError('Model rate limit reached. Try switching to a different model or wait a moment.');
+                  } else {
+                    callbacks.onError(errMsg);
+                  }
                   break;
+                }
               }
             } catch {
               // Skip malformed JSON

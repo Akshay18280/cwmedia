@@ -25,11 +25,11 @@ type VerificationResult struct {
 
 // VerificationAgent cross-references facts from multiple sources.
 type VerificationAgent struct {
-	llm *LLMService
+	llm LLMProvider
 }
 
 // NewVerificationAgent creates a verification agent.
-func NewVerificationAgent(llm *LLMService) *VerificationAgent {
+func NewVerificationAgent(llm LLMProvider) *VerificationAgent {
 	return &VerificationAgent{llm: llm}
 }
 

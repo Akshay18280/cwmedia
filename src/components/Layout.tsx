@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Search, LogOut, Settings, Brain, ChevronDown, Sparkles, LayoutDashboard } from 'lucide-react';
+import { Menu, X, Search, LogOut, Settings, Brain, ChevronDown, Sparkles, LayoutDashboard, Zap } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 import { useAuth } from '../contexts/AuthContext';
 import UserMenu from './UserMenu';
@@ -12,19 +12,12 @@ import { CommandPalette } from './CommandPalette';
 import { useTheme } from '../hooks/useTheme';
 import { useHotkeys } from 'react-hotkeys-hook';
 
-const PRIMARY_NAV = [
-  { name: 'Home', href: '/' },
-  ...(appConfig.features.aiLab ? [
-    { name: 'Research', href: '/ai-lab', icon: Brain },
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  ] : []),
-];
-
 const MORE_NAV = [
   { name: 'Blog', href: '/blog' },
   { name: 'About', href: '/about' },
   { name: 'About Akshay', href: '/about-akshay' },
   { name: 'Contact', href: '/contact' },
+  { name: 'Careers', href: '/careers' },
 ];
 
 export default function Layout() {
@@ -34,6 +27,17 @@ export default function Layout() {
   const navigate = useNavigate();
   const { user: currentUser, signOut } = useAuth();
   const { mode, toggleTheme } = useTheme();
+
+  const PRIMARY_NAV = [
+    { name: 'Home', href: '/' },
+    ...(appConfig.features.aiLab && currentUser ? [
+      { name: 'Research', href: '/ai-lab', icon: Brain },
+      { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    ] : []),
+    ...((appConfig.features as Record<string, boolean>).automationLab && currentUser?.isAdmin ? [
+      { name: 'Automation Lab', href: '/automation-lab', icon: Zap },
+    ] : []),
+  ];
   const isDark = mode === 'dark';
 
   const menuRef = useRef<HTMLDivElement>(null);
@@ -134,6 +138,7 @@ export default function Layout() {
                       <Link
                         key={item.name}
                         to={item.href}
+                        onClick={() => setMoreOpen(false)}
                         className={`block px-4 py-2 text-body-sm transition-colors ${
                           isActive(item.href)
                             ? 'text-accent-primary bg-accent-primary/5'
@@ -156,7 +161,7 @@ export default function Layout() {
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-2">
               {/* New Research CTA */}
-              {appConfig.features.aiLab && (
+              {appConfig.features.aiLab && currentUser && (
                 <Link
                   to="/ai-lab"
                   className="flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-body-sm font-semibold hover:shadow-md hover:shadow-indigo-500/20 transition-all"
@@ -204,7 +209,7 @@ export default function Layout() {
           <div className="md:hidden" ref={menuRef}>
             <div className="px-3 pt-2 pb-3 space-y-1 bg-medium-contrast border-t border-medium-contrast">
               {/* New Research CTA (mobile) */}
-              {appConfig.features.aiLab && (
+              {appConfig.features.aiLab && currentUser && (
                 <Link
                   to="/ai-lab"
                   className="flex items-center gap-2 px-3 py-3 text-body font-semibold text-white bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg mb-2"
@@ -218,6 +223,7 @@ export default function Layout() {
                 <Link
                   key={item.name}
                   to={item.href}
+                  onClick={() => setIsMenuOpen(false)}
                   className={`block px-3 py-3 text-body font-medium rounded-lg transition-colors ${
                     isActive(item.href)
                       ? 'text-accent-primary bg-accent-primary/10'
@@ -233,6 +239,7 @@ export default function Layout() {
                   <Link
                     key={item.name}
                     to={item.href}
+                    onClick={() => setIsMenuOpen(false)}
                     className={`block px-3 py-3 text-body font-medium rounded-lg transition-colors ${
                       isActive(item.href)
                         ? 'text-accent-primary bg-accent-primary/10'
@@ -328,6 +335,7 @@ export default function Layout() {
                 <Link to="/blog" className="block text-body-sm text-medium-contrast hover:text-high-contrast transition-colors">Blog</Link>
                 <Link to="/about" className="block text-body-sm text-medium-contrast hover:text-high-contrast transition-colors">About</Link>
                 <Link to="/contact" className="block text-body-sm text-medium-contrast hover:text-high-contrast transition-colors">Contact</Link>
+                <Link to="/careers" className="block text-body-sm text-medium-contrast hover:text-high-contrast transition-colors">Careers</Link>
               </div>
             </div>
 

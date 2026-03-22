@@ -20,6 +20,7 @@ type Config struct {
 	RateLimitPerMin int
 	MaxUploadSizeMB int
 	TavilyKey       string
+	GroqKey         string
 }
 
 func Load() (*Config, error) {
@@ -32,12 +33,12 @@ func Load() (*Config, error) {
 	maxUpload, _ := strconv.Atoi(getEnv("MAX_UPLOAD_SIZE_MB", "20"))
 	embeddingDim, _ := strconv.Atoi(getEnv("EMBEDDING_DIM", "512"))
 
-	// Google Gemini API key — hardcoded per project convention (see appConfig.ts)
-	geminiKey := getEnv("GEMINI_API_KEY", "AIzaSyCQIZqUPiRukMbp5G58lvD1wDHCJejGn58")
+	// Google Gemini API key — must be set via environment variable or .env file
+	geminiKey := getEnv("GEMINI_API_KEY", "")
 
 	cfg := &Config{
 		Port:            getEnv("PORT", "8080"),
-		DatabaseURL:     getEnv("DATABASE_URL", "postgres://raguser:ragpass@postgres:5432/ragdb?sslmode=disable"),
+		DatabaseURL:     getEnv("DATABASE_URL", "postgres://localhost:5432/ragdb?sslmode=disable"),
 		GeminiKey:       geminiKey,
 		LLMModel:        getEnv("LLM_MODEL", "gemini-2.5-flash"),
 		EmbeddingDim:    embeddingDim,
@@ -48,6 +49,7 @@ func Load() (*Config, error) {
 		RateLimitPerMin: rateLimit,
 		MaxUploadSizeMB: maxUpload,
 		TavilyKey:       getEnv("TAVILY_API_KEY", ""),
+		GroqKey:         getEnv("GROQ_API_KEY", ""),
 	}
 
 	return cfg, nil

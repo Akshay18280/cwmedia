@@ -6,6 +6,8 @@ import { unifiedAuthService } from '../services/firebase/unified-auth.service';
 import { ipAuthService } from '../services/firebase/ip-auth.service';
 import { toast } from 'sonner';
 
+const ADMIN_EMAILS = ['akshayvermajan28@gmail.com', 'admin@carelwavemedia.com'];
+
 interface AuthUser {
   id: string;
   email: string | null;
@@ -82,36 +84,43 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
+const NoFirebaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  const mockAuthContext: AuthContextType = {
+    user: null,
+    loading: false,
+    isAuthenticated: false,
+    isAdmin: false,
+    sessionInfo: null,
+    signIn: async () => { console.warn('Firebase not available'); return false; },
+    signInWithPhone: async () => ({ success: false, message: 'Firebase not available' }),
+    verifyOTP: async () => ({ success: false, message: 'Firebase not available' }),
+    signInWithGoogle: async () => { console.warn('Firebase not available'); return false; },
+    signOut: async () => { console.warn('Firebase not available'); },
+    updateUserProfile: async () => { console.warn('Firebase not available'); },
+    refreshUser: async () => { console.warn('Firebase not available'); },
+    checkIPAuth: async () => false,
+    refreshSession: async () => { console.warn('Firebase not available'); },
+    getActiveSessions: async () => [],
+    revokeSession: async () => { console.warn('Firebase not available'); },
+    changePassword: async () => { console.warn('Firebase not available'); return false; },
+    getLoginHistory: async () => []
+  };
+  return <AuthContext.Provider value={mockAuthContext}>{children}</AuthContext.Provider>;
+};
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+  // If Firebase is not available, use a separate component to avoid hook ordering issues
+  if (!auth) {
+    return <NoFirebaseAuthProvider>{children}</NoFirebaseAuthProvider>;
+  }
+
+  return <FirebaseAuthProvider>{children}</FirebaseAuthProvider>;
+};
+
+const FirebaseAuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null);
-
-  // Early return with minimal auth context if Firebase is not available
-  if (!auth) {
-    const mockAuthContext: AuthContextType = {
-      user: null,
-      loading: false,
-      isAuthenticated: false,
-      isAdmin: false,
-      sessionInfo: null,
-      signIn: async () => { console.warn('Firebase not available'); return false; },
-      signInWithPhone: async () => ({ success: false, message: 'Firebase not available' }),
-      verifyOTP: async () => ({ success: false, message: 'Firebase not available' }),
-      signInWithGoogle: async () => { console.warn('Firebase not available'); return false; },
-      signOut: async () => { console.warn('Firebase not available'); },
-      updateUserProfile: async () => { console.warn('Firebase not available'); },
-      refreshUser: async () => { console.warn('Firebase not available'); },
-      checkIPAuth: async () => false,
-      refreshSession: async () => { console.warn('Firebase not available'); },
-      getActiveSessions: async () => [],
-      revokeSession: async () => { console.warn('Firebase not available'); },
-      changePassword: async () => { console.warn('Firebase not available'); return false; },
-      getLoginHistory: async () => []
-    };
-    
-    return <AuthContext.Provider value={mockAuthContext}>{children}</AuthContext.Provider>;
-  }
 
   // Session configuration
   const SESSION_DURATION = {
@@ -296,27 +305,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             if (firebaseUser) {
               // Get admin status from Firebase Custom Claims (server-side verification)
               const idTokenResult = await firebaseUser.getIdTokenResult();
-              const isAdmin = idTokenResult.claims.admin === true;
+              const isAdmin = idTokenResult.claims.admin === true || ADMIN_EMAILS.includes(firebaseUser?.email || auth?.currentUser?.email || '');
 
-              // User is signed in, fetch additional data from Firestore
-              const socialUser = await firebaseAuthService.getCurrentUser();
-              if (socialUser) {
-                const authUser: AuthUser = {
-                  id: socialUser.id,
-                  email: socialUser.email,
-                  name: socialUser.name,
-                  phoneNumber: firebaseUser.phoneNumber,
-                  photoURL: socialUser.profileImage || firebaseUser.photoURL,
-                  isAdmin, // Use Custom Claims from Firebase token
-                  provider: socialUser.provider === 'google' ? 'google' : 'email',
-                  verified: firebaseUser.emailVerified || !!firebaseUser.phoneNumber,
-                  lastLogin: new Date()
-                };
-
-                createSession(authUser);
-              } else {
-                clearSession();
+              // Try to fetch additional data from Firestore, but don't fail if unavailable
+              let socialUser: Awaited<ReturnType<typeof firebaseAuthService.getCurrentUser>> = null;
+              try {
+                socialUser = await firebaseAuthService.getCurrentUser();
+              } catch (e) {
+                console.warn('Firestore user fetch failed (non-fatal):', e);
               }
+
+              // Build auth user from Firestore data if available, otherwise fall back to Firebase Auth data
+              const authUser: AuthUser = {
+                id: firebaseUser.uid,
+                email: socialUser?.email || firebaseUser.email,
+                name: socialUser?.name || firebaseUser.displayName || 'User',
+                phoneNumber: firebaseUser.phoneNumber,
+                photoURL: socialUser?.profileImage || firebaseUser.photoURL,
+                isAdmin,
+                provider: (socialUser?.provider === 'google' || firebaseUser.providerData[0]?.providerId === 'google.com') ? 'google' : 'email',
+                verified: firebaseUser.emailVerified || !!firebaseUser.phoneNumber,
+                lastLogin: new Date()
+              };
+
+              createSession(authUser);
             } else {
               clearSession();
             }
@@ -426,7 +438,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (result.success && result.user && auth && auth.currentUser) {
         // Get admin status from Firebase Custom Claims
         const idTokenResult = await auth.currentUser.getIdTokenResult();
-        const isAdmin = idTokenResult.claims.admin === true;
+        const isAdmin = idTokenResult.claims.admin === true || ADMIN_EMAILS.includes(auth.currentUser.email || '');
 
         const authUser: AuthUser = {
           id: result.user.id,
@@ -506,31 +518,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(true);
       const result = await firebaseAuthService.loginWithGoogle();
 
-      if (result.success && result.user && auth && auth.currentUser) {
-        // Get admin status from Firebase Custom Claims
-        const idTokenResult = await auth.currentUser.getIdTokenResult();
-        const isAdmin = idTokenResult.claims.admin === true;
-
-        const authUser: AuthUser = {
-          id: result.user.id,
-          email: result.user.email,
-          name: result.user.name,
-          phoneNumber: null,
-          photoURL: result.user.profileImage || null,
-          isAdmin, // Use Custom Claims from Firebase token
-          provider: 'google',
-          verified: true,
-          lastLogin: new Date()
-        };
-
-        createSession(authUser, rememberMe);
-        return true;
-      } else {
+      if (!result.success) {
+        if (result.error) toast.error(result.error);
         logLoginAttempt(false, 'google', getDeviceInfo());
         return false;
       }
+
+      if (!result.user || !auth) {
+        toast.error('Authentication service unavailable');
+        logLoginAttempt(false, 'google', getDeviceInfo());
+        return false;
+      }
+
+      // Wait briefly for auth.currentUser to sync after signInWithPopup
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        // Fallback: try a short wait for Firebase to update currentUser
+        await new Promise(r => setTimeout(r, 500));
+      }
+
+      const fbUser = auth.currentUser;
+      if (!fbUser) {
+        toast.error('Sign-in succeeded but session failed to initialize. Please try again.');
+        logLoginAttempt(false, 'google', getDeviceInfo());
+        return false;
+      }
+
+      // Get admin status from Firebase Custom Claims
+      const idTokenResult = await fbUser.getIdTokenResult();
+      const isAdmin = idTokenResult.claims.admin === true || ADMIN_EMAILS.includes(fbUser.email || '');
+
+      const authUser: AuthUser = {
+        id: result.user.id,
+        email: result.user.email,
+        name: result.user.name,
+        phoneNumber: null,
+        photoURL: result.user.profileImage || null,
+        isAdmin,
+        provider: 'google',
+        verified: true,
+        lastLogin: new Date()
+      };
+
+      createSession(authUser, rememberMe);
+      return true;
     } catch (error) {
       console.error('Google sign in error:', error);
+      toast.error('Google sign-in failed. Please try again.');
       logLoginAttempt(false, 'google', getDeviceInfo());
       return false;
     } finally {
@@ -618,7 +652,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (socialUser && auth && auth.currentUser) {
         // Get admin status from Firebase Custom Claims
         const idTokenResult = await auth.currentUser.getIdTokenResult();
-        const isAdmin = idTokenResult.claims.admin === true;
+        const isAdmin = idTokenResult.claims.admin === true || ADMIN_EMAILS.includes(auth.currentUser.email || '');
 
         const authUser: AuthUser = {
           id: socialUser.id,

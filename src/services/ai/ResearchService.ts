@@ -23,6 +23,7 @@ export function streamResearch(
   apiBase: string,
   question: string,
   callbacks: ResearchCallbacks,
+  model?: string,
 ): AbortController {
   const controller = new AbortController();
 
@@ -31,7 +32,7 @@ export function streamResearch(
       const res = await fetch(`${apiBase}/api/research`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ question, ...(model ? { model } : {}) }),
         signal: controller.signal,
       });
 
@@ -169,9 +170,16 @@ function handleEvent(event: string, parsed: ResearchEvent, cb: ResearchCallbacks
       cb.onDone();
       break;
 
-    case 'error':
-      cb.onError(parsed.message || 'Research failed');
+    case 'error': {
+      const errMsg = parsed.message || 'Research failed';
+      const code = (agentData as Record<string, unknown> | undefined)?.code as string | undefined;
+      if (code === 'limit_reached' || /rate.limit|limit.reached/i.test(errMsg)) {
+        cb.onError('Model rate limit reached. Try switching to a different model or wait a moment.');
+      } else {
+        cb.onError(errMsg);
+      }
       break;
+    }
   }
 }
 

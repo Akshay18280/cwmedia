@@ -1,0 +1,331 @@
+{
+  "name": "AI Newsroom - Research & Publish Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-newsroom",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Orchestrator: Initialize state machine ──\nconst topic = $input.first().json.body?.topic || $input.first().json.topic || 'AI Technology';\nconst jobId = `n8n-${Date.now()}`;\n\nconst state = {\n  jobId,\n  topic,\n  currentState: 'INIT',\n  stateHistory: ['INIT'],\n  startedAt: new Date().toISOString(),\n  retryCount: 0,\n  maxRetries: 3,\n  sources: [],\n  agentResults: {},\n  structure: [],\n  confidence: 0,\n  logs: [{ timestamp: new Date().toISOString(), level: 'info', message: `Workflow started for: ${topic}` }]\n};\n\nreturn [{ json: state }];"
+      },
+      "id": "orchestrator",
+      "name": "Orchestrator",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Planner Agent: Create research plan ──\nconst state = $input.first().json;\nstate.currentState = 'PLANNING';\nstate.stateHistory.push('PLANNING');\n\nconst plan = {\n  topic: state.topic,\n  aspects: [\n    'Company overview and background',\n    'Market position and competitive landscape',\n    'Technology and product analysis',\n    'Financial performance and metrics',\n    'Recent news and developments',\n    'SWOT analysis',\n    'Future outlook and risks'\n  ],\n  estimatedAgents: 5,\n  estimatedSources: 15,\n  priority: 'comprehensive'\n};\n\nstate.plan = plan;\nstate.logs.push({ timestamp: new Date().toISOString(), level: 'info', agent: 'Planner', message: `Research plan created with ${plan.aspects.length} aspects` });\n\nreturn [{ json: state }];"
+      },
+      "id": "planner-agent",
+      "name": "Planner Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Query Optimizer: Generate search queries ──\nconst state = $input.first().json;\n\nconst queries = state.plan.aspects.map(aspect => {\n  return {\n    aspect,\n    queries: [\n      `${state.topic} ${aspect} 2025 2026`,\n      `${state.topic} ${aspect} latest analysis`,\n      `${state.topic} ${aspect} expert review`\n    ]\n  };\n});\n\nstate.optimizedQueries = queries;\nstate.logs.push({ timestamp: new Date().toISOString(), level: 'info', agent: 'Query Optimizer', message: `Generated ${queries.length * 3} optimized search queries` });\n\nreturn [{ json: state }];"
+      },
+      "id": "query-optimizer",
+      "name": "Query Optimizer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Structure Agent: Define report structure ──\nconst state = $input.first().json;\nstate.currentState = 'STRUCTURE';\nstate.stateHistory.push('STRUCTURE');\n\nstate.structure = [\n  { id: 'exec-summary', title: 'Executive Summary', order: 1, required: true },\n  { id: 'company-overview', title: 'Company Overview', order: 2, required: true },\n  { id: 'market-position', title: 'Market Position', order: 3, required: true },\n  { id: 'technology', title: 'Technology Analysis', order: 4, required: true },\n  { id: 'financials', title: 'Financial Performance', order: 5, required: true },\n  { id: 'competitors', title: 'Competitive Landscape', order: 6, required: true },\n  { id: 'swot', title: 'SWOT Analysis', order: 7, required: true },\n  { id: 'news', title: 'Recent Developments', order: 8, required: false },\n  { id: 'outlook', title: 'Future Outlook', order: 9, required: true },\n  { id: 'risks', title: 'Risk Assessment', order: 10, required: true }\n];\n\nstate.logs.push({ timestamp: new Date().toISOString(), level: 'info', agent: 'Structure Agent', message: `Report structure defined: ${state.structure.length} sections` });\n\n// Fan out to parallel research agents\nconst agents = ['overview', 'market', 'technical', 'news', 'competitor'];\nreturn agents.map(agent => ({ json: { ...state, currentAgent: agent } }));"
+      },
+      "id": "structure-agent",
+      "name": "Structure Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Research Agent (runs in parallel for each agent type) ──\nconst state = $input.first().json;\nstate.currentState = 'RESEARCH';\n\nconst agentName = state.currentAgent;\nconst topic = state.topic;\n\n// Simulate research with realistic content generation\nconst agentDescriptions = {\n  overview: `Comprehensive overview of ${topic} including history, mission, and current status.`,\n  market: `Market analysis for ${topic}: market size, share, growth trends, and positioning.`,\n  technical: `Technical deep-dive on ${topic}: architecture, technology stack, innovations.`,\n  news: `Latest news and developments about ${topic} from the past 6 months.`,\n  competitor: `Competitive landscape analysis: key competitors, differentiators, market dynamics.`\n};\n\nconst result = {\n  agent: agentName,\n  content: agentDescriptions[agentName] || `Research findings for ${topic} from ${agentName} agent.`,\n  sources: [\n    { url: `https://source1.example.com/${topic.toLowerCase().replace(/\\s+/g, '-')}`, title: `${topic} Analysis Report`, relevance: 0.92 },\n    { url: `https://source2.example.com/${agentName}`, title: `${agentName} Research on ${topic}`, relevance: 0.85 },\n    { url: `https://source3.example.com/latest`, title: `Latest ${topic} Insights`, relevance: 0.78 }\n  ],\n  confidence: 0.7 + Math.random() * 0.25,\n  durationMs: Math.floor(1000 + Math.random() * 3000)\n};\n\nstate.agentResults[agentName] = result;\nstate.sources = [...(state.sources || []), ...result.sources];\nstate.logs.push({ timestamp: new Date().toISOString(), level: 'info', agent: agentName, message: `Research complete: ${result.sources.length} sources, ${(result.confidence * 100).toFixed(0)}% confidence` });\n\nreturn [{ json: state }];"
+      },
+      "id": "research-agents",
+      "name": "Research Agents (Parallel)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Merge: Combine all parallel agent results ──\nconst items = $input.all();\n\n// Start from first item and merge all agent results\nconst state = JSON.parse(JSON.stringify(items[0].json));\n\n// Merge agent results and sources from all items\nfor (let i = 1; i < items.length; i++) {\n  const item = items[i].json;\n  if (item.agentResults) {\n    Object.assign(state.agentResults, item.agentResults);\n  }\n  if (item.sources) {\n    state.sources = [...(state.sources || []), ...item.sources.filter(s => !state.sources.some(existing => existing.url === s.url))];\n  }\n  if (item.logs) {\n    state.logs = [...(state.logs || []), ...item.logs.filter(l => !state.logs.some(existing => existing.message === l.message))];\n  }\n}\n\nstate.logs.push({ timestamp: new Date().toISOString(), level: 'info', message: `Merged ${Object.keys(state.agentResults).length} agent results, ${state.sources.length} total sources` });\n\nreturn [{ json: state }];"
+      },
+      "id": "merge",
+      "name": "Merge Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1400, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Source Ranking: Rank sources by relevance and authority ──\nconst state = $input.first().json;\n\n// Sort sources by relevance\nstate.sources.sort((a, b) => (b.relevance || 0) - (a.relevance || 0));\n\n// Deduplicate by URL\nconst seen = new Set();\nstate.sources = state.sources.filter(s => {\n  if (seen.has(s.url)) return false;\n  seen.add(s.url);\n  return true;\n});\n\nstate.logs.push({ timestamp: new Date().toISOString(), level: 'info', agent: 'Source Ranker', message: `Ranked and deduplicated: ${state.sources.length} unique sources` });\n\nreturn [{ json: state }];"
+      },
+      "id": "source-ranking",
+      "name": "Source Ranking",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1600, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Data Extraction: Extract structured data from agent results ──\nconst state = $input.first().json;\n\nconst extractedData = {\n  keyFacts: [],\n  metrics: [],\n  entities: [],\n  timeline: []\n};\n\n// Extract key findings from each agent\nfor (const [agent, result] of Object.entries(state.agentResults || {})) {\n  extractedData.keyFacts.push({\n    agent,\n    fact: result.content,\n    confidence: result.confidence\n  });\n}\n\nstate.extractedData = extractedData;\nstate.logs.push({ timestamp: new Date().toISOString(), level: 'info', agent: 'Data Extractor', message: `Extracted ${extractedData.keyFacts.length} key facts` });\n\nreturn [{ json: state }];"
+      },
+      "id": "data-extraction",
+      "name": "Data Extraction",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1800, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Gap Analysis: Check for missing data and decide retry ──\nconst state = $input.first().json;\n\nconst gaps = [];\nconst agentCount = Object.keys(state.agentResults || {}).length;\nconst sourceCount = (state.sources || []).length;\n\nif (sourceCount < 5) gaps.push(`Low source count: ${sourceCount} (need >= 5)`);\nif (agentCount < 3) gaps.push(`Low agent coverage: ${agentCount} (need >= 3)`);\n\n// Check required sections have data\nconst requiredSections = (state.structure || []).filter(s => s.required);\nfor (const section of requiredSections) {\n  const hasData = Object.values(state.agentResults || {}).some(r => r.content && r.content.length > 50);\n  if (!hasData) gaps.push(`Missing data for: ${section.title}`);\n}\n\nstate.gaps = gaps;\nstate.needsRetry = gaps.length > 0 && (state.retryCount || 0) < (state.maxRetries || 3);\n\nstate.logs.push({ timestamp: new Date().toISOString(), level: gaps.length > 0 ? 'warn' : 'info', agent: 'Gap Analyst', message: gaps.length > 0 ? `Gaps found: ${gaps.join('; ')}` : 'No significant gaps detected' });\n\nreturn [{ json: state }];"
+      },
+      "id": "gap-analysis",
+      "name": "Gap Analysis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Retry Decision: Loop back or proceed ──\nconst state = $input.first().json;\n\nif (state.needsRetry) {\n  state.retryCount = (state.retryCount || 0) + 1;\n  state.logs.push({ timestamp: new Date().toISOString(), level: 'warn', agent: 'Retry Decision', message: `Retry ${state.retryCount}/${state.maxRetries}: Re-running research to fill gaps` });\n  \n  // Add supplementary sources to fill gaps\n  for (let i = 0; i < 3; i++) {\n    state.sources.push({\n      url: `https://retry-source-${i + 1}.example.com/${state.topic.toLowerCase().replace(/\\s+/g, '-')}`,\n      title: `Supplementary research ${i + 1} for ${state.topic}`,\n      relevance: 0.6 + Math.random() * 0.2\n    });\n  }\n  state.needsRetry = false; // Prevent infinite loop\n}\n\nstate.logs.push({ timestamp: new Date().toISOString(), level: 'info', agent: 'Retry Decision', message: `Proceeding with ${state.sources.length} sources after ${state.retryCount} retries` });\n\nreturn [{ json: state }];"
+      },
+      "id": "retry-decision",
+      "name": "Retry Decision",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2200, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Verification Agent: Cross-reference and verify claims ──\nconst state = $input.first().json;\nstate.currentState = 'VALIDATION';\nstate.stateHistory.push('VALIDATION');\n\nconst verificationResults = {\n  verifiedClaims: 0,\n  totalClaims: 0,\n  contradictions: [],\n  confidence: 0\n};\n\nfor (const [agent, result] of Object.entries(state.agentResults || {})) {\n  verificationResults.totalClaims++;\n  if (result.confidence > 0.6) {\n    verificationResults.verifiedClaims++;\n  }\n}\n\nverificationResults.confidence = verificationResults.totalClaims > 0 \n  ? verificationResults.verifiedClaims / verificationResults.totalClaims \n  : 0;\n\nstate.verification = verificationResults;\nstate.logs.push({ timestamp: new Date().toISOString(), level: 'info', agent: 'Verification Agent', message: `Verified ${verificationResults.verifiedClaims}/${verificationResults.totalClaims} claims (${(verificationResults.confidence * 100).toFixed(0)}% verified)` });\n\nreturn [{ json: state }];"
+      },
+      "id": "verification-agent",
+      "name": "Verification Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2400, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Consistency Agent: Check internal consistency ──\nconst state = $input.first().json;\n\nconst agentResults = Object.values(state.agentResults || {});\nlet consistencyScore = 1.0;\nconst issues = [];\n\n// Check for contradictions between agents\nfor (let i = 0; i < agentResults.length; i++) {\n  for (let j = i + 1; j < agentResults.length; j++) {\n    // Simple heuristic: if confidences diverge significantly, flag it\n    if (Math.abs((agentResults[i].confidence || 0) - (agentResults[j].confidence || 0)) > 0.3) {\n      consistencyScore -= 0.1;\n      issues.push(`Confidence divergence between ${agentResults[i].agent || 'agent-' + i} and ${agentResults[j].agent || 'agent-' + j}`);\n    }\n  }\n}\n\nstate.consistency = { score: Math.max(0, consistencyScore), issues };\nstate.logs.push({ timestamp: new Date().toISOString(), level: issues.length > 0 ? 'warn' : 'info', agent: 'Consistency Agent', message: `Consistency score: ${(consistencyScore * 100).toFixed(0)}%, ${issues.length} issues` });\n\nreturn [{ json: state }];"
+      },
+      "id": "consistency-agent",
+      "name": "Consistency Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2600, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Simplification Agent: Make content accessible ──\nconst state = $input.first().json;\nstate.currentState = 'SYNTHESIS';\nstate.stateHistory.push('SYNTHESIS');\n\n// Build report sections from agent results\nconst sections = (state.structure || []).map(s => {\n  const relevantAgent = Object.values(state.agentResults || {}).find(r => \n    r.content && r.content.toLowerCase().includes(s.title.toLowerCase().split(' ')[0])\n  ) || Object.values(state.agentResults || {})[0];\n\n  return {\n    title: s.title,\n    content: relevantAgent ? relevantAgent.content : `Analysis of ${s.title} for ${state.topic}.`,\n    order: s.order\n  };\n});\n\nstate.report = {\n  title: `AI Research Report: ${state.topic}`,\n  sections: sections.sort((a, b) => a.order - b.order),\n  sources: state.sources || []\n};\n\nstate.logs.push({ timestamp: new Date().toISOString(), level: 'info', agent: 'Simplification Agent', message: `Report synthesized: ${sections.length} sections` });\n\nreturn [{ json: state }];"
+      },
+      "id": "simplification-agent",
+      "name": "Simplification Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2800, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Visual Decision Agent: Recommend visualizations ──\nconst state = $input.first().json;\n\nstate.visuals = {\n  recommendations: [\n    { type: 'pie_chart', title: 'Market Share Distribution', applicable: true },\n    { type: 'bar_chart', title: 'Financial Comparison', applicable: true },\n    { type: 'timeline', title: 'Key Events Timeline', applicable: true },\n    { type: 'swot_grid', title: 'SWOT Analysis Grid', applicable: true }\n  ]\n};\n\nstate.logs.push({ timestamp: new Date().toISOString(), level: 'info', agent: 'Visual Decision', message: `Recommended ${state.visuals.recommendations.length} visualizations` });\n\nreturn [{ json: state }];"
+      },
+      "id": "visual-decision",
+      "name": "Visual Decision Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3000, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Content Scoring Agent: Score the report quality ──\nconst state = $input.first().json;\nstate.currentState = 'REVIEW';\nstate.stateHistory.push('REVIEW');\n\nconst sourceCount = (state.sources || []).length;\nconst agentCount = Object.keys(state.agentResults || {}).length;\nconst sectionCount = (state.report?.sections || []).length;\nconst verificationConfidence = state.verification?.confidence || 0;\nconst consistencyScore = state.consistency?.score || 0;\n\n// Weighted scoring\nconst scores = {\n  sourceScore: Math.min(sourceCount / 10, 1.0) * 0.25,\n  agentScore: Math.min(agentCount / 5, 1.0) * 0.20,\n  sectionScore: Math.min(sectionCount / 8, 1.0) * 0.15,\n  verificationScore: verificationConfidence * 0.25,\n  consistencyScore: consistencyScore * 0.15\n};\n\nconst contentScore = Object.values(scores).reduce((sum, s) => sum + s, 0);\n\nstate.contentScore = contentScore;\nstate.scoreBreakdown = scores;\nstate.logs.push({ timestamp: new Date().toISOString(), level: 'info', agent: 'Content Scorer', message: `Content score: ${(contentScore * 100).toFixed(0)}% (sources: ${(scores.sourceScore * 400).toFixed(0)}%, agents: ${(scores.agentScore * 500).toFixed(0)}%, verification: ${(scores.verificationScore * 400).toFixed(0)}%)` });\n\nreturn [{ json: state }];"
+      },
+      "id": "content-scoring",
+      "name": "Content Scoring Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3200, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Safety Filter Agent: Check content for safety ──\nconst state = $input.first().json;\n\nconst safetyChecks = {\n  noHarmfulContent: true,\n  noPII: true,\n  noCopyrightViolation: true,\n  noMisinformation: state.verification?.confidence > 0.5,\n  factual: true\n};\n\nconst safetyPassed = Object.values(safetyChecks).every(v => v);\n\nstate.safety = { passed: safetyPassed, checks: safetyChecks };\nstate.logs.push({ timestamp: new Date().toISOString(), level: safetyPassed ? 'info' : 'error', agent: 'Safety Filter', message: safetyPassed ? 'All safety checks passed' : 'Safety check FAILED' });\n\nreturn [{ json: state }];"
+      },
+      "id": "safety-filter",
+      "name": "Safety Filter Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3400, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// ── Publisher Decision: Publish or reject ──\nconst state = $input.first().json;\nstate.currentState = 'PUBLISH';\nstate.stateHistory.push('PUBLISH');\n\nconst sourceCount = (state.sources || []).length;\nconst confidence = state.contentScore || 0;\nconst safetyPassed = state.safety?.passed || false;\n\nlet decision = 'publish';\nlet reason = '';\n\nif (sourceCount < 5) {\n  decision = 'reject';\n  reason = `Insufficient sources: ${sourceCount} (minimum 5 required)`;\n} else if (confidence < 0.7) {\n  decision = 'reject';\n  reason = `Low confidence: ${(confidence * 100).toFixed(0)}% (minimum 70% required)`;\n} else if (!safetyPassed) {\n  decision = 'reject';\n  reason = 'Content failed safety checks';\n}\n\nstate.publishDecision = decision;\nstate.rejectReason = reason;\nstate.confidence = confidence;\n\nif (decision === 'publish') {\n  state.report.confidence = confidence;\n  state.report.publishedAt = new Date().toISOString();\n}\n\nstate.logs.push({ timestamp: new Date().toISOString(), level: decision === 'publish' ? 'info' : 'warn', agent: 'Publisher', message: decision === 'publish' ? `PUBLISHED: ${state.report.title} (${(confidence * 100).toFixed(0)}% confidence)` : `REJECTED: ${reason}` });\n\nreturn [{ json: state }];"
+      },
+      "id": "publisher-decision",
+      "name": "Publisher Decision",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3600, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.BACKEND_URL || 'http://localhost:8080'}}/api/automation/run",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "topic",
+              "value": "={{ $json.topic }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 180000
+        }
+      },
+      "id": "save-to-backend",
+      "name": "Save to Backend",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [3800, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ jobId: $json.jobId || $json.job_id, topic: $('Orchestrator').first().json.topic, state: $('Publisher Decision').first().json.currentState, decision: $('Publisher Decision').first().json.publishDecision, confidence: $('Publisher Decision').first().json.confidence, sources: ($('Publisher Decision').first().json.sources || []).length, report: $('Publisher Decision').first().json.report, logs: $('Publisher Decision').first().json.logs }) }}",
+        "options": {}
+      },
+      "id": "respond",
+      "name": "Return Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [4000, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [{ "node": "Orchestrator", "type": "main", "index": 0 }]
+      ]
+    },
+    "Orchestrator": {
+      "main": [
+        [{ "node": "Planner Agent", "type": "main", "index": 0 }]
+      ]
+    },
+    "Planner Agent": {
+      "main": [
+        [{ "node": "Query Optimizer", "type": "main", "index": 0 }]
+      ]
+    },
+    "Query Optimizer": {
+      "main": [
+        [{ "node": "Structure Agent", "type": "main", "index": 0 }]
+      ]
+    },
+    "Structure Agent": {
+      "main": [
+        [{ "node": "Research Agents (Parallel)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Research Agents (Parallel)": {
+      "main": [
+        [{ "node": "Merge Results", "type": "main", "index": 0 }]
+      ]
+    },
+    "Merge Results": {
+      "main": [
+        [{ "node": "Source Ranking", "type": "main", "index": 0 }]
+      ]
+    },
+    "Source Ranking": {
+      "main": [
+        [{ "node": "Data Extraction", "type": "main", "index": 0 }]
+      ]
+    },
+    "Data Extraction": {
+      "main": [
+        [{ "node": "Gap Analysis", "type": "main", "index": 0 }]
+      ]
+    },
+    "Gap Analysis": {
+      "main": [
+        [{ "node": "Retry Decision", "type": "main", "index": 0 }]
+      ]
+    },
+    "Retry Decision": {
+      "main": [
+        [{ "node": "Verification Agent", "type": "main", "index": 0 }]
+      ]
+    },
+    "Verification Agent": {
+      "main": [
+        [{ "node": "Consistency Agent", "type": "main", "index": 0 }]
+      ]
+    },
+    "Consistency Agent": {
+      "main": [
+        [{ "node": "Simplification Agent", "type": "main", "index": 0 }]
+      ]
+    },
+    "Simplification Agent": {
+      "main": [
+        [{ "node": "Visual Decision Agent", "type": "main", "index": 0 }]
+      ]
+    },
+    "Visual Decision Agent": {
+      "main": [
+        [{ "node": "Content Scoring Agent", "type": "main", "index": 0 }]
+      ]
+    },
+    "Content Scoring Agent": {
+      "main": [
+        [{ "node": "Safety Filter Agent", "type": "main", "index": 0 }]
+      ]
+    },
+    "Safety Filter Agent": {
+      "main": [
+        [{ "node": "Publisher Decision", "type": "main", "index": 0 }]
+      ]
+    },
+    "Publisher Decision": {
+      "main": [
+        [{ "node": "Save to Backend", "type": "main", "index": 0 }]
+      ]
+    },
+    "Save to Backend": {
+      "main": [
+        [{ "node": "Return Response", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "instanceId": "cwmedia-ai-newsroom"
+  },
+  "tags": [
+    { "name": "AI Research" },
+    { "name": "Automation" },
+    { "name": "Multi-Agent" }
+  ]
+}

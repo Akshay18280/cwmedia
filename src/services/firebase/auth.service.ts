@@ -36,13 +36,21 @@ export interface SocialUser {
 }
 
 class FirebaseAuthService {
-  private readonly usersCollection = collection(db, 'users');
-  private readonly otpCollection = collection(db, 'admin_verification');
+  private get usersCollection() {
+    if (!db) throw new Error('Firestore not initialized');
+    return collection(db, 'users');
+  }
+
+  private get otpCollection() {
+    if (!db) throw new Error('Firestore not initialized');
+    return collection(db, 'admin_verification');
+  }
 
   // Get current user
   getCurrentUser(): Promise<SocialUser | null> {
+    if (!auth) return Promise.resolve(null);
     return new Promise((resolve) => {
-      const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      const unsubscribe = onAuthStateChanged(auth!, async (user) => {
         unsubscribe();
         
         if (user) {
@@ -93,6 +101,10 @@ class FirebaseAuthService {
 
   // Create or update user document
   private async createOrUpdateUser(user: User, additionalData?: Partial<FirebaseUser>): Promise<FirebaseUser> {
+    if (!db) {
+      console.warn('⚠️ Firestore not initialized, skipping user document write');
+      return { id: user.uid, email: user.email || '', name: user.displayName || '' } as FirebaseUser;
+    }
     const userDocRef = doc(this.usersCollection, user.uid);
     const existingUser = await getDoc(userDocRef);
     
@@ -132,6 +144,7 @@ class FirebaseAuthService {
   // Sign in with email and password (admin)
   async signInWithEmail(email: string, password: string): Promise<{ success: boolean; user?: SocialUser; error?: string }> {
     try {
+      if (!auth) return { success: false, error: 'Firebase Auth not initialized' };
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
@@ -159,6 +172,7 @@ class FirebaseAuthService {
   // Sign up with email and password
   async signUpWithEmail(email: string, password: string, name: string): Promise<{ success: boolean; user?: SocialUser; error?: string }> {
     try {
+      if (!auth) return { success: false, error: 'Firebase Auth not initialized' };
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
@@ -189,16 +203,24 @@ class FirebaseAuthService {
   // Sign in with Google
   async loginWithGoogle(): Promise<{ success: boolean; user?: SocialUser; error?: string }> {
     try {
+      if (!auth) {
+        return { success: false, error: 'Firebase Auth not initialized' };
+      }
+
       const provider = new GoogleAuthProvider();
       provider.addScope('profile');
       provider.addScope('email');
-      
+
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      
-      // Create or update user document
-      await this.createOrUpdateUser(user);
-      
+
+      // Firestore write is non-blocking — auth succeeds even if user doc fails
+      try {
+        await this.createOrUpdateUser(user);
+      } catch (firestoreErr) {
+        console.warn('⚠️ User document write failed (non-fatal):', firestoreErr);
+      }
+
       const socialUser: SocialUser = {
         id: user.uid,
         email: user.email || '',
@@ -209,12 +231,23 @@ class FirebaseAuthService {
       };
 
       return { success: true, user: socialUser };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Google sign in error:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to sign in with Google'
-      };
+
+      let errorMsg = 'Failed to sign in with Google';
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMsg = 'Sign-in cancelled.';
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMsg = 'Popup blocked. Please allow popups and try again.';
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMsg = 'Google sign-in is not enabled for this project.';
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        errorMsg = 'Sign-in cancelled.';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMsg = 'Network error. Please check your connection.';
+      }
+
+      return { success: false, error: errorMsg };
     }
   }
 
@@ -326,6 +359,7 @@ class FirebaseAuthService {
   // Send password reset email
   async sendPasswordReset(email: string): Promise<{ success: boolean; message: string }> {
     try {
+      if (!auth) return { success: false, message: 'Firebase not initialized' };
       await sendPasswordResetEmail(auth, email);
       return {
         success: true,
@@ -343,6 +377,7 @@ class FirebaseAuthService {
   // Logout
   async logout(): Promise<{ success: boolean; message: string }> {
     try {
+      if (!auth) return { success: false, message: 'Firebase not initialized' };
       await signOut(auth);
       return {
         success: true,

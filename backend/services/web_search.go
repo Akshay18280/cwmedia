@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -23,13 +24,13 @@ type WebSearchResult struct {
 
 // WebSearchService performs web research using Tavily (primary) or Gemini (fallback).
 type WebSearchService struct {
-	llm       *LLMService
+	llm       LLMProvider
 	tavilyKey string
 	client    *http.Client
 }
 
 // NewWebSearchService creates a web search service.
-func NewWebSearchService(llm *LLMService, tavilyKey string) *WebSearchService {
+func NewWebSearchService(llm LLMProvider, tavilyKey string) *WebSearchService {
 	return &WebSearchService{
 		llm:       llm,
 		tavilyKey: tavilyKey,
@@ -69,14 +70,26 @@ type tavilyResult struct {
 // Search performs web search using Tavily (if configured) or Gemini fallback.
 func (w *WebSearchService) Search(ctx context.Context, query string, maxResults int) ([]WebSearchResult, error) {
 	if w.tavilyKey != "" {
+		log.Printf("[SEARCH] Using Tavily for: %.60s...", query)
 		results, err := w.searchTavily(ctx, query, maxResults)
 		if err == nil && len(results) > 0 {
+			log.Printf("[SEARCH] Tavily returned %d results", len(results))
 			return results, nil
 		}
-		// Fall through to Gemini if Tavily fails
+		if err != nil {
+			log.Printf("[SEARCH] Tavily failed, falling back to Gemini: %v", err)
+		}
+	} else {
+		log.Printf("[SEARCH] No Tavily key, using Gemini fallback for: %.60s...", query)
 	}
 
-	return w.searchGemini(ctx, query, maxResults)
+	results, err := w.searchGemini(ctx, query, maxResults)
+	if err != nil {
+		log.Printf("[SEARCH] Gemini search failed: %v", err)
+		return nil, err
+	}
+	log.Printf("[SEARCH] Gemini returned %d results", len(results))
+	return results, nil
 }
 
 func (w *WebSearchService) searchTavily(ctx context.Context, query string, maxResults int) ([]WebSearchResult, error) {
@@ -159,9 +172,12 @@ func (w *WebSearchService) searchGemini(ctx context.Context, query string, maxRe
 }
 
 // SearchWithContext performs a contextual search for a specific research agent.
-func (w *WebSearchService) SearchWithContext(ctx context.Context, query string, agentContext string) (string, []WebSearchResult, error) {
+func (w *WebSearchService) SearchWithContext(ctx context.Context, query string, agentContext string, llmOverride ...LLMProvider) (string, []WebSearchResult, error) {
 	// Get web search results first
-	searchResults, _ := w.Search(ctx, fmt.Sprintf("%s %s", query, agentContext), 5)
+	searchResults, searchErr := w.Search(ctx, fmt.Sprintf("%s %s", query, agentContext), 5)
+	if searchErr != nil {
+		log.Printf("[SEARCH] Web search error (non-fatal, continuing with LLM): %v", searchErr)
+	}
 
 	// Build context from search results
 	var searchContext string
@@ -186,10 +202,17 @@ Be precise and cite timeframes.`, agentContext)
 
 	userPrompt := query + searchContext
 
-	response, err := w.llm.Generate(ctx, systemPrompt, userPrompt, 2048)
+	llm := w.llm
+	if len(llmOverride) > 0 && llmOverride[0] != nil {
+		llm = llmOverride[0]
+	}
+	log.Printf("[SEARCH] Calling LLM (%s) for agent context (query length: %d chars)", llm.ModelName(), len(userPrompt))
+	response, err := llm.Generate(ctx, systemPrompt, userPrompt, 2048)
 	if err != nil {
+		log.Printf("[SEARCH] LLM contextual search failed: %v", err)
 		return "", searchResults, fmt.Errorf("contextual search failed: %w", err)
 	}
+	log.Printf("[SEARCH] LLM response received (%d chars)", len(response))
 
 	return response, searchResults, nil
 }

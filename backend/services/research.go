@@ -165,7 +165,8 @@ type ResearchEvent struct {
 
 // ResearchService orchestrates multi-agent research.
 type ResearchService struct {
-	llm          *LLMService
+	llm          LLMProvider
+	registry     *ProviderRegistry
 	webSearch    *WebSearchService
 	factExtract  *FactExtractor
 	verifier     *VerificationAgent
@@ -174,8 +175,22 @@ type ResearchService struct {
 	agents       []ResearchAgent
 }
 
+// Per-agent model defaults — distributes load across Gemini and Groq.
+var agentModelDefaults = map[string]string{
+	"planning":   "llama-3.3-70b-versatile",
+	"overview":   "llama-3.3-70b-versatile",
+	"market":     "gemini-2.5-flash",
+	"technical":  "llama-3.3-70b-versatile",
+	"news":       "llama-3.3-70b-versatile",
+	"competitor": "llama-3.3-70b-versatile",
+	"risks":      "gemini-2.5-flash",
+	"extract":    "gemini-2.5-flash",
+	"verify":     "gemini-2.5-flash",
+	"synthesis":  "gemini-2.5-flash",
+}
+
 // NewResearchService creates the full research orchestrator.
-func NewResearchService(llm *LLMService, tavilyKey string) *ResearchService {
+func NewResearchService(llm LLMProvider, registry *ProviderRegistry, tavilyKey string) *ResearchService {
 	ws := NewWebSearchService(llm, tavilyKey)
 
 	agents := []ResearchAgent{
@@ -319,6 +334,7 @@ Include probability assessments for key scenarios.`,
 
 	return &ResearchService{
 		llm:         llm,
+		registry:    registry,
 		webSearch:   ws,
 		factExtract: NewFactExtractor(llm),
 		verifier:    NewVerificationAgent(llm),
@@ -328,9 +344,14 @@ Include probability assessments for key scenarios.`,
 	}
 }
 
-// LLM returns the underlying LLM service.
-func (r *ResearchService) LLM() *LLMService {
+// LLM returns the underlying LLM provider.
+func (r *ResearchService) LLM() LLMProvider {
 	return r.llm
+}
+
+// WebSearch returns the web search service.
+func (r *ResearchService) WebSearch() *WebSearchService {
+	return r.webSearch
 }
 
 // Memory returns the research memory.
@@ -554,78 +575,113 @@ Analyze the company's market position, competitive landscape, and recent develop
 func (r *ResearchService) executeAgents(ctx context.Context, agents []ResearchAgent, question string, previousContext string, eventCh chan<- ResearchEvent) []AgentResult {
 	var (
 		mu      sync.Mutex
-		wg      sync.WaitGroup
 		results []AgentResult
 	)
 
-	for _, agent := range agents {
-		wg.Add(1)
-		go func(a ResearchAgent) {
-			defer wg.Done()
+	// Run agents in batches of 2 to avoid Gemini rate limits.
+	// Tavily search is fast (<1s), but each agent needs 1 Gemini LLM call for analysis.
+	batchSize := 2
+	for i := 0; i < len(agents); i += batchSize {
+		end := i + batchSize
+		if end > len(agents) {
+			end = len(agents)
+		}
+		batch := agents[i:end]
 
-			eventCh <- ResearchEvent{
-				Type:    "agent_start",
-				AgentID: a.ID,
-				Agent:   a.Name,
-				Message: fmt.Sprintf("%s is researching...", a.Name),
-			}
+		var batchWg sync.WaitGroup
+		for _, agent := range batch {
+			batchWg.Add(1)
+			go func(a ResearchAgent) {
+				defer batchWg.Done()
 
-			start := time.Now()
+				eventCh <- ResearchEvent{
+					Type:    "agent_start",
+					AgentID: a.ID,
+					Agent:   a.Name,
+					Message: fmt.Sprintf("%s is researching...", a.Name),
+				}
 
-			// Agent researches with web search integration
-			fullQuery := question
-			if previousContext != "" {
-				fullQuery = question + "\n\n" + previousContext
-			}
+				start := time.Now()
 
-			content, sources, err := r.webSearch.SearchWithContext(ctx, fullQuery, a.Description)
-			if err != nil {
-				mu.Lock()
-				results = append(results, AgentResult{
+				// Per-agent timeout (60s) — prevents one slow agent from blocking all
+				agentCtx, agentCancel := context.WithTimeout(ctx, 60*time.Second)
+				defer agentCancel()
+
+				// Resolve per-agent LLM model
+				var agentLLM LLMProvider
+				if r.registry != nil {
+					if modelID, ok := agentModelDefaults[a.ID]; ok {
+						if resolved, err := r.registry.Get(modelID); err == nil {
+							agentLLM = resolved
+						}
+					}
+				}
+
+				// Agent researches with web search integration
+				fullQuery := question
+				if previousContext != "" {
+					fullQuery = question + "\n\n" + previousContext
+				}
+
+				content, sources, err := r.webSearch.SearchWithContext(agentCtx, fullQuery, a.Description, agentLLM)
+				if err != nil {
+					log.Printf("[AGENT ERROR] %s failed: %v", a.Name, err)
+					mu.Lock()
+					results = append(results, AgentResult{
+						AgentID:    a.ID,
+						AgentName:  a.Name,
+						Status:     "failed",
+						Error:      err.Error(),
+						DurationMs: time.Since(start).Milliseconds(),
+					})
+					mu.Unlock()
+
+					eventCh <- ResearchEvent{
+						Type:    "agent_complete",
+						AgentID: a.ID,
+						Agent:   a.Name,
+						Message: fmt.Sprintf("%s encountered an error: %v", a.Name, err),
+						Data:    map[string]interface{}{"status": "failed", "error": err.Error()},
+					}
+					return
+				}
+
+				durationMs := time.Since(start).Milliseconds()
+
+				result := AgentResult{
 					AgentID:    a.ID,
 					AgentName:  a.Name,
-					Status:     "failed",
-					Error:      err.Error(),
-					DurationMs: time.Since(start).Milliseconds(),
-				})
+					Content:    content,
+					Sources:    sources,
+					DurationMs: durationMs,
+					Status:     "completed",
+				}
+
+				mu.Lock()
+				results = append(results, result)
 				mu.Unlock()
 
 				eventCh <- ResearchEvent{
 					Type:    "agent_complete",
 					AgentID: a.ID,
 					Agent:   a.Name,
-					Message: fmt.Sprintf("%s encountered an error", a.Name),
-					Data:    map[string]interface{}{"status": "failed", "error": err.Error()},
+					Message: fmt.Sprintf("%s completed in %dms", a.Name, durationMs),
+					Data:    map[string]interface{}{"status": "completed", "duration_ms": durationMs, "sources": len(sources)},
 				}
-				return
+			}(agent)
+		}
+
+		batchWg.Wait()
+		// Small pause between batches to respect rate limits
+		if end < len(agents) {
+			select {
+			case <-time.After(2 * time.Second):
+			case <-ctx.Done():
+				return results
 			}
-
-			durationMs := time.Since(start).Milliseconds()
-
-			result := AgentResult{
-				AgentID:    a.ID,
-				AgentName:  a.Name,
-				Content:    content,
-				Sources:    sources,
-				DurationMs: durationMs,
-				Status:     "completed",
-			}
-
-			mu.Lock()
-			results = append(results, result)
-			mu.Unlock()
-
-			eventCh <- ResearchEvent{
-				Type:    "agent_complete",
-				AgentID: a.ID,
-				Agent:   a.Name,
-				Message: fmt.Sprintf("%s completed in %dms", a.Name, durationMs),
-				Data:    map[string]interface{}{"status": "completed", "duration_ms": durationMs, "sources": len(sources)},
-			}
-		}(agent)
+		}
 	}
 
-	wg.Wait()
 	return results
 }
 

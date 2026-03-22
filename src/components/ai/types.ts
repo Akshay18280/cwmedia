@@ -199,3 +199,10 @@ export interface ResearchAgentStatus {
   message?: string;
   sources?: number;
 }
+
+export interface AIModel {
+  id: string;
+  provider: string;
+  name: string;
+  tier: 'free' | 'paid';
+}

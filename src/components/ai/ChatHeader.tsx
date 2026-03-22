@@ -1,6 +1,8 @@
 import React from 'react';
 import { Bot, Loader2, Wifi, WifiOff, CircleDot, Trash2, FlaskConical, Maximize2, Minimize2, X } from 'lucide-react';
 import type { BackendStatus } from '@/hooks/useChat';
+import type { AIModel } from './types';
+import { ModelPicker } from './ModelPicker';
 
 type WindowMode = 'normal' | 'maximized' | 'minimized';
 
@@ -14,6 +16,9 @@ interface ChatHeaderProps {
   onSetWindowMode: (mode: WindowMode) => void;
   isPopup: boolean;
   onClose?: () => void;
+  models?: AIModel[];
+  selectedModel?: string;
+  onSelectModel?: (modelId: string) => void;
 }
 
 const statusConfig = {
@@ -33,6 +38,9 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
   onSetWindowMode,
   isPopup,
   onClose,
+  models,
+  selectedModel,
+  onSelectModel,
 }) => {
   const status = statusConfig[backendStatus];
 
@@ -46,6 +54,14 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
         </span>
 
         <div className="ml-auto flex items-center gap-2">
+          {backendStatus === 'connected' && models && models.length > 0 && selectedModel && onSelectModel && (
+            <ModelPicker
+              models={models}
+              selectedModel={selectedModel}
+              onSelect={onSelectModel}
+            />
+          )}
+
           {backendStatus === 'connected' && (
             <button
               onClick={onToggleResearch}

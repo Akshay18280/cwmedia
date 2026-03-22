@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import { toast } from 'sonner';
 import type { ResearchAgentStatus, ResearchReport, VerificationResult } from '@/components/ai/types';
 import { streamResearch, isResearchQuery } from '@/services/ai/ResearchService';
 import { useResearchStore } from '@/stores/researchStore';
@@ -31,6 +32,7 @@ export function useResearch(apiBase: string) {
   const handleResearch = useCallback(async (
     question: string,
     onReportMessage: (msg: { id: string; role: 'assistant'; content: string; timestamp: Date }) => void,
+    selectedModel?: string,
   ) => {
     setResearchPhase('planning');
     setResearchAgents([]);
@@ -76,14 +78,18 @@ export function useResearch(apiBase: string) {
           },
           onDone: () => resolve(),
           onError: (err) => reject(new Error(err)),
-        });
+        }, selectedModel);
         abortRef.current = ctrl;
       });
     } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Unknown error';
+      if (/rate.limit|limit.reached/i.test(errMsg)) {
+        toast.error('Model rate limit reached. Try switching to a different model.');
+      }
       onReportMessage({
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `Research failed: ${err instanceof Error ? err.message : 'Unknown error'}. Try a simpler query or switch to chat mode.`,
+        content: `Research failed: ${errMsg}. Try a simpler query or switch to chat mode.`,
         timestamp: new Date(),
       });
       setResearchPhase('idle');

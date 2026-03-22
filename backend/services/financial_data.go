@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -45,13 +46,68 @@ type StockQuote struct {
 	Exchange         string  `json:"exchange"`
 }
 
-// FetchQuote fetches a stock quote for the given ticker symbol using the Yahoo Finance v8 API.
+// FetchQuote fetches a stock quote for the given ticker symbol.
+// Runs chart and summary requests in parallel for ~50% latency reduction.
 func (f *FinancialDataService) FetchQuote(ctx context.Context, ticker string) (*StockQuote, error) {
 	ticker = strings.ToUpper(strings.TrimSpace(ticker))
 	if ticker == "" {
 		return nil, fmt.Errorf("empty ticker symbol")
 	}
 
+	// Per-request timeout (10s per call, not global 3-min)
+	fetchCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	var (
+		quote    *StockQuote
+		fundQuote *StockQuote
+		chartErr error
+		wg       sync.WaitGroup
+	)
+
+	// Parallel: fetch chart data
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		q, err := f.fetchChart(fetchCtx, ticker)
+		quote = q
+		chartErr = err
+	}()
+
+	// Parallel: fetch summary/fundamentals
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		fundQuote, _ = f.fetchSummary(fetchCtx, ticker)
+	}()
+
+	wg.Wait()
+
+	if chartErr != nil {
+		return nil, chartErr
+	}
+
+	// Merge fundamentals into chart quote
+	if fundQuote != nil {
+		quote.MarketCap = fundQuote.MarketCap
+		quote.TrailingPE = fundQuote.TrailingPE
+		quote.ForwardPE = fundQuote.ForwardPE
+		quote.DividendYield = fundQuote.DividendYield
+		quote.Revenue = fundQuote.Revenue
+		quote.GrossProfit = fundQuote.GrossProfit
+		quote.EBITDA = fundQuote.EBITDA
+		quote.ProfitMargin = fundQuote.ProfitMargin
+		quote.RevenueGrowth = fundQuote.RevenueGrowth
+		if quote.LongName == "" {
+			quote.LongName = fundQuote.LongName
+		}
+	}
+
+	return quote, nil
+}
+
+// fetchChart fetches price data from the Yahoo Finance chart API.
+func (f *FinancialDataService) fetchChart(ctx context.Context, ticker string) (*StockQuote, error) {
 	apiURL := fmt.Sprintf("https://query1.finance.yahoo.com/v8/finance/chart/%s?interval=1d&range=5d", url.PathEscape(ticker))
 
 	req, err := http.NewRequestWithContext(ctx, "GET", apiURL, nil)
@@ -75,7 +131,6 @@ func (f *FinancialDataService) FetchQuote(ctx context.Context, ticker string) (*
 		return nil, fmt.Errorf("yahoo finance error (status %d): %s", resp.StatusCode, string(body[:min(200, len(body))]))
 	}
 
-	// Parse the chart response to extract meta and indicators
 	var chartResp struct {
 		Chart struct {
 			Result []struct {
@@ -111,7 +166,7 @@ func (f *FinancialDataService) FetchQuote(ctx context.Context, ticker string) (*
 	}
 
 	meta := chartResp.Chart.Result[0].Meta
-	quote := &StockQuote{
+	return &StockQuote{
 		Symbol:           meta.Symbol,
 		ShortName:        meta.ShortName,
 		LongName:         meta.LongName,
@@ -121,26 +176,7 @@ func (f *FinancialDataService) FetchQuote(ctx context.Context, ticker string) (*
 		FiftyTwoWeekLow:  meta.FiftyTwoWeekLow,
 		Currency:         meta.Currency,
 		Exchange:         meta.Exchange,
-	}
-
-	// Try to get summary data from a second call for fundamentals
-	fundQuote, _ := f.fetchSummary(ctx, ticker)
-	if fundQuote != nil {
-		quote.MarketCap = fundQuote.MarketCap
-		quote.TrailingPE = fundQuote.TrailingPE
-		quote.ForwardPE = fundQuote.ForwardPE
-		quote.DividendYield = fundQuote.DividendYield
-		quote.Revenue = fundQuote.Revenue
-		quote.GrossProfit = fundQuote.GrossProfit
-		quote.EBITDA = fundQuote.EBITDA
-		quote.ProfitMargin = fundQuote.ProfitMargin
-		quote.RevenueGrowth = fundQuote.RevenueGrowth
-		if quote.LongName == "" {
-			quote.LongName = fundQuote.LongName
-		}
-	}
-
-	return quote, nil
+	}, nil
 }
 
 // fetchSummary gets fundamental data from Yahoo Finance quoteSummary endpoint.
@@ -321,9 +357,4 @@ func DetectTicker(query string, profile *CompanyProfile) string {
 	return ""
 }
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
+// min is built-in since Go 1.21
