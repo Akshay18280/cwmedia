@@ -163,18 +163,32 @@ Do NOT make up URLs. Focus on factual content only.`
 func (w *WebSearchService) searchGemini(ctx context.Context, query string, maxResults int) ([]WebSearchResult, error) {
 	prompt := fmt.Sprintf("Research query: %s\n\nProvide %d distinct factual findings. Number each finding (1. 2. 3. etc). Each finding should be a detailed paragraph with specific data.", query, maxResults)
 
+	start := time.Now()
+	log.Printf("[SEARCH] Gemini search starting: query=%.80s, maxResults=%d", query, maxResults)
 	response, err := w.llm.Generate(ctx, geminiSearchSystemPrompt, prompt, 2048)
 	if err != nil {
+		log.Printf("[SEARCH] Gemini search failed after %v: %v", time.Since(start), err)
 		return nil, fmt.Errorf("gemini search failed: %w", err)
 	}
+	log.Printf("[SEARCH] Gemini search completed in %v (%d chars)", time.Since(start), len(response))
 
 	return parseGeminiSearchResults(response), nil
 }
 
 // SearchWithContext performs a contextual search for a specific research agent.
 func (w *WebSearchService) SearchWithContext(ctx context.Context, query string, agentContext string, llmOverride ...LLMProvider) (string, []WebSearchResult, error) {
+	totalStart := time.Now()
+	log.Printf("[SEARCH] SearchWithContext starting: agent=%.40s, query=%.60s", agentContext, query)
+
+	// Check context deadline
+	if deadline, ok := ctx.Deadline(); ok {
+		log.Printf("[SEARCH] Context deadline: %v (remaining: %v)", deadline.Format("15:04:05"), time.Until(deadline))
+	}
+
 	// Get web search results first
+	searchStart := time.Now()
 	searchResults, searchErr := w.Search(ctx, fmt.Sprintf("%s %s", query, agentContext), 5)
+	log.Printf("[SEARCH] Web search phase completed in %v (results: %d, err: %v)", time.Since(searchStart), len(searchResults), searchErr)
 	if searchErr != nil {
 		log.Printf("[SEARCH] Web search error (non-fatal, continuing with LLM): %v", searchErr)
 	}
@@ -207,12 +221,14 @@ Be precise and cite timeframes.`, agentContext)
 		llm = llmOverride[0]
 	}
 	log.Printf("[SEARCH] Calling LLM (%s) for agent context (query length: %d chars)", llm.ModelName(), len(userPrompt))
+	llmStart := time.Now()
 	response, err := llm.Generate(ctx, systemPrompt, userPrompt, 2048)
 	if err != nil {
-		log.Printf("[SEARCH] LLM contextual search failed: %v", err)
+		log.Printf("[SEARCH] LLM contextual search failed after %v: %v", time.Since(llmStart), err)
 		return "", searchResults, fmt.Errorf("contextual search failed: %w", err)
 	}
-	log.Printf("[SEARCH] LLM response received (%d chars)", len(response))
+	log.Printf("[SEARCH] LLM response received in %v (%d chars)", time.Since(llmStart), len(response))
+	log.Printf("[SEARCH] SearchWithContext total duration: %v", time.Since(totalStart))
 
 	return response, searchResults, nil
 }

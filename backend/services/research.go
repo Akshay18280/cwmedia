@@ -362,20 +362,28 @@ func (r *ResearchService) Memory() *ResearchMemory {
 // Research performs full multi-agent research with verification and streaming.
 func (r *ResearchService) Research(ctx context.Context, question string, eventCh chan<- ResearchEvent) (*ResearchReport, error) {
 	totalStart := time.Now()
+	log.Printf("[RESEARCH] === Starting research: %.80s ===", question)
+	log.Printf("[RESEARCH] Tavily enabled: %v", r.webSearch.HasTavily())
 	var prompts []PromptRecord
 
 	// Check for previous research context
 	previousContext := r.memory.GetContext(question)
+	if previousContext != "" {
+		log.Printf("[RESEARCH] Found previous context (%d chars)", len(previousContext))
+	}
 
 	// Phase 1: Planning
+	log.Printf("[RESEARCH] Phase 1: Planning")
 	eventCh <- ResearchEvent{Type: "planning", Message: "Analyzing research query and selecting agents..."}
 
 	planStart := time.Now()
 	selectedAgents, researchPlan, planPrompt, err := r.planResearch(ctx, question, previousContext)
 	if err != nil {
+		log.Printf("[RESEARCH] Planning failed after %v: %v", time.Since(planStart), err)
 		return nil, fmt.Errorf("planning failed: %w", err)
 	}
 	planningMs := time.Since(planStart).Milliseconds()
+	log.Printf("[RESEARCH] Planning completed in %dms: %d agents selected", planningMs, len(selectedAgents))
 	prompts = append(prompts, planPrompt)
 
 	agentNames := make([]string, len(selectedAgents))
@@ -393,19 +401,28 @@ func (r *ResearchService) Research(ctx context.Context, question string, eventCh
 	}
 
 	// Phase 2: Parallel agent execution
+	log.Printf("[RESEARCH] Phase 2: Executing %d agents", len(selectedAgents))
 	researchStart := time.Now()
 	agentResults := r.executeAgents(ctx, selectedAgents, question, previousContext, eventCh)
 	researchMs := time.Since(researchStart).Milliseconds()
 
-	// Phase 2.5: Retry logic — if too few results, retry with broader queries
+	// Log agent results summary
 	completedCount := 0
+	failedCount := 0
 	for _, ar := range agentResults {
 		if ar.Status == "completed" && len(ar.Content) > 100 {
 			completedCount++
+		} else if ar.Status == "failed" {
+			failedCount++
+			log.Printf("[RESEARCH] Agent %s failed: %s", ar.AgentName, ar.Error)
 		}
 	}
+	log.Printf("[RESEARCH] Agent execution completed in %dms: %d succeeded, %d failed out of %d", researchMs, completedCount, failedCount, len(agentResults))
+
+	// Phase 2.5: Retry logic — if too few results, retry with broader queries
 	retryCount := 0
 	if completedCount < 2 {
+		log.Printf("[RESEARCH] Only %d agents succeeded (need 2+), retrying weak agents", completedCount)
 		eventCh <- ResearchEvent{Type: "retry", Message: "Insufficient results. Retrying with broader queries..."}
 		retryResults := r.retryWeakAgents(ctx, agentResults, question, eventCh)
 		agentResults = retryResults
@@ -413,6 +430,7 @@ func (r *ResearchService) Research(ctx context.Context, question string, eventCh
 	}
 
 	// Phase 3: Fact extraction
+	log.Printf("[RESEARCH] Phase 3: Fact extraction")
 	eventCh <- ResearchEvent{Type: "extracting", Message: "Extracting structured facts..."}
 
 	var allFacts []ExtractedFact
@@ -438,11 +456,13 @@ func (r *ResearchService) Research(ctx context.Context, question string, eventCh
 	}
 
 	// Phase 4: Verification
+	log.Printf("[RESEARCH] Phase 4: Verification (%d facts to verify)", len(allFacts))
 	eventCh <- ResearchEvent{Type: "verifying", Message: "Cross-referencing facts across sources..."}
 
 	verifyStart := time.Now()
 	verification, _ := r.verifier.Verify(ctx, agentResults, allFacts)
 	verificationMs := time.Since(verifyStart).Milliseconds()
+	log.Printf("[RESEARCH] Verification completed in %dms", verificationMs)
 
 	if verification != nil {
 		eventCh <- ResearchEvent{
@@ -453,14 +473,17 @@ func (r *ResearchService) Research(ctx context.Context, question string, eventCh
 	}
 
 	// Phase 5: Synthesis
+	log.Printf("[RESEARCH] Phase 5: Synthesis")
 	eventCh <- ResearchEvent{Type: "synthesizing", Message: "Generating structured research report..."}
 
 	synthesisStart := time.Now()
 	report, synthPrompt, err := r.synthesize(ctx, question, agentResults, verification)
 	if err != nil {
+		log.Printf("[RESEARCH] Synthesis failed after %v: %v", time.Since(synthesisStart), err)
 		return nil, fmt.Errorf("synthesis failed: %w", err)
 	}
 	synthesisMs := time.Since(synthesisStart).Milliseconds()
+	log.Printf("[RESEARCH] Synthesis completed in %dms", synthesisMs)
 	prompts = append(prompts, synthPrompt)
 
 	// Phase 5.5: Financial data enrichment — fetch live market data if ticker is detected
@@ -515,6 +538,10 @@ func (r *ResearchService) Research(ctx context.Context, question string, eventCh
 
 	// Store in memory for follow-up queries
 	r.memory.Store(fmt.Sprintf("r_%d", time.Now().UnixMilli()), question, report, allFacts)
+
+	totalMs := time.Since(totalStart).Milliseconds()
+	log.Printf("[RESEARCH] === Research complete in %dms === (planning: %dms, agents: %dms, verify: %dms, synthesis: %dms, sources: %d, facts: %d, retries: %d)",
+		totalMs, planningMs, researchMs, verificationMs, synthesisMs, totalSources, len(allFacts), retryCount)
 
 	eventCh <- ResearchEvent{Type: "report", Data: report}
 	eventCh <- ResearchEvent{Type: "done", Message: "Research complete"}
@@ -613,9 +640,10 @@ func (r *ResearchService) executeAgents(ctx context.Context, agents []ResearchAg
 				}
 
 				start := time.Now()
+				log.Printf("[AGENT] %s (%s) starting", a.Name, a.ID)
 
-				// Per-agent timeout (60s) — prevents one slow agent from blocking all
-				agentCtx, agentCancel := context.WithTimeout(ctx, 60*time.Second)
+				// Per-agent timeout (90s) — prevents one slow agent from blocking all
+				agentCtx, agentCancel := context.WithTimeout(ctx, 90*time.Second)
 				defer agentCancel()
 
 				// Resolve per-agent LLM model
@@ -624,6 +652,9 @@ func (r *ResearchService) executeAgents(ctx context.Context, agents []ResearchAg
 					if modelID, ok := agentModelDefaults[a.ID]; ok {
 						if resolved, err := r.registry.Get(modelID); err == nil {
 							agentLLM = resolved
+							log.Printf("[AGENT] %s using model: %s", a.Name, resolved.ModelName())
+						} else {
+							log.Printf("[AGENT] %s model %s not found, using default", a.Name, modelID)
 						}
 					}
 				}
@@ -636,7 +667,7 @@ func (r *ResearchService) executeAgents(ctx context.Context, agents []ResearchAg
 
 				content, sources, err := r.webSearch.SearchWithContext(agentCtx, fullQuery, a.Description, agentLLM)
 				if err != nil {
-					log.Printf("[AGENT ERROR] %s failed: %v", a.Name, err)
+					log.Printf("[AGENT ERROR] %s failed after %v: %v", a.Name, time.Since(start), err)
 					mu.Lock()
 					results = append(results, AgentResult{
 						AgentID:    a.ID,
@@ -658,6 +689,7 @@ func (r *ResearchService) executeAgents(ctx context.Context, agents []ResearchAg
 				}
 
 				durationMs := time.Since(start).Milliseconds()
+				log.Printf("[AGENT] %s completed successfully in %dms (content: %d chars, sources: %d)", a.Name, durationMs, len(content), len(sources))
 
 				result := AgentResult{
 					AgentID:    a.ID,

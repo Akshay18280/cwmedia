@@ -69,8 +69,13 @@ type geminiPart struct {
 }
 
 type geminiGenerationConfig struct {
-	MaxOutputTokens int     `json:"maxOutputTokens,omitempty"`
-	Temperature     float64 `json:"temperature,omitempty"`
+	MaxOutputTokens int              `json:"maxOutputTokens,omitempty"`
+	Temperature     float64          `json:"temperature,omitempty"`
+	ThinkingConfig  *thinkingConfig  `json:"thinkingConfig,omitempty"`
+}
+
+type thinkingConfig struct {
+	ThinkingBudget int `json:"thinkingBudget"`
 }
 
 type geminiResponse struct {
@@ -116,6 +121,7 @@ func (s *LLMService) GenerateAnswer(ctx context.Context, contextChunks []string,
 		GenerationConfig: &geminiGenerationConfig{
 			MaxOutputTokens: 1024,
 			Temperature:     0.3,
+			ThinkingConfig:  &thinkingConfig{ThinkingBudget: 0},
 		},
 	}
 
@@ -212,10 +218,16 @@ func (s *LLMService) releaseSlot() {
 // doGenerateRequest sends a single Gemini API request with 429 retry logic.
 func (s *LLMService) doGenerateRequest(ctx context.Context, body []byte) ([]byte, error) {
 	maxRetries := 3
+	requestStart := time.Now()
+	log.Printf("[LLM] Starting request to %s (body: %d bytes)", s.model, len(body))
+
 	for attempt := 0; attempt <= maxRetries; attempt++ {
+		slotStart := time.Now()
 		if err := s.acquireSlot(ctx); err != nil {
-			return nil, err
+			log.Printf("[LLM] Failed to acquire slot after %v: %v", time.Since(slotStart), err)
+			return nil, fmt.Errorf("acquire slot: %w", err)
 		}
+		log.Printf("[LLM] Slot acquired in %v (attempt %d/%d)", time.Since(slotStart), attempt+1, maxRetries+1)
 
 		url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", s.model, s.apiKey)
 		req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(body))
@@ -225,20 +237,25 @@ func (s *LLMService) doGenerateRequest(ctx context.Context, body []byte) ([]byte
 		}
 		req.Header.Set("Content-Type", "application/json")
 
+		apiStart := time.Now()
 		resp, err := http.DefaultClient.Do(req)
 		s.releaseSlot()
 		if err != nil {
+			log.Printf("[LLM] HTTP request failed after %v: %v", time.Since(apiStart), err)
 			return nil, fmt.Errorf("Gemini request: %w", err)
 		}
 
 		respBody, err := io.ReadAll(resp.Body)
 		resp.Body.Close()
+		apiDuration := time.Since(apiStart)
 		if err != nil {
+			log.Printf("[LLM] Failed to read response after %v: %v", apiDuration, err)
 			return nil, fmt.Errorf("failed to read Gemini response: %w", err)
 		}
 
+		log.Printf("[LLM] API responded: status=%d, body=%d bytes, took=%v", resp.StatusCode, len(respBody), apiDuration)
+
 		if resp.StatusCode == 429 && attempt < maxRetries {
-			// Rate limited — wait and retry with increasing backoff
 			backoff := time.Duration(8*(attempt+1)) * time.Second
 			log.Printf("[LLM] Rate limited (429), retrying in %v (attempt %d/%d)", backoff, attempt+1, maxRetries)
 			select {
@@ -250,16 +267,21 @@ func (s *LLMService) doGenerateRequest(ctx context.Context, body []byte) ([]byte
 		}
 
 		if resp.StatusCode != http.StatusOK {
-			return nil, fmt.Errorf("Gemini error (status %d): %s", resp.StatusCode, string(respBody[:min(500, len(respBody))]))
+			errSnippet := string(respBody[:min(500, len(respBody))])
+			log.Printf("[LLM] Error response (status %d): %s", resp.StatusCode, errSnippet)
+			return nil, fmt.Errorf("Gemini error (status %d): %s", resp.StatusCode, errSnippet)
 		}
 
+		log.Printf("[LLM] Request completed successfully in %v (total with retries)", time.Since(requestStart))
 		return respBody, nil
 	}
+	log.Printf("[LLM] Exhausted %d retries after %v", maxRetries, time.Since(requestStart))
 	return nil, fmt.Errorf("Gemini: exhausted retries after rate limiting")
 }
 
 // Generate sends a system prompt and user prompt to Gemini with custom max tokens.
 func (s *LLMService) Generate(ctx context.Context, system, user string, maxTokens int) (string, error) {
+	log.Printf("[LLM] Generate called: model=%s, maxTokens=%d, systemLen=%d, userLen=%d", s.model, maxTokens, len(system), len(user))
 	reqBody := geminiRequest{
 		SystemInstruction: &geminiContent{
 			Parts: []geminiPart{{Text: system}},
@@ -270,6 +292,7 @@ func (s *LLMService) Generate(ctx context.Context, system, user string, maxToken
 		GenerationConfig: &geminiGenerationConfig{
 			MaxOutputTokens: maxTokens,
 			Temperature:     0.4,
+			ThinkingConfig:  &thinkingConfig{ThinkingBudget: 0},
 		},
 	}
 
@@ -315,6 +338,7 @@ func (s *LLMService) GenerateStream(ctx context.Context, system, user string, ma
 		GenerationConfig: &geminiGenerationConfig{
 			MaxOutputTokens: maxTokens,
 			Temperature:     0.4,
+			ThinkingConfig:  &thinkingConfig{ThinkingBudget: 0},
 		},
 	}
 
@@ -408,6 +432,7 @@ func (s *LLMService) GenerateAnswerStream(ctx context.Context, contextChunks []s
 		GenerationConfig: &geminiGenerationConfig{
 			MaxOutputTokens: 1024,
 			Temperature:     0.3,
+			ThinkingConfig:  &thinkingConfig{ThinkingBudget: 0},
 		},
 	}
 
