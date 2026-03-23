@@ -13,8 +13,11 @@ import (
 	"time"
 )
 
+// fallbackModels lists models to try when the primary model's daily quota is exhausted.
+var fallbackModels = []string{"gemini-2.5-flash-lite", "gemini-2.0-flash-lite", "gemini-2.0-flash"}
+
 // LLMService handles communication with Google Gemini API.
-// Includes a rate limiter to respect Gemini free-tier limits (5 RPM).
+// Includes a rate limiter to respect Gemini free-tier limits.
 type LLMService struct {
 	model  string
 	apiKey string
@@ -106,79 +109,7 @@ func BuildUserPrompt(contextChunks []string, question string) string {
 
 // GenerateAnswer sends context + question to Gemini and returns the response.
 func (s *LLMService) GenerateAnswer(ctx context.Context, contextChunks []string, question string) (string, error) {
-	userPrompt := BuildUserPrompt(contextChunks, question)
-
-	reqBody := geminiRequest{
-		SystemInstruction: &geminiContent{
-			Parts: []geminiPart{{Text: SystemPrompt}},
-		},
-		Contents: []geminiContent{
-			{
-				Role:  "user",
-				Parts: []geminiPart{{Text: userPrompt}},
-			},
-		},
-		GenerationConfig: &geminiGenerationConfig{
-			MaxOutputTokens: 1024,
-			Temperature:     0.3,
-			ThinkingConfig:  &thinkingConfig{ThinkingBudget: 0},
-		},
-	}
-
-	body, err := json.Marshal(reqBody)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal request: %w", err)
-	}
-
-	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", s.model, s.apiKey)
-
-	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(body))
-	if err != nil {
-		return "", fmt.Errorf("failed to create request: %w", err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("Gemini API request failed: %w", err)
-	}
-	defer resp.Body.Close()
-
-	respBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("failed to read response: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("Gemini API error (status %d): %s", resp.StatusCode, string(respBody))
-	}
-
-	var result geminiResponse
-	if err := json.Unmarshal(respBody, &result); err != nil {
-		return "", fmt.Errorf("failed to parse response: %w", err)
-	}
-
-	if result.Error != nil {
-		return "", fmt.Errorf("Gemini error: %s", result.Error.Message)
-	}
-
-	if len(result.Candidates) == 0 || len(result.Candidates[0].Content.Parts) == 0 {
-		return "", fmt.Errorf("no response from Gemini")
-	}
-
-	var parts []string
-	for _, part := range result.Candidates[0].Content.Parts {
-		if part.Text != "" {
-			parts = append(parts, part.Text)
-		}
-	}
-
-	if len(parts) == 0 {
-		return "", fmt.Errorf("no text content in Gemini response")
-	}
-
-	return strings.Join(parts, "\n"), nil
+	return s.Generate(ctx, SystemPrompt, BuildUserPrompt(contextChunks, question), 1024)
 }
 
 // acquireSlot waits for a rate-limiter slot, enforcing minimum interval between requests.
@@ -215,25 +146,22 @@ func (s *LLMService) releaseSlot() {
 	<-s.sem
 }
 
-// doGenerateRequest sends a single Gemini API request with 429 retry logic.
-func (s *LLMService) doGenerateRequest(ctx context.Context, body []byte) ([]byte, error) {
-	maxRetries := 3
-	requestStart := time.Now()
-	log.Printf("[LLM] Starting request to %s (body: %d bytes)", s.model, len(body))
-
+// doGenerateRequestForModel sends a single Gemini API request for a specific model with retry logic.
+func (s *LLMService) doGenerateRequestForModel(ctx context.Context, model string, body []byte) ([]byte, bool, error) {
+	maxRetries := 2
 	for attempt := 0; attempt <= maxRetries; attempt++ {
 		slotStart := time.Now()
 		if err := s.acquireSlot(ctx); err != nil {
 			log.Printf("[LLM] Failed to acquire slot after %v: %v", time.Since(slotStart), err)
-			return nil, fmt.Errorf("acquire slot: %w", err)
+			return nil, false, fmt.Errorf("acquire slot: %w", err)
 		}
-		log.Printf("[LLM] Slot acquired in %v (attempt %d/%d)", time.Since(slotStart), attempt+1, maxRetries+1)
+		log.Printf("[LLM] Slot acquired in %v for %s (attempt %d/%d)", time.Since(slotStart), model, attempt+1, maxRetries+1)
 
-		url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", s.model, s.apiKey)
+		url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", model, s.apiKey)
 		req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(body))
 		if err != nil {
 			s.releaseSlot()
-			return nil, err
+			return nil, false, err
 		}
 		req.Header.Set("Content-Type", "application/json")
 
@@ -241,42 +169,86 @@ func (s *LLMService) doGenerateRequest(ctx context.Context, body []byte) ([]byte
 		resp, err := http.DefaultClient.Do(req)
 		s.releaseSlot()
 		if err != nil {
-			log.Printf("[LLM] HTTP request failed after %v: %v", time.Since(apiStart), err)
-			return nil, fmt.Errorf("Gemini request: %w", err)
+			log.Printf("[LLM] HTTP request to %s failed after %v: %v", model, time.Since(apiStart), err)
+			return nil, false, fmt.Errorf("Gemini request: %w", err)
 		}
 
 		respBody, err := io.ReadAll(resp.Body)
 		resp.Body.Close()
 		apiDuration := time.Since(apiStart)
 		if err != nil {
-			log.Printf("[LLM] Failed to read response after %v: %v", apiDuration, err)
-			return nil, fmt.Errorf("failed to read Gemini response: %w", err)
+			return nil, false, fmt.Errorf("failed to read Gemini response: %w", err)
 		}
 
-		log.Printf("[LLM] API responded: status=%d, body=%d bytes, took=%v", resp.StatusCode, len(respBody), apiDuration)
+		log.Printf("[LLM] %s responded: status=%d, body=%d bytes, took=%v", model, resp.StatusCode, len(respBody), apiDuration)
 
-		if resp.StatusCode == 429 && attempt < maxRetries {
-			backoff := time.Duration(8*(attempt+1)) * time.Second
-			log.Printf("[LLM] Rate limited (429), retrying in %v (attempt %d/%d)", backoff, attempt+1, maxRetries)
-			select {
-			case <-time.After(backoff):
-				continue
-			case <-ctx.Done():
-				return nil, ctx.Err()
+		if resp.StatusCode == 429 {
+			// Check if it's a daily quota issue (should try fallback) vs per-minute (should retry)
+			bodyStr := string(respBody)
+			isDailyQuota := strings.Contains(bodyStr, "PerDay") || strings.Contains(bodyStr, "per_day")
+			if isDailyQuota {
+				log.Printf("[LLM] %s daily quota exhausted, will try fallback model", model)
+				return nil, true, nil // signal: try fallback
 			}
+			if attempt < maxRetries {
+				backoff := time.Duration(3*(attempt+1)) * time.Second
+				log.Printf("[LLM] %s rate limited (per-minute), retrying in %v", model, backoff)
+				select {
+				case <-time.After(backoff):
+					continue
+				case <-ctx.Done():
+					return nil, false, ctx.Err()
+				}
+			}
+			return nil, true, nil // exhausted retries, try fallback
 		}
 
 		if resp.StatusCode != http.StatusOK {
 			errSnippet := string(respBody[:min(500, len(respBody))])
-			log.Printf("[LLM] Error response (status %d): %s", resp.StatusCode, errSnippet)
-			return nil, fmt.Errorf("Gemini error (status %d): %s", resp.StatusCode, errSnippet)
+			log.Printf("[LLM] %s error (status %d): %s", model, resp.StatusCode, errSnippet)
+			return nil, false, fmt.Errorf("Gemini error (status %d): %s", resp.StatusCode, errSnippet)
 		}
 
-		log.Printf("[LLM] Request completed successfully in %v (total with retries)", time.Since(requestStart))
+		return respBody, false, nil
+	}
+	return nil, true, nil
+}
+
+// doGenerateRequest sends a Gemini API request, falling back to alternative models if quota is exhausted.
+func (s *LLMService) doGenerateRequest(ctx context.Context, body []byte) ([]byte, error) {
+	requestStart := time.Now()
+	log.Printf("[LLM] Starting request to %s (body: %d bytes)", s.model, len(body))
+
+	// Try primary model
+	respBody, shouldFallback, err := s.doGenerateRequestForModel(ctx, s.model, body)
+	if err != nil {
+		return nil, err
+	}
+	if !shouldFallback {
+		log.Printf("[LLM] Request completed via %s in %v", s.model, time.Since(requestStart))
 		return respBody, nil
 	}
-	log.Printf("[LLM] Exhausted %d retries after %v", maxRetries, time.Since(requestStart))
-	return nil, fmt.Errorf("Gemini: exhausted retries after rate limiting")
+
+	// Try fallback models
+	for _, fallback := range fallbackModels {
+		if fallback == s.model {
+			continue // skip primary model
+		}
+		log.Printf("[LLM] Trying fallback model: %s", fallback)
+		respBody, shouldFallback, err = s.doGenerateRequestForModel(ctx, fallback, body)
+		if err != nil {
+			log.Printf("[LLM] Fallback %s failed: %v", fallback, err)
+			continue
+		}
+		if !shouldFallback {
+			log.Printf("[LLM] Request completed via fallback %s in %v", fallback, time.Since(requestStart))
+			return respBody, nil
+		}
+		log.Printf("[LLM] Fallback %s also rate limited, trying next", fallback)
+	}
+
+	log.Printf("[LLM] All models exhausted after %v", time.Since(requestStart))
+	return nil, fmt.Errorf("Gemini: all models rate limited (primary: %s, tried %d fallbacks)", s.model, len(fallbackModels))
 }
 
 // Generate sends a system prompt and user prompt to Gemini with custom max tokens.
