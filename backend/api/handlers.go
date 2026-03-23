@@ -509,6 +509,10 @@ func (h *Handlers) AutomationStream(c *gin.Context) {
 // ListModels returns all available AI models.
 func (h *Handlers) ListModels(c *gin.Context) {
 	models := h.registry.ListModels()
+	log.Printf("[API] ListModels: returning %d models", len(models))
+	for _, m := range models {
+		log.Printf("[API]   model: id=%s name=%s provider=%s", m.ID, m.Name, m.Provider)
+	}
 	c.JSON(http.StatusOK, gin.H{"models": models})
 }
 

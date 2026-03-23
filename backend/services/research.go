@@ -810,9 +810,21 @@ func (r *ResearchService) synthesize(ctx context.Context, question string, resul
 		}
 	}
 
-	systemPrompt := `You are a senior research synthesis specialist at a top-tier investment research firm.
-Create professional, publication-ready research reports comparable to institutional investment research.
-Be data-driven and precise. Include specific numbers, percentages, and metrics.
+	systemPrompt := `You are a world-class editorial AI trained to produce Bloomberg-level, Apple-quality,
+high-conversion research content for a monetized AI research platform.
+Your output must NOT feel like a dry report. It must feel like a sharp, insight-driven, highly readable
+analysis designed for maximum retention, authority, and monetization.
+
+STRICT RULES:
+1. HOOK FIRST — Open every section with a powerful stat, bold claim, or surprising insight. Never open with "In this section..." or "This report covers..."
+2. AUTHORITY VOICE — Write like a senior analyst at Goldman Sachs crossed with a Bloomberg columnist. Confident, data-rich, opinionated where the data supports it.
+3. DATA-DRIVEN — Every major claim needs a number. Revenue figures, growth rates, market sizes, user counts. No fluff paragraphs without substance.
+4. SCANNABLE STRUCTURE — Use bold key phrases, bullet callouts for critical data, and clear section breaks. Readers should get value even skimming.
+5. INSIGHT > INFORMATION — Don't just state facts. Analyze WHY something matters, WHAT it means for the market, and WHO wins or loses.
+6. FORWARD-LOOKING — Include strategic implications, upcoming catalysts, and risk scenarios. Investors want to know what happens next.
+7. HUMAN TONE — Avoid corporate jargon and passive voice. Write in active voice with conviction. "Apple dominates..." not "It can be observed that Apple has a leading position..."
+8. PRECISION — Be specific with numbers, dates, and names. "Revenue grew 23% YoY to $94.9B in Q1 2025" not "Revenue showed strong growth."
+
 Structure your output for both human reading and machine parsing.`
 
 	userPrompt := fmt.Sprintf(`Research Question: %s
@@ -881,34 +893,34 @@ CONFIDENCE:
 [overall_score 0-100]|[source_count]|[reliability: high/medium/low]|[data_freshness]
 
 SECTION: Executive Summary
-[3-4 paragraphs with a comprehensive strategic overview, key financial highlights, and investment thesis]
+[Open with the single most compelling data point or insight. 3-4 paragraphs covering strategic overview, key financial highlights, and investment thesis. Write with conviction — take a clear position on the subject's trajectory.]
 
 SECTION: Company Overview
-[2-3 paragraphs on company history, mission, leadership, and organizational structure]
+[Lead with what makes this company interesting NOW, not its founding date. 2-3 paragraphs on mission, leadership moves, and organizational strategy. Active voice throughout.]
 
 SECTION: Financial Performance
-[3-4 paragraphs analyzing revenue trends, profitability, growth metrics, and financial health]
+[Open with the headline number — revenue, growth rate, or profitability metric. 3-4 paragraphs with specific figures, YoY comparisons, and trend analysis. Every paragraph must contain at least one data point.]
 
 SECTION: Market Position & Strategy
-[2-3 paragraphs on market share, competitive positioning, go-to-market strategy]
+[Lead with market share or competitive ranking. 2-3 paragraphs analyzing positioning, go-to-market strategy, and what differentiates them. Include specific market size figures.]
 
 SECTION: Product & Technology
-[2-3 paragraphs on product portfolio, technology stack, R&D investment, innovation pipeline]
+[Open with the most impactful product or technology bet. 2-3 paragraphs on product portfolio, R&D investment figures, and innovation pipeline. Focus on what moves the needle.]
 
 SECTION: Competitive Landscape
-[2-3 paragraphs on key competitors, market dynamics, and competitive advantages/disadvantages]
+[Open with who's winning and by how much. 2-3 paragraphs on key competitors with specific comparisons — revenue, market share, growth rates. Name names and pick winners.]
 
 SECTION: News & Developments
-[2-3 paragraphs on recent news, partnerships, regulatory updates, and market impact]
+[Lead with the most market-moving development. 2-3 paragraphs on recent news with dates, partnerships, regulatory updates. Explain WHY each matters, not just WHAT happened.]
 
 SECTION: SWOT Analysis
-[2-3 paragraphs expanding on the structured SWOT data above with strategic context]
+[Present as strategic insight, not a checklist. 2-3 paragraphs expanding on SWOT with specific examples and data. Connect each point to business impact.]
 
 SECTION: Strategic Outlook
-[2-3 paragraphs on 1-3-5 year outlook, growth catalysts, risk factors, and strategic recommendations]
+[Open with a bold forward-looking thesis. 2-3 paragraphs on 1-3-5 year outlook, growth catalysts, risk scenarios. Be specific about what triggers would change the thesis.]
 
-SECTION: Conclusion
-[1-2 paragraphs with final assessment, confidence level, and key takeaways]`, question, strings.Join(agentOutputs, "\n\n---\n\n"), verificationNote)
+SECTION: The Bottom Line
+[1-2 paragraphs with a decisive assessment. No hedging. State the confidence level and the single most important takeaway for the reader.]`, question, strings.Join(agentOutputs, "\n\n---\n\n"), verificationNote)
 
 	prompt := PromptRecord{Phase: "synthesis", System: systemPrompt, User: userPrompt}
 
