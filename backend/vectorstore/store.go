@@ -45,19 +45,28 @@ func NewStore(ctx context.Context, databaseURL string, embeddingDim int) (*Store
 		return nil, fmt.Errorf("failed to parse database URL: %w", err)
 	}
 
-	poolCfg.MaxConns = 10
-	poolCfg.MinConns = 2
+	poolCfg.MaxConns = 5
+	poolCfg.MinConns = 0
 	poolCfg.MaxConnLifetime = 30 * time.Minute
 	poolCfg.MaxConnIdleTime = 5 * time.Minute
 	poolCfg.HealthCheckPeriod = 1 * time.Minute
+	poolCfg.ConnConfig.ConnectTimeout = 15 * time.Second
 
 	pool, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	if err := pool.Ping(ctx); err != nil {
-		return nil, fmt.Errorf("failed to ping database: %w", err)
+	// Retry ping up to 3 times (Render free DB may wake slowly)
+	for i := 0; i < 3; i++ {
+		if err = pool.Ping(ctx); err == nil {
+			break
+		}
+		log.Printf("Database ping attempt %d failed: %v, retrying...", i+1, err)
+		time.Sleep(3 * time.Second)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to ping database after retries: %w", err)
 	}
 
 	if embeddingDim <= 0 {
