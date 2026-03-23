@@ -175,18 +175,19 @@ type ResearchService struct {
 	agents       []ResearchAgent
 }
 
-// Per-agent model defaults — distributes load across Gemini and Groq.
+// Per-agent model defaults — uses flash-lite for higher free-tier quota.
+// Groq models used when GROQ_API_KEY is set; otherwise falls back to default Gemini.
 var agentModelDefaults = map[string]string{
-	"planning":   "llama-3.3-70b-versatile",
-	"overview":   "llama-3.3-70b-versatile",
-	"market":     "gemini-2.5-flash",
-	"technical":  "llama-3.3-70b-versatile",
-	"news":       "llama-3.3-70b-versatile",
-	"competitor": "llama-3.3-70b-versatile",
-	"risks":      "gemini-2.5-flash",
-	"extract":    "gemini-2.5-flash",
-	"verify":     "gemini-2.5-flash",
-	"synthesis":  "gemini-2.5-flash",
+	"planning":   "gemini-2.5-flash-lite",
+	"overview":   "gemini-2.5-flash-lite",
+	"market":     "gemini-2.5-flash-lite",
+	"technical":  "gemini-2.5-flash-lite",
+	"news":       "gemini-2.5-flash-lite",
+	"competitor": "gemini-2.5-flash-lite",
+	"risks":      "gemini-2.5-flash-lite",
+	"extract":    "gemini-2.5-flash-lite",
+	"verify":     "gemini-2.5-flash-lite",
+	"synthesis":  "gemini-2.5-flash-lite",
 }
 
 // NewResearchService creates the full research orchestrator.

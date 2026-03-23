@@ -48,13 +48,21 @@ func main() {
 	// Initialize provider registry
 	registry := services.NewProviderRegistry(cfg.LLMModel)
 
-	// Register Gemini (primary)
+	// Register Gemini models
 	llm, err := services.NewLLMService("gemini", cfg.LLMModel, cfg.GeminiKey)
 	if err != nil {
 		log.Fatalf("Failed to initialize LLM service: %v", err)
 	}
-	registry.Register("gemini-2.5-flash", "Gemini 2.5 Flash", "free", llm)
-	log.Printf("LLM: Google Gemini (%s)", cfg.LLMModel)
+	registry.Register(cfg.LLMModel, "Gemini 2.5 Flash", "free", llm)
+
+	// Register flash-lite as a separate model (higher free-tier quota)
+	llmLite, err := services.NewLLMService("gemini", "gemini-2.5-flash-lite", cfg.GeminiKey)
+	if err == nil {
+		registry.Register("gemini-2.5-flash-lite", "Gemini 2.5 Flash Lite", "free", llmLite)
+		log.Println("LLM: Gemini 2.5 Flash Lite registered")
+	}
+
+	log.Printf("LLM: Google Gemini primary (%s)", cfg.LLMModel)
 
 	// Register Groq models (optional — only if API key is set)
 	if cfg.GroqKey != "" {
