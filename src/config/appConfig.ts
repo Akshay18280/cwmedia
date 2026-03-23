@@ -1,52 +1,50 @@
-// TEMPORARY DEBUG CONFIGURATION
-// All environment variables have been hardcoded to eliminate
-// deployment configuration issues.
-// Once the application is confirmed working, migrate these values
-// back to secure environment variables.
+// Configuration loaded from environment variables.
+// For local development, create .env.local with values from .env.example.
+// For production, set these in Vercel dashboard → Environment Variables.
 
 export const appConfig = {
   // ─── Firebase Configuration ─────────────────────────────────────
   firebase: {
-    apiKey: 'AIzaSyCNjCIfq7uLcM3JfMOjfUhJWoP2R-ROHck',
-    authDomain: 'cw-prod-v2.firebaseapp.com',
-    projectId: 'cw-prod-v2',
-    storageBucket: 'cw-prod-v2.firebasestorage.app',
-    messagingSenderId: '726639239023',
-    appId: '1:726639239023:web:b104ea415f7961e346529a',
-    measurementId: 'G-C0RZYXB6VL',
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '',
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || '',
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || '',
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
+    appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
+    measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || '',
   },
 
   // ─── reCAPTCHA Configuration ────────────────────────────────────
   recaptcha: {
-    siteKey: '', // Not yet configured - get from https://www.google.com/recaptcha/admin
+    siteKey: import.meta.env.VITE_RECAPTCHA_SITE_KEY || '',
   },
 
   // ─── Twilio SMS Service ─────────────────────────────────────────
   twilio: {
-    accountSid: 'ACd5aec9f89c48838e877c775fc2f9d7b5',
-    authToken: '', // REQUIRED - get from Twilio Console → Account → Auth Token
-    phoneNumber: '+916264507878',
+    accountSid: import.meta.env.VITE_TWILIO_ACCOUNT_SID || '',
+    authToken: import.meta.env.VITE_TWILIO_AUTH_TOKEN || '',
+    phoneNumber: import.meta.env.VITE_TWILIO_PHONE_NUMBER || '',
   },
 
   // ─── Email Service ──────────────────────────────────────────────
   email: {
-    resendApiKey: 're_2Xwf15TR_P1L52bsB6qZLxmbZYc8sLAVh',
+    resendApiKey: import.meta.env.VITE_RESEND_API_KEY || '',
     fromEmail: 'Carelwave Media <noreply@carelwave.com>',
     replyToEmail: 'contact@carelwave.com',
   },
 
   // ─── Analytics ──────────────────────────────────────────────────
   analytics: {
-    gaMeasurementId: 'G-C0RZYXB6VL',
-    googleAnalyticsPropertyId: '11543981244',
+    gaMeasurementId: import.meta.env.VITE_GA_MEASUREMENT_ID || '',
+    googleAnalyticsPropertyId: import.meta.env.VITE_GA_PROPERTY_ID || '',
     googleAnalyticsServiceKey: '', // DO NOT put service account keys in frontend
-    realtimeMeasurementId: 'G-PLQ0H8HTTZ',
-    realtimeStreamId: '11543981244',
+    realtimeMeasurementId: import.meta.env.VITE_GA_REALTIME_MEASUREMENT_ID || '',
+    realtimeStreamId: import.meta.env.VITE_GA_PROPERTY_ID || '',
   },
 
   // ─── Site / Domain ──────────────────────────────────────────────
   site: {
-    domain: 'https://carelwave.com',
+    domain: import.meta.env.VITE_SITE_DOMAIN || 'https://carelwave.com',
     title: 'Carelwave Media',
     description: 'Modern content management platform',
   },
@@ -56,18 +54,18 @@ export const appConfig = {
     username: 'Akshay18280',
   },
 
-  // ─── Video Services (Optional - not yet configured) ─────────────
+  // ─── Video Services (Optional) ─────────────────────────────────
   video: {
-    youtubeApiKey: '',
-    youtubeClientId: '',
-    vimeoClientId: '',
-    vimeoAccessToken: '',
+    youtubeApiKey: import.meta.env.VITE_YOUTUBE_API_KEY || '',
+    youtubeClientId: import.meta.env.VITE_YOUTUBE_CLIENT_ID || '',
+    vimeoClientId: import.meta.env.VITE_VIMEO_CLIENT_ID || '',
+    vimeoAccessToken: import.meta.env.VITE_VIMEO_ACCESS_TOKEN || '',
   },
 
   // ─── AI Services ───────────────────────────────────────────────
   ai: {
-    openaiApiKey: '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',
-    openaiOrgId: '',
+    openaiApiKey: import.meta.env.VITE_OPENAI_API_KEY || '',
+    openaiOrgId: import.meta.env.VITE_OPENAI_ORG_ID || '',
     // RAG backend URL — Go API that handles document ingestion + chat
     apiBaseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
   },
@@ -80,7 +78,7 @@ export const appConfig = {
 
   // ─── Push Notifications ─────────────────────────────────────────
   notifications: {
-    vapidPublicKey: '',
+    vapidPublicKey: import.meta.env.VITE_VAPID_PUBLIC_KEY || '',
   },
 
   // ─── Feature Flags ──────────────────────────────────────────────
@@ -88,25 +86,25 @@ export const appConfig = {
   // Disabled features are safely skipped at runtime — no crashes.
   features: {
     enablePWA: true,
-    enableAnalytics: true,           // GA measurement ID is configured
-    enableVoiceCommands: true,       // Uses browser Web Speech API, no key needed
-    enableOpenAI: true,              // OpenAI API key is configured
-    enableYoutube: false,            // Feature disabled — YouTube API key not provided
-    enableVimeo: false,              // Feature disabled — Vimeo access token not provided
-    enableRecaptcha: false,          // Feature disabled — reCAPTCHA site key not provided
-    enablePushNotifications: false,  // Feature disabled — VAPID public key not provided
-    enableWebSocket: false,          // Feature disabled — no WebSocket server deployed
-    enableTwilioSMS: false,          // Feature disabled — Twilio auth token not provided
-    enableResendEmail: true,         // Resend API key is configured
-    aiLab: true,                     // AI Lab portfolio section — AI Knowledge Copilot demo
-    automationLab: true,             // Automation Lab — AI newsroom research + publish pipeline
+    enableAnalytics: true,
+    enableVoiceCommands: true,
+    enableOpenAI: true,
+    enableYoutube: false,
+    enableVimeo: false,
+    enableRecaptcha: false,
+    enablePushNotifications: false,
+    enableWebSocket: false,
+    enableTwilioSMS: false,
+    enableResendEmail: true,
+    aiLab: true,
+    automationLab: true,
     debugMode: false,
   },
 
   // ─── Admin / IP Auth ───────────────────────────────────────────
   admin: {
     ipAuthEnabled: true,
-    allowedIPs: [] as string[], // Add your admin IPs here
+    allowedIPs: [] as string[],
   },
 
   // ─── CDN Endpoints ─────────────────────────────────────────────
@@ -118,10 +116,8 @@ export const appConfig = {
     ],
     devEndpoint: 'http://localhost:3001',
   },
-} as const;
+};
 
 // Helper: check if we're in production build
-// Vite still sets import.meta.env.PROD / import.meta.env.DEV at build time.
-// These are compile-time constants and NOT environment variables - they are safe.
 export const isProd = import.meta.env.PROD;
 export const isDev = import.meta.env.DEV;
