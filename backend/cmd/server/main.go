@@ -48,20 +48,27 @@ func main() {
 	// Initialize provider registry
 	registry := services.NewProviderRegistry(cfg.LLMModel)
 
-	// Register Gemini models
+	// Register primary Gemini model
 	llm, err := services.NewLLMService("gemini", cfg.LLMModel, cfg.GeminiKey)
 	if err != nil {
 		log.Fatalf("Failed to initialize LLM service: %v", err)
 	}
-	registry.Register(cfg.LLMModel, "Gemini 2.5 Flash", "free", llm)
+	registry.Register(cfg.LLMModel, modelDisplayName(cfg.LLMModel), "free", llm)
+	log.Printf("LLM: primary model registered: %s", cfg.LLMModel)
 
-	// Register flash-lite as a separate model (higher free-tier quota)
-	llmLite, liteErr := services.NewLLMService("gemini", "gemini-2.5-flash-lite", cfg.GeminiKey)
-	if liteErr == nil {
-		registry.Register("gemini-2.5-flash-lite", "Gemini 2.5 Flash Lite", "free", llmLite)
-		log.Println("LLM: Gemini 2.5 Flash Lite registered")
-	} else {
-		log.Printf("WARNING: Failed to register flash-lite: %v", liteErr)
+	// Register additional Gemini models so users can pick them in the UI
+	extraGeminiModels := []string{"gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash-lite", "gemini-2.0-flash"}
+	for _, modelID := range extraGeminiModels {
+		if modelID == cfg.LLMModel {
+			continue // already registered above
+		}
+		extra, extraErr := services.NewLLMService("gemini", modelID, cfg.GeminiKey)
+		if extraErr == nil {
+			registry.Register(modelID, modelDisplayName(modelID), "free", extra)
+			log.Printf("LLM: extra model registered: %s", modelID)
+		} else {
+			log.Printf("WARNING: Failed to register %s: %v", modelID, extraErr)
+		}
 	}
 
 	log.Printf("LLM: Google Gemini primary (%s)", cfg.LLMModel)
@@ -146,4 +153,18 @@ func main() {
 		log.Fatalf("Server forced to shutdown: %v", err)
 	}
 	log.Println("Server stopped")
+}
+
+// modelDisplayName returns a human-friendly name for a Gemini model ID.
+func modelDisplayName(modelID string) string {
+	names := map[string]string{
+		"gemini-2.5-flash":      "Gemini 2.5 Flash",
+		"gemini-2.5-flash-lite": "Gemini 2.5 Flash Lite",
+		"gemini-2.0-flash":      "Gemini 2.0 Flash",
+		"gemini-2.0-flash-lite": "Gemini 2.0 Flash Lite",
+	}
+	if name, ok := names[modelID]; ok {
+		return name
+	}
+	return modelID
 }
