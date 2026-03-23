@@ -56,10 +56,12 @@ func main() {
 	registry.Register(cfg.LLMModel, "Gemini 2.5 Flash", "free", llm)
 
 	// Register flash-lite as a separate model (higher free-tier quota)
-	llmLite, err := services.NewLLMService("gemini", "gemini-2.5-flash-lite", cfg.GeminiKey)
-	if err == nil {
+	llmLite, liteErr := services.NewLLMService("gemini", "gemini-2.5-flash-lite", cfg.GeminiKey)
+	if liteErr == nil {
 		registry.Register("gemini-2.5-flash-lite", "Gemini 2.5 Flash Lite", "free", llmLite)
 		log.Println("LLM: Gemini 2.5 Flash Lite registered")
+	} else {
+		log.Printf("WARNING: Failed to register flash-lite: %v", liteErr)
 	}
 
 	log.Printf("LLM: Google Gemini primary (%s)", cfg.LLMModel)
