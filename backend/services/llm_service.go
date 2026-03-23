@@ -14,7 +14,7 @@ import (
 )
 
 // fallbackModels lists models to try when the primary model's daily quota is exhausted.
-var fallbackModels = []string{"gemini-2.5-flash-lite", "gemini-2.0-flash-lite", "gemini-2.0-flash"}
+var fallbackModels = []string{"gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash-lite", "gemini-2.0-flash"}
 
 // LLMService handles communication with Google Gemini API.
 // Includes a rate limiter to respect Gemini free-tier limits.
