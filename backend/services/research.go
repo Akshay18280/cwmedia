@@ -417,13 +417,24 @@ func (r *ResearchService) Research(ctx context.Context, question string, eventCh
 
 	var allFacts []ExtractedFact
 	var allSources []WebSearchResult
-	for i, ar := range agentResults {
-		if ar.Status == "completed" {
-			facts, _ := r.factExtract.Extract(ctx, ar.Content, question)
-			agentResults[i].Facts = facts
-			allFacts = append(allFacts, facts...)
-			allSources = append(allSources, ar.Sources...)
+	{
+		var factMu sync.Mutex
+		var factWg sync.WaitGroup
+		for i, ar := range agentResults {
+			if ar.Status == "completed" {
+				factWg.Add(1)
+				go func(idx int, content string, sources []WebSearchResult) {
+					defer factWg.Done()
+					facts, _ := r.factExtract.Extract(ctx, content, question)
+					factMu.Lock()
+					agentResults[idx].Facts = facts
+					allFacts = append(allFacts, facts...)
+					allSources = append(allSources, sources...)
+					factMu.Unlock()
+				}(i, ar.Content, ar.Sources)
+			}
 		}
+		factWg.Wait()
 	}
 
 	// Phase 4: Verification
@@ -578,9 +589,9 @@ func (r *ResearchService) executeAgents(ctx context.Context, agents []ResearchAg
 		results []AgentResult
 	)
 
-	// Run agents in batches of 2 to avoid Gemini rate limits.
-	// Tavily search is fast (<1s), but each agent needs 1 Gemini LLM call for analysis.
-	batchSize := 2
+	// Run agents in batches of 4 for faster research.
+	// Rate limiting is handled by LLM service semaphore + minInterval.
+	batchSize := 4
 	for i := 0; i < len(agents); i += batchSize {
 		end := i + batchSize
 		if end > len(agents) {
@@ -672,10 +683,10 @@ func (r *ResearchService) executeAgents(ctx context.Context, agents []ResearchAg
 		}
 
 		batchWg.Wait()
-		// Small pause between batches to respect rate limits
+		// Brief pause between batches
 		if end < len(agents) {
 			select {
-			case <-time.After(2 * time.Second):
+			case <-time.After(500 * time.Millisecond):
 			case <-ctx.Done():
 				return results
 			}

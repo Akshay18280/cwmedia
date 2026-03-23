@@ -40,8 +40,8 @@ func NewLLMService(provider, model, apiKey string) (*LLMService, error) {
 	return &LLMService{
 		model:       model,
 		apiKey:      apiKey,
-		sem:         make(chan struct{}, 3),    // max 3 concurrent requests
-		minInterval: 3 * time.Second,          // throttle to ~20 RPM; 429 retry handles bursts
+		sem:         make(chan struct{}, 5),    // max 5 concurrent requests
+		minInterval: 1 * time.Second,          // throttle to ~60 RPM; 429 retry handles bursts
 	}, nil
 }
 
