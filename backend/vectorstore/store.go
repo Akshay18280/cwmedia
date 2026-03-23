@@ -2,7 +2,11 @@ package vectorstore
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"log"
+	"math"
+	"sort"
 	"strings"
 	"time"
 
@@ -31,6 +35,7 @@ type SearchResult struct {
 type Store struct {
 	pool         *pgxpool.Pool
 	embeddingDim int
+	hasPgvector  bool
 }
 
 // NewStore creates a vector store connected to the given database.
@@ -68,26 +73,51 @@ func (s *Store) Ping(ctx context.Context) error {
 
 // RunMigrations creates the required extension and tables.
 func (s *Store) RunMigrations(ctx context.Context) error {
-	queries := []string{
-		"CREATE EXTENSION IF NOT EXISTS vector",
-		`CREATE TABLE IF NOT EXISTS documents (
-			id UUID PRIMARY KEY,
-			filename TEXT NOT NULL,
-			uploaded_at TIMESTAMPTZ DEFAULT NOW()
-		)`,
-		fmt.Sprintf(`CREATE TABLE IF NOT EXISTS chunks (
+	// Try to enable pgvector; fall back to TEXT-based storage if unavailable
+	_, err := s.pool.Exec(ctx, "CREATE EXTENSION IF NOT EXISTS vector")
+	if err == nil {
+		s.hasPgvector = true
+		log.Println("pgvector extension enabled")
+	} else {
+		s.hasPgvector = false
+		log.Printf("pgvector not available (%v), using TEXT fallback for embeddings", err)
+	}
+
+	// Create documents table
+	if _, err := s.pool.Exec(ctx, `CREATE TABLE IF NOT EXISTS documents (
+		id UUID PRIMARY KEY,
+		filename TEXT NOT NULL,
+		uploaded_at TIMESTAMPTZ DEFAULT NOW()
+	)`); err != nil {
+		return fmt.Errorf("migration failed on documents table: %w", err)
+	}
+
+	// Create chunks table with appropriate embedding column type
+	if s.hasPgvector {
+		q := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS chunks (
 			id UUID PRIMARY KEY,
 			document_id UUID REFERENCES documents(id) ON DELETE CASCADE,
 			content TEXT NOT NULL,
 			embedding vector(%d)
-		)`, s.embeddingDim),
-		`CREATE INDEX IF NOT EXISTS chunks_embedding_idx
-			ON chunks USING hnsw (embedding vector_cosine_ops)`,
-	}
-
-	for _, q := range queries {
+		)`, s.embeddingDim)
 		if _, err := s.pool.Exec(ctx, q); err != nil {
-			return fmt.Errorf("migration failed on query [%s]: %w", q[:min(len(q), 60)], err)
+			return fmt.Errorf("migration failed on chunks table: %w", err)
+		}
+
+		if _, err := s.pool.Exec(ctx, `CREATE INDEX IF NOT EXISTS chunks_embedding_idx
+			ON chunks USING hnsw (embedding vector_cosine_ops)`); err != nil {
+			// HNSW index may fail on some versions; log and continue
+			log.Printf("Warning: could not create HNSW index: %v", err)
+		}
+	} else {
+		// Fallback: store embeddings as TEXT (JSON array)
+		if _, err := s.pool.Exec(ctx, `CREATE TABLE IF NOT EXISTS chunks (
+			id UUID PRIMARY KEY,
+			document_id UUID REFERENCES documents(id) ON DELETE CASCADE,
+			content TEXT NOT NULL,
+			embedding TEXT DEFAULT '[]'
+		)`); err != nil {
+			return fmt.Errorf("migration failed on chunks table: %w", err)
 		}
 	}
 
@@ -119,9 +149,16 @@ func (s *Store) InsertChunks(ctx context.Context, documentID uuid.UUID, contents
 	batch := &pgx.Batch{}
 	for i := range contents {
 		id := uuid.New()
+		var embVal interface{}
+		if s.hasPgvector {
+			embVal = pgvectorString(embeddings[i])
+		} else {
+			b, _ := json.Marshal(embeddings[i])
+			embVal = string(b)
+		}
 		batch.Queue(
 			"INSERT INTO chunks (id, document_id, content, embedding) VALUES ($1, $2, $3, $4)",
-			id, documentID, contents[i], pgvectorString(embeddings[i]),
+			id, documentID, contents[i], embVal,
 		)
 	}
 
@@ -139,6 +176,13 @@ func (s *Store) InsertChunks(ctx context.Context, documentID uuid.UUID, contents
 
 // Search finds the top-k most similar chunks to the query embedding.
 func (s *Store) Search(ctx context.Context, queryEmbedding []float32, topK int) ([]SearchResult, error) {
+	if s.hasPgvector {
+		return s.searchPgvector(ctx, queryEmbedding, topK)
+	}
+	return s.searchFallback(ctx, queryEmbedding, topK)
+}
+
+func (s *Store) searchPgvector(ctx context.Context, queryEmbedding []float32, topK int) ([]SearchResult, error) {
 	rows, err := s.pool.Query(ctx,
 		`SELECT c.id, d.filename, c.content, c.embedding <-> $1 AS distance
 		 FROM chunks c
@@ -162,6 +206,65 @@ func (s *Store) Search(ctx context.Context, queryEmbedding []float32, topK int) 
 	}
 
 	return results, nil
+}
+
+func (s *Store) searchFallback(ctx context.Context, queryEmbedding []float32, topK int) ([]SearchResult, error) {
+	// Load all chunks and compute cosine distance in Go
+	rows, err := s.pool.Query(ctx,
+		`SELECT c.id, d.filename, c.content, c.embedding
+		 FROM chunks c
+		 JOIN documents d ON c.document_id = d.id`)
+	if err != nil {
+		return nil, fmt.Errorf("fallback search failed: %w", err)
+	}
+	defer rows.Close()
+
+	type scored struct {
+		SearchResult
+		dist float64
+	}
+	var all []scored
+
+	for rows.Next() {
+		var id, filename, content, embText string
+		if err := rows.Scan(&id, &filename, &content, &embText); err != nil {
+			return nil, fmt.Errorf("failed to scan chunk: %w", err)
+		}
+		var emb []float32
+		if err := json.Unmarshal([]byte(embText), &emb); err != nil {
+			continue // skip malformed embeddings
+		}
+		dist := cosineDistance(queryEmbedding, emb)
+		all = append(all, scored{SearchResult{id, filename, content, dist}, dist})
+	}
+
+	sort.Slice(all, func(i, j int) bool { return all[i].dist < all[j].dist })
+	if len(all) > topK {
+		all = all[:topK]
+	}
+
+	results := make([]SearchResult, len(all))
+	for i, s := range all {
+		results[i] = s.SearchResult
+	}
+	return results, nil
+}
+
+func cosineDistance(a, b []float32) float64 {
+	if len(a) != len(b) || len(a) == 0 {
+		return 1.0
+	}
+	var dot, normA, normB float64
+	for i := range a {
+		dot += float64(a[i]) * float64(b[i])
+		normA += float64(a[i]) * float64(a[i])
+		normB += float64(b[i]) * float64(b[i])
+	}
+	denom := math.Sqrt(normA) * math.Sqrt(normB)
+	if denom == 0 {
+		return 1.0
+	}
+	return 1.0 - dot/denom
 }
 
 // DocumentInfo represents a stored document with metadata.
