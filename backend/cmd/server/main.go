@@ -83,11 +83,6 @@ func main() {
 		log.Println("Research service initialized with Gemini knowledge search + multi-agent orchestration")
 	}
 
-	// Seed example documents if database is empty
-	if err := seed.LoadExampleDocuments(ctx, store, pipeline); err != nil {
-		log.Printf("Warning: failed to seed example documents: %v", err)
-	}
-
 	// Set up Gin
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
@@ -114,10 +109,18 @@ func main() {
 		MaxHeaderBytes: 1 << 20, // 1 MB
 	}
 
+	// Start HTTP server FIRST so Render sees it as healthy
 	go func() {
 		log.Printf("RAG backend listening on %s", addr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Server error: %v", err)
+		}
+	}()
+
+	// Seed example documents in background (non-blocking)
+	go func() {
+		if err := seed.LoadExampleDocuments(ctx, store, pipeline); err != nil {
+			log.Printf("Warning: failed to seed example documents: %v", err)
 		}
 	}()
 
