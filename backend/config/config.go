@@ -21,6 +21,7 @@ type Config struct {
 	MaxUploadSizeMB int
 	TavilyKey       string
 	GroqKey         string
+	XAIKey          string
 }
 
 func Load() (*Config, error) {
@@ -50,6 +51,7 @@ func Load() (*Config, error) {
 		MaxUploadSizeMB: maxUpload,
 		TavilyKey:       getEnv("TAVILY_API_KEY", ""),
 		GroqKey:         getEnv("GROQ_API_KEY", ""),
+		XAIKey:          getEnv("XAI_API_KEY", ""),
 	}
 
 	return cfg, nil

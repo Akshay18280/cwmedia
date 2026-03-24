@@ -89,6 +89,21 @@ func main() {
 		}
 	}
 
+	// Register xAI (Grok) models (optional — only if API key is set)
+	if cfg.XAIKey != "" {
+		xaiModels := []struct{ id, name string }{
+			{"grok-3-mini", "Grok 3 Mini"},
+			{"grok-3-mini-fast", "Grok 3 Mini Fast"},
+		}
+		for _, m := range xaiModels {
+			xai, err := services.NewXAIProvider(m.id, cfg.XAIKey)
+			if err == nil {
+				registry.Register(m.id, m.name, "free", xai)
+				log.Printf("LLM: xAI (%s) registered", m.id)
+			}
+		}
+	}
+
 	// Initialize RAG pipeline
 	pipeline := rag.NewPipeline(embedder, store, llm, cfg.ChunkSize, cfg.ChunkOverlap, cfg.TopK)
 
