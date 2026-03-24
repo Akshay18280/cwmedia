@@ -83,6 +83,13 @@ func (r *ProviderRegistry) Default() LLMProvider {
 	return nil
 }
 
+// Count returns the number of registered models.
+func (r *ProviderRegistry) Count() int {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return len(r.providers)
+}
+
 // ListModels returns all registered models.
 func (r *ProviderRegistry) ListModels() []ModelInfo {
 	r.mu.RLock()

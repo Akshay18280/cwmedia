@@ -3,7 +3,9 @@ package services
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
+	"time"
 )
 
 // ExtractedFact represents a structured fact from research.
@@ -49,15 +51,27 @@ leadership|CEO|Jensen Huang|N/A|current
 product|Latest GPU architecture|Blackwell|N/A|2024`
 
 // Extract extracts structured facts from research text.
-func (f *FactExtractor) Extract(ctx context.Context, content string, topic string) ([]ExtractedFact, error) {
+func (f *FactExtractor) Extract(ctx context.Context, content string, topic string, llmOverride ...LLMProvider) ([]ExtractedFact, error) {
+	llm := f.llm
+	if len(llmOverride) > 0 && llmOverride[0] != nil {
+		llm = llmOverride[0]
+	}
+
+	log.Printf("[FACTS] Extracting facts for topic=%q using model: %s (content: %d chars)", topic, llm.ModelName(), len(content))
+
 	prompt := fmt.Sprintf("Topic: %s\n\nResearch Content:\n%s\n\nExtract all key facts.", topic, truncateContent(content, 3000))
 
-	response, err := f.llm.Generate(ctx, factExtractionPrompt, prompt, 1024)
+	start := time.Now()
+	response, err := llm.Generate(ctx, factExtractionPrompt, prompt, 1024)
 	if err != nil {
+		log.Printf("[FACTS] Extraction failed after %dms: %v", time.Since(start).Milliseconds(), err)
 		return nil, fmt.Errorf("fact extraction failed: %w", err)
 	}
 
-	return parseFacts(response), nil
+	facts := parseFacts(response)
+	log.Printf("[FACTS] Extracted %d facts in %dms", len(facts), time.Since(start).Milliseconds())
+
+	return facts, nil
 }
 
 func parseFacts(response string) []ExtractedFact {

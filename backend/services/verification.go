@@ -3,7 +3,9 @@ package services
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
+	"time"
 )
 
 // VerifiedFact is a fact that has been cross-referenced.
@@ -53,7 +55,14 @@ Example:
 0.30|Revenue declined in Q4|contradicted|Overview says growth, risk agent says decline`
 
 // Verify cross-references facts from multiple agent results.
-func (v *VerificationAgent) Verify(ctx context.Context, agentResults []AgentResult, facts []ExtractedFact) (*VerificationResult, error) {
+func (v *VerificationAgent) Verify(ctx context.Context, agentResults []AgentResult, facts []ExtractedFact, llmOverride ...LLMProvider) (*VerificationResult, error) {
+	llm := v.llm
+	if len(llmOverride) > 0 && llmOverride[0] != nil {
+		llm = llmOverride[0]
+	}
+
+	log.Printf("[VERIFY] Starting verification of %d facts using model: %s (provider: %s)", len(facts), llm.ModelName(), llm.ProviderName())
+
 	// Build content from all agents for cross-referencing
 	var agentContent []string
 	for _, ar := range agentResults {
@@ -61,6 +70,7 @@ func (v *VerificationAgent) Verify(ctx context.Context, agentResults []AgentResu
 			agentContent = append(agentContent, fmt.Sprintf("=== %s ===\n%s", ar.AgentName, ar.Content))
 		}
 	}
+	log.Printf("[VERIFY] Cross-referencing across %d agent outputs", len(agentContent))
 
 	// Build fact list
 	var factList []string
@@ -80,15 +90,23 @@ Key Claims to Verify:
 
 Cross-reference these claims against all agent findings and verify each one.`, strings.Join(agentContent, "\n\n"), strings.Join(factList, "\n"))
 
-	response, err := v.llm.Generate(ctx, verificationPrompt, prompt, 1024)
+	llmStart := time.Now()
+	response, err := llm.Generate(ctx, verificationPrompt, prompt, 1024)
 	if err != nil {
-		// Return facts with default confidence and a warning that verification failed
+		log.Printf("[VERIFY] LLM call failed after %dms: %v", time.Since(llmStart).Milliseconds(), err)
 		result := v.defaultVerification(facts)
 		result.Warnings = append(result.Warnings, fmt.Sprintf("Verification LLM call failed: %v — using default confidence scores", err))
 		return result, nil
 	}
+	log.Printf("[VERIFY] LLM response received in %dms (%d chars)", time.Since(llmStart).Milliseconds(), len(response))
 
-	return v.parseVerification(response, facts), nil
+	result := v.parseVerification(response, facts)
+	log.Printf("[VERIFY] Results: %d verified facts, overall confidence: %.0f%%", len(result.VerifiedFacts), result.OverallConfidence*100)
+	if len(result.Warnings) > 0 {
+		log.Printf("[VERIFY] Warnings: %v", result.Warnings)
+	}
+
+	return result, nil
 }
 
 func (v *VerificationAgent) parseVerification(response string, originalFacts []ExtractedFact) *VerificationResult {
